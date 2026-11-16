@@ -123,16 +123,34 @@ export async function getNightForKey(db: SQLiteDatabase, babyId: string, key: st
   return db.getFirstAsync<Night>('SELECT * FROM night WHERE babyId = ? AND nightKey = ? LIMIT 1', babyId, key);
 }
 
-/** Most recent night before the given key that has at least one live event. */
-export async function getPreviousNight(db: SQLiteDatabase, babyId: string, beforeKey: string): Promise<Night | null> {
+export async function getNight(db: SQLiteDatabase, nightId: string): Promise<Night | null> {
+  return db.getFirstAsync<Night>('SELECT * FROM night WHERE id = ?', nightId);
+}
+
+/**
+ * Most recent night before the given key that has at least one live event.
+ * Nights before `roundStartKey` (an earlier training round) don't count, so a
+ * new round starts again at night 1.
+ */
+export async function getPreviousNight(
+  db: SQLiteDatabase,
+  babyId: string,
+  beforeKey: string,
+  roundStartKey: string | null = null,
+): Promise<Night | null> {
   return db.getFirstAsync<Night>(
     `SELECT n.* FROM night n
-     WHERE n.babyId = ? AND n.nightKey < ?
+     WHERE n.babyId = ? AND n.nightKey < ? AND n.nightKey >= ?
        AND EXISTS (SELECT 1 FROM event e WHERE e.nightId = n.id AND e.deletedAt IS NULL)
      ORDER BY n.nightKey DESC LIMIT 1`,
     babyId,
     beforeKey,
+    roundStartKey ?? '',
   );
+}
+
+export async function setNightNote(db: SQLiteDatabase, nightId: string, note: string): Promise<void> {
+  await db.runAsync('UPDATE night SET note = ? WHERE id = ?', note.trim() ? note : null, nightId);
 }
 
 /** What tonight's numbers would be, before a night row exists. */
@@ -149,9 +167,10 @@ export async function createNight(
   babyId: string,
   at: number,
   repeatLastNight: boolean,
+  roundStartKey: string | null = null,
 ): Promise<Night> {
   const key = nightKey(at);
-  const prev = await getPreviousNight(db, babyId, key);
+  const prev = await getPreviousNight(db, babyId, key, roundStartKey);
   const nums = plannedNumbers(prev, repeatLastNight);
   const night: Night = { id: randomUUID(), babyId, nightKey: key, startedAt: at, note: null, ...nums };
   await db.runAsync(
@@ -188,6 +207,10 @@ export async function insertEvent(db: SQLiteDatabase, nightId: string, type: Eve
     e.createdBy ?? null,
   );
   return e;
+}
+
+export async function updateEventTime(db: SQLiteDatabase, eventId: string, at: number): Promise<void> {
+  await db.runAsync('UPDATE event SET at = ? WHERE id = ?', at, eventId);
 }
 
 /** Soft delete, so a delete can sync to the partner's phone later. */

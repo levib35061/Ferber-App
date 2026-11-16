@@ -25,6 +25,7 @@ import {
   plannedNumbers,
   setNightChartNight,
   setSetting,
+  updateBaby,
   softDeleteEvent,
 } from './db';
 import { notificationPermission, reconcileCheckInAlert, requestNotificationPermission } from './notifications';
@@ -54,6 +55,7 @@ interface NightStoreValue {
   lastTap: LastTap | null;
   undo: () => Promise<void>;
   updateSetting: <K extends keyof Settings>(key: K, value: Settings[K]) => Promise<void>;
+  saveBaby: (baby: Baby) => Promise<void>;
   reload: () => Promise<void>;
 }
 
@@ -88,7 +90,7 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
     const s = await getSettings(db);
     const key = nightKey(Date.now());
     const n = await getNightForKey(db, b.id, key);
-    const p = await getPreviousNight(db, b.id, key);
+    const p = await getPreviousNight(db, b.id, key, b.trainingStartDate);
     const evs = n ? await listEvents(db, n.id) : [];
     setBaby(b);
     setSettings(s);
@@ -130,7 +132,7 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
           await requestNotificationPermission().catch(() => false);
         }
         let n = night;
-        if (!n) n = await createNight(db, baby.id, now, repeatLastNight);
+        if (!n) n = await createNight(db, baby.id, now, repeatLastNight, baby.trainingStartDate);
         const e = await insertEvent(db, n.id, action, now);
         setLastTap({ eventId: e.id, type: action, tappedAt: now });
         await reload();
@@ -169,6 +171,14 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
     [db, reload],
   );
 
+  const saveBaby = useCallback(
+    async (b: Baby) => {
+      await updateBaby(db, b);
+      await reload();
+    },
+    [db, reload],
+  );
+
   const stateAt = useCallback(
     (now: number) => (night ? deriveNightState(events, chart, night.chartNight, now) : ({ kind: 'idle' } as NightState)),
     [chart, events, night],
@@ -191,6 +201,7 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
     lastTap,
     undo,
     updateSetting,
+    saveBaby,
     reload,
   };
 

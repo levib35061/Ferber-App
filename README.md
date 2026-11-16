@@ -46,6 +46,13 @@ npm run lint
 - [x] On-device acceptance test (alerts with phone locked, force-quit recovery)
 - [x] "Moonlight" look: navy, lavender progress ring, peach when a check-in is due, Nunito font
 
+**Milestone 2 (tracking) — code done, needs a week of real nights**
+
+- [x] Night detail: timeline of every tap, fix a time, delete a tap, add a missed tap, notes
+- [x] Progress tab: crying minutes (or check-ins) per night, plus a trend line
+- [x] Settings: interval chart editor (Ferber / Gentle / Custom, reset), baby name, start a new training round
+- [ ] **Acceptance test:** log a full week of real nights, and check each night's numbers in History match a hand count
+
 ### Milestone 1 acceptance test (do this before building more)
 
 1. Open the app, tap **Down for the night**, and allow notifications.

@@ -18,6 +18,7 @@ export default function TabsLayout() {
     >
       <Tabs.Screen name="index" options={{ title: 'Night' }} />
       <Tabs.Screen name="history" options={{ title: 'History' }} />
+      <Tabs.Screen name="progress" options={{ title: 'Progress' }} />
       <Tabs.Screen name="settings" options={{ title: 'Settings' }} />
     </Tabs>
   );

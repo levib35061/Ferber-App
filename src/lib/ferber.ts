@@ -92,3 +92,15 @@ export function nextWaitMinutes(
   const row = chart[Math.min(n, chart.length) - 1];
   return cell(row, k);
 }
+
+export const MAX_WAIT_MINUTES = 120;
+
+/** Returns a copy of the chart with one cell changed (rows are padded to 3 columns first). */
+export function setChartCell(chart: Chart, row: number, col: number, minutes: number): Chart {
+  const value = Math.min(MAX_WAIT_MINUTES, Math.max(1, Math.round(minutes)));
+  return chart.map((r, i) => {
+    const full = [0, 1, 2].map((c) => cell(r, c));
+    if (i === row) full[col] = value;
+    return full;
+  });
+}

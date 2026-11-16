@@ -24,7 +24,8 @@
           "imageWidth": 120
         }
       ],
-      "expo-font"
+      "expo-font",
+      "@react-native-community/datetimepicker"
     ],
     "scheme": "ferber",
     "backgroundColor": "#070B1C",

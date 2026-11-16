@@ -45,3 +45,14 @@ export function formatDuration(ms: number): string {
 export function formatClock(atMs: number): string {
   return new Date(atMs).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 }
+
+/**
+ * The timestamp for a local clock time within a given night.
+ * A night "YYYY-MM-DD" runs from 11am that day to 11am the next, so
+ * 9:30pm lands on that date and 2:15am lands on the following date.
+ */
+export function atTimeInNight(key: string, hour: number, minute: number): number {
+  const [y, m, d] = key.split('-').map(Number);
+  const dayOffset = hour < NIGHT_ENDS_HOUR ? 1 : 0;
+  return new Date(y, m - 1, d + dayOffset, hour, minute, 0, 0).getTime();
+}

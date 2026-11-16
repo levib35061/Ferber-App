@@ -2,10 +2,10 @@
  * History (Milestone 1: read-only list). Milestone 2 adds night detail,
  * event editing and notes.
  */
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import React, { useCallback, useState } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Night, listNightsWithEvents } from '../../data/db';
@@ -40,10 +40,17 @@ export default function HistoryScreen() {
             day: 'numeric',
           });
           return (
-            <View style={styles.row}>
+            <Pressable
+              style={({ pressed }) => [styles.row, pressed && { opacity: 0.6 }]}
+              onPress={() => router.push({ pathname: '/night/[id]', params: { id: item.night.id } })}
+              accessibilityRole="button"
+            >
               <View style={{ flex: 1 }}>
                 <Text style={styles.rowTitle}>Night {item.night.nightNumber}</Text>
-                <Text style={styles.rowSub}>{date}</Text>
+                <Text style={styles.rowSub}>
+                  {date}
+                  {item.night.note ? ' · has a note' : ''}
+                </Text>
               </View>
               <View style={{ alignItems: 'flex-end' }}>
                 <Text style={styles.rowTitle}>{s.cryingMinutes} min</Text>
@@ -51,7 +58,8 @@ export default function HistoryScreen() {
                   {s.checkIns} check-in{s.checkIns === 1 ? '' : 's'} · {s.wakings} waking{s.wakings === 1 ? '' : 's'}
                 </Text>
               </View>
-            </View>
+              <Text style={styles.chevron}>›</Text>
+            </Pressable>
           );
         }}
       />
@@ -69,6 +77,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
   },
+  chevron: { color: colors.textFaint, fontSize: 22, marginLeft: 12, alignSelf: 'center' },
   rowTitle: { color: colors.text, fontSize: type.body, fontFamily: fonts.semibold },
   rowSub: { color: colors.textDim, fontFamily: fonts.regular, fontSize: type.small, marginTop: 2 },
 });

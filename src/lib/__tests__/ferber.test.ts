@@ -1,4 +1,4 @@
-import { FERBER_DEFAULT_CHART, chartForPreset, gentleChart, isValidChart, nextWaitMinutes } from '../ferber';
+import { FERBER_DEFAULT_CHART, chartForPreset, gentleChart, isValidChart, nextWaitMinutes, setChartCell } from '../ferber';
 
 describe('nextWaitMinutes (Ferber default chart)', () => {
   const c = FERBER_DEFAULT_CHART;
@@ -52,5 +52,19 @@ describe('presets', () => {
     expect(chartForPreset('custom', [[1, 2]])).toEqual([[1, 2]]);
     expect(chartForPreset('custom', null)).toBe(FERBER_DEFAULT_CHART);
     expect(chartForPreset('ferber')).toBe(FERBER_DEFAULT_CHART);
+  });
+});
+
+describe('setChartCell', () => {
+  it('changes one cell without mutating the original, padding rows to 3 columns', () => {
+    const c = [[3, 5, 10], [4]];
+    const out = setChartCell(c, 1, 2, 9);
+    expect(out).toEqual([[3, 5, 10], [4, 4, 9]]);
+    expect(c).toEqual([[3, 5, 10], [4]]);
+  });
+  it('clamps to 1..120 whole minutes', () => {
+    expect(setChartCell([[3, 5, 10]], 0, 0, 0)[0][0]).toBe(1);
+    expect(setChartCell([[3, 5, 10]], 0, 0, 500)[0][0]).toBe(120);
+    expect(setChartCell([[3, 5, 10]], 0, 0, 4.6)[0][0]).toBe(5);
   });
 });

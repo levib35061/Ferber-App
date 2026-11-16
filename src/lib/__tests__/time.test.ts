@@ -1,4 +1,4 @@
-import { formatDuration, nightKey } from '../time';
+import { atTimeInNight, formatDuration, nightKey } from '../time';
 
 describe('nightKey (night runs 5pm–11am local)', () => {
   it('puts 2am with the previous evening', () => {
@@ -22,5 +22,16 @@ describe('formatDuration', () => {
     expect(formatDuration(251_100)).toBe('4:12');
     expect(formatDuration(3_725_000)).toBe('1:02:05');
     expect(formatDuration(-5)).toBe('0:00');
+  });
+});
+
+describe('atTimeInNight', () => {
+  it('puts evening times on the night date and early-morning times on the next day', () => {
+    expect(atTimeInNight('2026-11-14', 21, 30)).toBe(new Date(2026, 10, 14, 21, 30).getTime());
+    expect(atTimeInNight('2026-11-14', 2, 15)).toBe(new Date(2026, 10, 15, 2, 15).getTime());
+    expect(atTimeInNight('2026-11-30', 0, 5)).toBe(new Date(2026, 11, 1, 0, 5).getTime());
+  });
+  it('round-trips with nightKey', () => {
+    for (const h of [0, 3, 10, 11, 17, 23]) expect(nightKey(atTimeInNight('2026-11-14', h, 0))).toBe('2026-11-14');
   });
 });
