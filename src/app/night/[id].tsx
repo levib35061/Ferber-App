@@ -78,7 +78,7 @@ export default function NightDetailScreen() {
         {eps.map((ep, i) => (
           <View key={ep.start.id} style={styles.episode}>
             <Text style={styles.epTitle}>
-              {ep.start.type === 'down' ? 'Bedtime' : `Waking ${eps.slice(0, i + 1).filter((x) => x.start.type === 'woke').length}`}
+              {ep.start.type === 'down' ? 'Bedtime' : `Waking ${eps.slice(0, i + 1).filter((x) => x.start.type !== 'down').length}`}
               {' · '}
               {ep.end ? `${Math.round(episodeCryingMs(ep) / 60_000)} min crying` : 'not finished'}
             </Text>
@@ -144,6 +144,7 @@ function nextLikelyType(events: NightEvent[]): EventType {
   if (!last) return 'down';
   if (last.type === 'down' || last.type === 'quiet') return 'cry';
   if (last.type === 'check_in_start') return 'check_in_end';
+  if (last.type === 'feed_start') return 'feed_end';
   if (last.type === 'asleep') return 'woke';
   return 'asleep';
 }

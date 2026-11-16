@@ -14,13 +14,15 @@ export const EVENT_LABEL: Record<EventType, string> = {
   down: 'Down for the night',
   cry: 'Started crying',
   quiet: 'Stopped crying',
+  feed_start: 'Started night feed',
+  feed_end: 'Done feeding',
   woke: 'Woke up',
   check_in_start: 'Went in',
   check_in_end: 'Came out',
   asleep: 'Asleep',
 };
 
-const ADD_ORDER: EventType[] = ['down', 'cry', 'quiet', 'check_in_start', 'check_in_end', 'asleep', 'woke'];
+const ADD_ORDER: EventType[] = ['down', 'cry', 'quiet', 'check_in_start', 'check_in_end', 'feed_start', 'feed_end', 'asleep', 'woke'];
 
 interface Props {
   visible: boolean;

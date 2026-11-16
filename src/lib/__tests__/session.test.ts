@@ -18,7 +18,7 @@ describe('deriveNightState', () => {
   it('is quiet (no timer) after Down until crying starts', () => {
     const s = deriveNightState([ev('down', 0)], chart, 1, T0 + 10 * MIN);
     expect(s).toMatchObject({ kind: 'quiet', checkInNumber: 1, cryingMs: 0 });
-    expect(allowedActions(s)).toEqual(['cry', 'asleep']);
+    expect(allowedActions(s)).toEqual(['cry', 'asleep', 'feed_start']);
   });
 
   it('counts down to the first check-in from when crying started', () => {
@@ -80,10 +80,44 @@ describe('deriveNightState', () => {
     expect(deriveNightState(evs, chart, 1, T0 + 6 * MIN).kind).toBe('due');
   });
 
-  it('is asleep after Asleep and only offers Woke up', () => {
+  it('is asleep after Asleep and offers Woke up or a night feed', () => {
     const s = deriveNightState([ev('down', 0), ev('asleep', 12)], chart, 1, T0 + 20 * MIN);
     expect(s.kind).toBe('asleep');
-    expect(allowedActions(s)).toEqual(['woke']);
+    expect(allowedActions(s)).toEqual(['woke', 'feed_start']);
+  });
+});
+
+describe('night feeds', () => {
+  it('feeding stops the timer; done feeding goes back to quiet', () => {
+    const evs = [ev('woke', 0), ev('feed_start', 2)];
+    expect(deriveNightState(evs, chart, 2, T0 + 10 * MIN)).toMatchObject({ kind: 'feeding', since: T0 + 2 * MIN, cryingMs: 2 * MIN });
+    evs.push(ev('feed_end', 20));
+    const s = deriveNightState(evs, chart, 2, T0 + 21 * MIN);
+    expect(s).toMatchObject({ kind: 'quiet', checkInNumber: 1, cryingMs: 2 * MIN });
+    expect(allowedActions(s)).toContain('feed_start');
+  });
+
+  it('after a feed the waits start again from the first interval', () => {
+    const evs = [
+      ev('down', 0), ev('cry', 0), ev('check_in_start', 5), ev('check_in_end', 6),
+      ev('check_in_start', 16), ev('check_in_end', 17), ev('feed_start', 20), ev('feed_end', 35), ev('cry', 40),
+    ];
+    expect(deriveNightState(evs, chart, 2, T0 + 41 * MIN)).toMatchObject({ kind: 'waiting', checkInNumber: 1, waitMinutes: 5, nextCheckInAt: T0 + 45 * MIN });
+  });
+
+  it('a feed while asleep starts a new episode, counted as a waking, and feeding time is not crying', () => {
+    const evs = [
+      ev('down', 0), ev('cry', 0), ev('asleep', 10),
+      ev('feed_start', 300), ev('feed_end', 320), ev('cry', 322), ev('asleep', 330),
+    ];
+    expect(episodes(evs)).toHaveLength(2);
+    expect(summarizeNight(evs)).toMatchObject({ cryingMinutes: 10 + 8, wakings: 1, checkIns: 0 });
+  });
+
+  it('a feed in the middle of a waking stays in that episode', () => {
+    const evs = [ev('down', 0), ev('asleep', 5), ev('woke', 100), ev('feed_start', 103), ev('feed_end', 118), ev('asleep', 125)];
+    expect(episodes(evs)).toHaveLength(2);
+    expect(summarizeNight(evs)).toMatchObject({ cryingMinutes: 3, wakings: 1 });
   });
 });
 

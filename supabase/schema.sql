@@ -1,7 +1,8 @@
 -- Check In: Baby Sleep Timer — Supabase schema (Milestone 3: partner sync)
 --
 -- Paste this whole file into Supabase → SQL Editor → New query → Run.
--- Safe to run once on a new project.
+-- For a NEW project only (it already includes every migration in
+-- supabase/migrations/). An existing project runs the migrations instead.
 --
 -- Model: a "family" links parent accounts to one baby. Every synced row
 -- carries family_id, and row-level security only lets family members see
@@ -58,6 +59,7 @@ create table public.nights (
   night_key text not null,
   started_at bigint not null,
   note text,
+  on_duty uuid,
   updated_at bigint not null,
   server_updated_at timestamptz not null default now()
 );
@@ -66,7 +68,8 @@ create table public.events (
   id uuid primary key,
   family_id uuid not null references public.families (id) on delete cascade,
   night_id uuid not null references public.nights (id) on delete cascade,
-  type text not null check (type in ('down', 'cry', 'quiet', 'check_in_start', 'check_in_end', 'asleep', 'woke')),
+  type text not null constraint events_type_check
+    check (type in ('down', 'cry', 'quiet', 'check_in_start', 'check_in_end', 'feed_start', 'feed_end', 'asleep', 'woke')),
   at bigint not null,
   created_by uuid,
   deleted_at bigint,

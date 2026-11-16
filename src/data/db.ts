@@ -17,7 +17,7 @@ import { EventType, NightEvent } from '../lib/session';
 import { nightKey } from '../lib/time';
 
 export const DB_NAME = 'ferber.db';
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 export interface Baby {
   id: string;
@@ -41,6 +41,8 @@ export interface Night {
   nightKey: string;
   startedAt: number;
   note: string | null;
+  /** User id of the parent on duty tonight (partner sharing). Null = not set. */
+  onDuty?: string | null;
 }
 
 // ---------- change notification ----------
@@ -114,6 +116,11 @@ export async function migrate(db: SQLiteDatabase): Promise<void> {
       ALTER TABLE event ADD COLUMN dirty INTEGER NOT NULL DEFAULT 1;
     `);
     version = 2;
+  }
+
+  if (version < 3) {
+    await db.execAsync('ALTER TABLE night ADD COLUMN onDuty TEXT;');
+    version = 3;
   }
 
   await db.execAsync(`PRAGMA user_version = ${SCHEMA_VERSION}`);
@@ -231,10 +238,10 @@ export function plannedNumbers(prev: Night | null, repeatLastNight: boolean): { 
 
 async function upsertNightRow(db: SQLiteDatabase, night: Night): Promise<void> {
   await db.runAsync(
-    `INSERT INTO night (id, babyId, nightNumber, chartNight, nightKey, startedAt, note, updatedAt, dirty)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
+    `INSERT INTO night (id, babyId, nightNumber, chartNight, nightKey, startedAt, note, onDuty, updatedAt, dirty)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
      ON CONFLICT(id) DO UPDATE SET nightNumber = excluded.nightNumber, chartNight = excluded.chartNight,
-       startedAt = excluded.startedAt, note = excluded.note, updatedAt = excluded.updatedAt, dirty = 1`,
+       startedAt = excluded.startedAt, note = excluded.note, onDuty = excluded.onDuty, updatedAt = excluded.updatedAt, dirty = 1`,
     night.id,
     night.babyId,
     night.nightNumber,
@@ -242,6 +249,7 @@ async function upsertNightRow(db: SQLiteDatabase, night: Night): Promise<void> {
     night.nightKey,
     night.startedAt,
     night.note,
+    night.onDuty ?? null,
     Date.now(),
   );
 }
@@ -262,6 +270,12 @@ export async function createNight(
   await upsertNightRow(db, night);
   wrote();
   return night;
+}
+
+/** Who's on duty tonight (a user id), or null to clear. */
+export async function setNightDuty(db: SQLiteDatabase, nightId: string, userId: string | null): Promise<void> {
+  await db.runAsync('UPDATE night SET onDuty = ?, updatedAt = ?, dirty = 1 WHERE id = ?', userId, Date.now(), nightId);
+  wrote();
 }
 
 export async function setNightChartNight(db: SQLiteDatabase, nightId: string, chartNight: number): Promise<void> {
@@ -419,10 +433,10 @@ export async function applyRemoteBaby(db: SQLiteDatabase, b: Baby & { updatedAt:
 
 export async function applyRemoteNight(db: SQLiteDatabase, n: Night & { updatedAt: number }): Promise<void> {
   await db.runAsync(
-    `INSERT INTO night (id, babyId, nightNumber, chartNight, nightKey, startedAt, note, updatedAt, dirty)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+    `INSERT INTO night (id, babyId, nightNumber, chartNight, nightKey, startedAt, note, onDuty, updatedAt, dirty)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
      ON CONFLICT(id) DO UPDATE SET nightNumber = excluded.nightNumber, chartNight = excluded.chartNight,
-       startedAt = excluded.startedAt, note = excluded.note, updatedAt = excluded.updatedAt, dirty = 0
+       startedAt = excluded.startedAt, note = excluded.note, onDuty = excluded.onDuty, updatedAt = excluded.updatedAt, dirty = 0
      WHERE excluded.updatedAt >= night.updatedAt`,
     n.id,
     n.babyId,
@@ -431,6 +445,7 @@ export async function applyRemoteNight(db: SQLiteDatabase, n: Night & { updatedA
     n.nightKey,
     n.startedAt,
     n.note,
+    n.onDuty ?? null,
     n.updatedAt,
   );
 }

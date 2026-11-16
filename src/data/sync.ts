@@ -34,6 +34,10 @@ export interface SyncStatus {
   familyId: string | null;
   inviteCode: string | null;
   memberCount: number;
+  /** This phone's signed-in user id, once known */
+  userId: string | null;
+  /** All family members' user ids */
+  memberIds: string[];
   lastSyncedAt: number | null;
   syncing: boolean;
   error: string | null;
@@ -47,7 +51,16 @@ type Table = (typeof TABLES)[number];
 export class SyncEngine {
   private db: SQLiteDatabase;
   private onRemoteChange: () => void = () => {};
-  private status: SyncStatus = { familyId: null, inviteCode: null, memberCount: 0, lastSyncedAt: null, syncing: false, error: null };
+  private status: SyncStatus = {
+    familyId: null,
+    inviteCode: null,
+    memberCount: 0,
+    userId: null,
+    memberIds: [],
+    lastSyncedAt: null,
+    syncing: false,
+    error: null,
+  };
   private statusListeners = new Set<(s: SyncStatus) => void>();
   private channel: RealtimeChannel | null = null;
   private timer: ReturnType<typeof setTimeout> | null = null;
@@ -68,6 +81,13 @@ export class SyncEngine {
     this.cleanups.push(() => sub.remove());
     this.interval = setInterval(() => AppState.currentState === 'active' && this.soon(0), 30_000);
     if (baby.familyId) {
+      // Works offline: uses the saved session.
+      ensureUserId()
+        .then((id) => {
+          this.userId = id;
+          this.setStatus({ userId: id });
+        })
+        .catch(() => {});
       this.subscribe(baby.familyId);
       this.soon(0);
     }
@@ -145,7 +165,7 @@ export class SyncEngine {
     await setBabyFamily(this.db, baby.id, null);
     await setSyncValue(this.db, 'inviteCode', null);
     for (const t of TABLES) await setSyncValue(this.db, `cursor.${t}`, null);
-    this.setStatus({ familyId: null, inviteCode: null, memberCount: 0, lastSyncedAt: null, error: null });
+    this.setStatus({ familyId: null, inviteCode: null, memberCount: 0, memberIds: [], lastSyncedAt: null, error: null });
   }
 
   /** Debounced sync request. */
@@ -185,10 +205,18 @@ export class SyncEngine {
     this.setStatus({ syncing: true });
     try {
       this.userId = await ensureUserId();
+      if (this.status.userId !== this.userId) this.setStatus({ userId: this.userId });
       await this.push(familyId);
       const changed = await this.pullAll(familyId);
-      const { count } = await supabase.from('family_members').select('*', { count: 'exact', head: true }).eq('family_id', familyId);
-      this.setStatus({ syncing: false, error: null, lastSyncedAt: Date.now(), memberCount: count ?? this.status.memberCount });
+      const { data: members } = await supabase.from('family_members').select('user_id').eq('family_id', familyId);
+      const memberIds = (members ?? []).map((m: { user_id: string }) => m.user_id);
+      this.setStatus({
+        syncing: false,
+        error: null,
+        lastSyncedAt: Date.now(),
+        memberCount: members ? memberIds.length : this.status.memberCount,
+        memberIds: members ? memberIds : this.status.memberIds,
+      });
       if (changed) this.onRemoteChange();
     } catch (e) {
       this.setStatus({ syncing: false, error: e instanceof Error ? e.message : String(e) });
@@ -222,6 +250,7 @@ export class SyncEngine {
         night_key: n.nightKey,
         started_at: n.startedAt,
         note: n.note,
+        on_duty: n.onDuty ?? null,
         updated_at: n.updatedAt,
       }));
       const { error } = await supabase.from('nights').upsert(rows);
@@ -304,6 +333,7 @@ export class SyncEngine {
         nightKey: r.night_key as string,
         startedAt: Number(r.started_at),
         note: (r.note as string) ?? null,
+        onDuty: (r.on_duty as string) ?? null,
         updatedAt: Number(r.updated_at),
       });
     } else {

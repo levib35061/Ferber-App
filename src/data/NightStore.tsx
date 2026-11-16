@@ -9,6 +9,7 @@ import { AppState } from 'react-native';
 
 import { Chart, chartForPreset } from '../lib/ferber';
 import { Action, NightEvent, NightState, UNDO_WINDOW_MS, deriveNightState, liveEvents } from '../lib/session';
+import { Duty, alertsOnThisPhone, dutyFor, partnerId } from '../lib/duty';
 import { nightKey } from '../lib/time';
 import {
   Baby,
@@ -24,6 +25,7 @@ import {
   listEvents,
   plannedNumbers,
   setNightChartNight,
+  setNightDuty,
   setSetting,
   updateBaby,
   softDeleteEvent,
@@ -61,6 +63,9 @@ interface NightStoreValue {
   /** Partner sync */
   sync: SyncEngine;
   syncStatus: SyncStatus;
+  /** Who's on duty tonight (with partner sharing) */
+  duty: Duty;
+  setDuty: (who: 'me' | 'partner') => Promise<void>;
 }
 
 const Ctx = createContext<NightStoreValue | null>(null);
@@ -107,10 +112,13 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
 
     const c = chartForPreset(b.chartPreset, b.customChart);
     const nn = n ?? null;
-    const state = nn ? deriveNightState(evs, c, nn.chartNight, Date.now()) : ({ kind: 'idle' } as NightState);
+    const st = sync.getStatus();
+    const here = alertsOnThisPhone(dutyFor(nn?.onDuty, st.userId, st.familyId != null && st.memberCount > 1));
+    // Off duty: no scheduled alert on this phone (the on-duty partner's phone has it).
+    const state = nn && here ? deriveNightState(evs, c, nn.chartNight, Date.now()) : ({ kind: 'idle' } as NightState);
     await reconcileCheckInAlert(state, nn?.nightNumber ?? 1, { sound: s.sound }).catch(() => {});
     setReady(true);
-  }, [db]);
+  }, [db, sync]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- initial async load from SQLite
@@ -126,6 +134,13 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     sync.setOnRemoteChange(() => void reload());
   }, [reload, sync]);
+
+  // Sharing status or our own id changed: re-check who gets tonight's alert.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- async re-read from SQLite
+    if (ready) reload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when these change
+  }, [syncStatus.userId, syncStatus.memberCount, syncStatus.familyId]);
 
   useEffect(() => {
     const off = sync.onStatus(setSyncStatus);
@@ -154,13 +169,17 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
         let n = night;
         if (!n) n = await createNight(db, baby.id, now, repeatLastNight, baby.trainingStartDate);
         const e = await insertEvent(db, n.id, action, now, sync.userId);
+        // With a partner: whoever puts the baby down is on duty, unless someone already is.
+        if (action === 'down' && !n.onDuty && sync.userId && syncStatus.memberCount > 1) {
+          await setNightDuty(db, n.id, sync.userId);
+        }
         setLastTap({ eventId: e.id, type: action, tappedAt: now });
         await reload();
       } finally {
         busy.current = false;
       }
     },
-    [baby, db, haptic, night, reload, repeatLastNight, sync],
+    [baby, db, haptic, night, reload, repeatLastNight, sync, syncStatus.memberCount],
   );
 
   const undo = useCallback(async () => {
@@ -189,6 +208,22 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
       await reload();
     },
     [db, reload],
+  );
+
+  const shared = syncStatus.familyId != null && syncStatus.memberCount > 1;
+  const duty = dutyFor(night?.onDuty, syncStatus.userId, shared);
+
+  const setDuty = useCallback(
+    async (who: 'me' | 'partner') => {
+      if (!baby || !syncStatus.userId) return;
+      const id = who === 'me' ? syncStatus.userId : partnerId(syncStatus.memberIds, syncStatus.userId);
+      if (!id) return;
+      haptic();
+      const n = night ?? (await createNight(db, baby.id, Date.now(), repeatLastNight, baby.trainingStartDate));
+      await setNightDuty(db, n.id, id);
+      await reload();
+    },
+    [baby, db, haptic, night, reload, repeatLastNight, syncStatus.memberIds, syncStatus.userId],
   );
 
   const saveBaby = useCallback(
@@ -224,6 +259,8 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
     saveBaby,
     sync,
     syncStatus,
+    duty,
+    setDuty,
     reload,
   };
 

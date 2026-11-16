@@ -8,10 +8,24 @@
  * until "Crying" is tapped. "Stopped crying" pauses the wait; the next
  * "Crying" restarts the same check-in's wait from the beginning. "Woke up"
  * starts the wait straight away (you tap it because they're crying).
+ *
+ * Night feeds: "Feeding" stops the timer and feeding time isn't crying.
+ * "Done feeding" goes back to quiet (no timer until crying), and the waits
+ * start again from the first interval, like a new waking. A feed started
+ * while asleep begins a new episode (counted as a waking).
  */
 import { Chart, nextWaitMinutes } from './ferber';
 
-export type EventType = 'down' | 'cry' | 'quiet' | 'check_in_start' | 'check_in_end' | 'asleep' | 'woke';
+export type EventType =
+  | 'down'
+  | 'cry'
+  | 'quiet'
+  | 'check_in_start'
+  | 'check_in_end'
+  | 'feed_start'
+  | 'feed_end'
+  | 'asleep'
+  | 'woke';
 
 export interface NightEvent {
   id: string;
@@ -24,7 +38,7 @@ export interface NightEvent {
 }
 
 export interface Episode {
-  /** The down or woke event that started it */
+  /** The down, woke or feed_start event that started it */
   start: NightEvent;
   /** asleep event, if the episode has ended */
   end: NightEvent | null;
@@ -54,6 +68,7 @@ export type NightState =
       cryingMs: number;
     }
   | { kind: 'in_room'; since: number; checkInNumber: number; episodeStartAt: number; cryingMs: number }
+  | { kind: 'feeding'; since: number; episodeStartAt: number; cryingMs: number }
   | { kind: 'asleep'; since: number; episode: Episode };
 
 export type Action = EventType;
@@ -72,7 +87,8 @@ export function episodes(events: NightEvent[]): Episode[] {
   const out: Episode[] = [];
   let cur: Episode | null = null;
   for (const e of liveEvents(events)) {
-    if (e.type === 'down' || e.type === 'woke') {
+    const startsEpisode = e.type === 'down' || e.type === 'woke' || (e.type === 'feed_start' && (!cur || cur.end));
+    if (startsEpisode) {
       // A new start while one is open (missed "asleep"): start fresh.
       cur = { start: e, end: null, checkIns: 0, events: [e] };
       out.push(cur);
@@ -86,7 +102,7 @@ export function episodes(events: NightEvent[]): Episode[] {
   return out;
 }
 
-type Phase = 'quiet' | 'crying' | 'in_room' | 'asleep';
+type Phase = 'quiet' | 'crying' | 'in_room' | 'feeding' | 'asleep';
 
 interface Walk {
   phase: Phase;
@@ -95,6 +111,8 @@ interface Walk {
   /** For 'crying': when the current wait started (crying began, or Back out) */
   waitStartedAt: number;
   checkIns: number;
+  /** Check-ins since the episode started or the last feed: picks the next wait */
+  waitIndex: number;
   /** Crying + in-the-room time, up to the end of the episode (or `now`) */
   cryingMs: number;
 }
@@ -105,10 +123,11 @@ interface Walk {
  * tap added afterwards) is treated as crying since the quiet stretch began.
  */
 function walk(ep: Episode, now: number): Walk {
-  let phase: Phase = ep.start.type === 'woke' ? 'crying' : 'quiet';
+  let phase: Phase = ep.start.type === 'woke' ? 'crying' : ep.start.type === 'feed_start' ? 'feeding' : 'quiet';
   let phaseSince = ep.start.at;
   let waitStartedAt = ep.start.at;
   let checkIns = 0;
+  let waitIndex = 0;
   let cryingMs = 0;
   const close = (at: number) => {
     if (phase === 'crying' || phase === 'in_room') cryingMs += Math.max(0, at - phaseSince);
@@ -133,6 +152,7 @@ function walk(ep: Episode, now: number): Walk {
         if (phase === 'quiet') phase = 'crying'; // crying since the quiet stretch began
         close(e.at);
         checkIns += 1;
+        waitIndex += 1;
         phase = 'in_room';
         phaseSince = e.at;
         break;
@@ -144,6 +164,20 @@ function walk(ep: Episode, now: number): Walk {
           waitStartedAt = e.at;
         }
         break;
+      case 'feed_start':
+        if (phase !== 'feeding') {
+          close(e.at);
+          phase = 'feeding';
+          phaseSince = e.at;
+        }
+        break;
+      case 'feed_end':
+        if (phase === 'feeding') {
+          phase = 'quiet';
+          phaseSince = e.at;
+          waitIndex = 0;
+        }
+        break;
       case 'asleep':
         close(e.at);
         phase = 'asleep';
@@ -152,7 +186,7 @@ function walk(ep: Episode, now: number): Walk {
     }
   }
   if (phase !== 'asleep') close(now);
-  return { phase, phaseSince, waitStartedAt, checkIns, cryingMs };
+  return { phase, phaseSince, waitStartedAt, checkIns, waitIndex, cryingMs };
 }
 
 /** Crying time for an episode (open episodes count up to `now`, or not at all without it). */
@@ -173,18 +207,19 @@ export function deriveNightState(
 
   const w = walk(ep, now);
   const base = { episodeStartAt: ep.start.at, cryingMs: w.cryingMs };
-  if (w.phase === 'quiet') return { kind: 'quiet', since: w.phaseSince, checkInNumber: w.checkIns + 1, ...base };
-  if (w.phase === 'in_room') return { kind: 'in_room', since: w.phaseSince, checkInNumber: w.checkIns, ...base };
+  if (w.phase === 'quiet') return { kind: 'quiet', since: w.phaseSince, checkInNumber: w.waitIndex + 1, ...base };
+  if (w.phase === 'in_room') return { kind: 'in_room', since: w.phaseSince, checkInNumber: w.waitIndex, ...base };
+  if (w.phase === 'feeding') return { kind: 'feeding', since: w.phaseSince, ...base };
 
   // Crying: a wait is running from the crying start or the last Back out.
-  const waitMinutes = nextWaitMinutes(chart, chartNight, w.checkIns);
+  const waitMinutes = nextWaitMinutes(chart, chartNight, w.waitIndex);
   const nextCheckInAt = w.waitStartedAt + waitMinutes * MINUTE;
   return {
     kind: now >= nextCheckInAt ? 'due' : 'waiting',
     waitStartedAt: w.waitStartedAt,
     waitMinutes,
     nextCheckInAt,
-    checkInNumber: w.checkIns + 1,
+    checkInNumber: w.waitIndex + 1,
     ...base,
   };
 }
@@ -195,14 +230,16 @@ export function allowedActions(state: NightState): Action[] {
     case 'idle':
       return ['down', 'woke'];
     case 'quiet':
-      return ['cry', 'asleep'];
+      return ['cry', 'asleep', 'feed_start'];
     case 'waiting':
     case 'due':
-      return ['check_in_start', 'quiet', 'asleep'];
+      return ['check_in_start', 'quiet', 'asleep', 'feed_start'];
     case 'in_room':
       return ['check_in_end', 'asleep'];
+    case 'feeding':
+      return ['feed_end', 'asleep'];
     case 'asleep':
-      return ['woke'];
+      return ['woke', 'feed_start'];
   }
 }
 

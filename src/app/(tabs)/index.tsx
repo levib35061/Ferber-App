@@ -22,6 +22,8 @@ const ACTION_LABEL: Record<Action, string> = {
   down: 'Down',
   cry: 'Crying',
   quiet: 'Stopped crying',
+  feed_start: 'Night feed',
+  feed_end: 'Done feeding',
   woke: 'Woke up',
   check_in_start: 'Going in',
   check_in_end: 'Back out',
@@ -52,12 +54,12 @@ export default function NightScreen() {
   // Check-in due: vibrate every few seconds while the app is open.
   const due = state.kind === 'due';
   useEffect(() => {
-    if (!due || !store.settings.haptics) return;
+    if (!due || !store.settings.haptics || store.duty === 'partner') return;
     const buzz = () => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
     buzz();
     const id = setInterval(buzz, 3000);
     return () => clearInterval(id);
-  }, [due, store.settings.haptics]);
+  }, [due, store.settings.haptics, store.duty]);
 
   // In the room: one gentle buzz when the check-in reaches 2 minutes.
   const overTime = state.kind === 'in_room' && now - state.since >= CHECK_IN_GOAL_MS;
@@ -80,6 +82,7 @@ export default function NightScreen() {
       {store.chartNight !== store.nightNumber && (
         <Text style={styles.subLabel}>using night {store.chartNight} intervals</Text>
       )}
+      {store.duty !== 'solo' && <DutyBar duty={store.duty} onSet={store.setDuty} />}
 
       {state.kind === 'idle' && (
         <>
@@ -112,9 +115,9 @@ export default function NightScreen() {
           <View style={styles.middle}>
             <ProgressRing progress={0}>
               <MoonIcon size={40} color={colors.primary} />
-              <Text style={[styles.countdown, styles.quietTitle]}>{state.checkInNumber === 1 && state.cryingMs === 0 ? 'Settling' : 'Quiet'}</Text>
+              <Text style={[styles.countdown, styles.quietTitle]}>{state.checkInNumber === 1 ? 'Settling' : 'Quiet'}</Text>
               <Text style={styles.ringSub}>
-                {state.checkInNumber === 1 && state.cryingMs === 0 ? 'No timer until they cry' : `Timer paused · ${formatDuration(now - state.since)}`}
+                {state.checkInNumber === 1 ? 'No timer until they cry' : `Timer paused · ${formatDuration(now - state.since)}`}
               </Text>
             </ProgressRing>
             <CheckInDots
@@ -122,9 +125,12 @@ export default function NightScreen() {
               label={state.cryingMs > 0 ? `crying ${Math.floor(state.cryingMs / MIN)} min` : undefined}
             />
           </View>
-          <View style={[styles.bottom, styles.row]}>
-            <BigButton label="Asleep" variant="secondary" onPress={() => store.tap('asleep')} style={{ flex: 1 }} />
-            <BigButton label="Crying" onPress={() => store.tap('cry')} style={{ flex: 1.4 }} />
+          <View style={styles.bottom}>
+            <BigButton label="Night feed" variant="link" onPress={() => store.tap('feed_start')} style={styles.linkAbove} />
+            <View style={styles.row}>
+              <BigButton label="Asleep" variant="secondary" onPress={() => store.tap('asleep')} style={{ flex: 1 }} />
+              <BigButton label="Crying" onPress={() => store.tap('cry')} style={{ flex: 1.4 }} />
+            </View>
           </View>
         </>
       )}
@@ -142,7 +148,10 @@ export default function NightScreen() {
             <CheckInDots done={state.checkInNumber - 1} label={`crying ${Math.floor(state.cryingMs / MIN)} min`} />
           </View>
           <View style={styles.bottom}>
-            <BigButton label="Stopped crying" variant="link" onPress={() => store.tap('quiet')} style={styles.linkAbove} />
+            <View style={[styles.row, styles.linkRow]}>
+              <BigButton label="Stopped crying" variant="link" onPress={() => store.tap('quiet')} style={{ flex: 1 }} />
+              <BigButton label="Night feed" variant="link" onPress={() => store.tap('feed_start')} style={{ flex: 1 }} />
+            </View>
             <View style={styles.row}>
               <BigButton label="Going in" variant="secondary" onPress={() => store.tap('check_in_start')} style={{ flex: 1 }} />
               <BigButton label="Asleep" onPress={() => store.tap('asleep')} style={{ flex: 1.4 }} />
@@ -198,6 +207,27 @@ export default function NightScreen() {
         </>
       )}
 
+      {state.kind === 'feeding' && (
+        <>
+          <View style={styles.middle}>
+            <ProgressRing progress={0}>
+              <Text style={styles.ringCaption}>Night feed</Text>
+              <Text style={styles.countdown} adjustsFontSizeToFit numberOfLines={1}>
+                {formatDuration(now - state.since)}
+              </Text>
+              <Text style={styles.ringSub}>timer paused</Text>
+            </ProgressRing>
+            <Text style={styles.hint}>
+              {`When you're done, put ${store.baby?.name || 'baby'} down awake. If they cry, the waits start again from the first one.`}
+            </Text>
+          </View>
+          <View style={styles.bottom}>
+            <BigButton label="Done feeding" onPress={() => store.tap('feed_end')} />
+            <BigButton label="Asleep" variant="link" onPress={() => store.tap('asleep')} style={styles.linkGap} />
+          </View>
+        </>
+      )}
+
       {state.kind === 'asleep' && (
         <AsleepView
           since={state.since}
@@ -205,6 +235,7 @@ export default function NightScreen() {
           checkIns={state.episode.checkIns}
           night={summarizeNight(store.events)}
           onWoke={() => store.tap('woke')}
+          onFeed={() => store.tap('feed_start')}
         />
       )}
 
@@ -225,6 +256,7 @@ function AsleepView(props: {
   checkIns: number;
   night: ReturnType<typeof summarizeNight>;
   onWoke: () => void;
+  onFeed: () => void;
 }) {
   const { night } = props;
   return (
@@ -246,8 +278,32 @@ function AsleepView(props: {
       </View>
       <View style={styles.bottom}>
         <BigButton label="Woke up" variant="secondary" onPress={props.onWoke} />
+        <BigButton label="Night feed" variant="link" onPress={props.onFeed} style={styles.linkGap} />
       </View>
     </>
+  );
+}
+
+/** With a partner: who gets tonight's check-in alerts. */
+function DutyBar({ duty, onSet }: { duty: 'unset' | 'me' | 'partner'; onSet: (who: 'me' | 'partner') => void }) {
+  const text =
+    duty === 'me' ? "You're on duty tonight" : duty === 'partner' ? 'Partner is on duty · alerts off here' : "Who's on duty tonight?";
+  const action = duty === 'me' ? 'Hand off' : duty === 'partner' ? 'Take over' : "I'm on";
+  return (
+    <View style={styles.duty}>
+      <View style={[styles.dutyDot, { backgroundColor: duty === 'me' ? colors.primary : colors.dotEmpty }]} />
+      <Text style={styles.dutyText} numberOfLines={1}>
+        {text}
+      </Text>
+      <Pressable
+        onPress={() => onSet(duty === 'me' ? 'partner' : 'me')}
+        accessibilityRole="button"
+        accessibilityLabel={`${text}. ${action}`}
+        hitSlop={10}
+      >
+        <Text style={styles.dutyAction}>{action}</Text>
+      </Pressable>
+    </View>
   );
 }
 
@@ -282,6 +338,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'flex-end', gap: 12 },
   linkGap: { marginTop: 6 },
   linkAbove: { marginBottom: 6 },
+  linkRow: { marginBottom: 6, gap: 0 },
   quietTitle: { fontSize: 52, lineHeight: 64, marginTop: 4 },
   ringCaption: { color: colors.textDim, fontFamily: fonts.semibold, fontSize: type.body, textAlign: 'center' },
   countdown: {
@@ -292,6 +349,20 @@ const styles = StyleSheet.create({
     lineHeight: type.countdown * 1.15,
   },
   ringSub: { color: colors.textDim, fontFamily: fonts.regular, fontSize: 15 },
+  duty: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    alignSelf: 'center',
+    marginTop: 10,
+    backgroundColor: colors.surface,
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  dutyDot: { width: 8, height: 8, borderRadius: 4 },
+  dutyText: { color: colors.textDim, fontFamily: fonts.semibold, fontSize: 14, flexShrink: 1 },
+  dutyAction: { color: colors.primary, fontFamily: fonts.bold, fontSize: 14 },
   nudge: { color: colors.accentText, fontFamily: fonts.bold },
   hint: { color: colors.textFaint, fontFamily: fonts.regular, fontSize: 15, textAlign: 'center' },
   repeatRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
