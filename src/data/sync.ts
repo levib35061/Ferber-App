@@ -7,7 +7,7 @@
  * - Pull: rows changed on the server since our cursor are applied locally if
  *   they're at least as new as the local copy.
  * - When: soon after any local write, when the app comes to the foreground,
- *   when realtime reports a partner's change, and every 30 s while open.
+ *   when realtime reports a partner's change, and every 15 s while open.
  *   Failures (no signal) just leave rows dirty for the next attempt.
  */
 import type { RealtimeChannel } from '@supabase/supabase-js';
@@ -79,7 +79,8 @@ export class SyncEngine {
     this.cleanups.push(onLocalWrite(() => this.soon(400)));
     const sub = AppState.addEventListener('change', (s) => s === 'active' && this.soon(0));
     this.cleanups.push(() => sub.remove());
-    this.interval = setInterval(() => AppState.currentState === 'active' && this.soon(0), 30_000);
+    // Backstop for a missed realtime event (rare, e.g. while the socket reconnects).
+    this.interval = setInterval(() => AppState.currentState === 'active' && this.soon(0), 15_000);
     if (baby.familyId) {
       // Works offline: uses the saved session.
       ensureUserId()

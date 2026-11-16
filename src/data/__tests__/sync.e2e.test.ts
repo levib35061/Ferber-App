@@ -167,6 +167,20 @@ d('partner sync (real Supabase)', () => {
     expect((await live(A, nightId)).some((s) => s.startsWith('cry@'))).toBe(false);
   });
 
+  it('night feeds and who is on duty sync to the partner', async () => {
+    await A.dbm.insertEvent(A.db, nightId, 'feed_start', at(23, 0));
+    await A.dbm.insertEvent(A.db, nightId, 'feed_end', at(23, 15));
+    const bId = B.engine.userId!;
+    expect(bId).toBeTruthy();
+    await A.dbm.setNightDuty(A.db, nightId, bId);
+    await A.engine.syncNow();
+    await B.engine.syncNow();
+    const types = (await live(B, nightId)).map((x) => x.split('@')[0]);
+    expect(types).toEqual(expect.arrayContaining(['feed_start', 'feed_end']));
+    expect((await B.dbm.getNight(B.db, nightId))?.onDuty).toBe(bId);
+    expect(A.engine.getStatus().memberIds).toHaveLength(2);
+  });
+
   it('both phones starting the same new night offline end up with one night', async () => {
     const baby = await A.dbm.getOrCreateBaby(A.db);
     const t = new Date(2026, 10, 17, 19, 30).getTime();
