@@ -1,17 +1,23 @@
 /**
  * Local SQLite storage. Offline first: the app must work with no signal at 2am.
- * The schema mirrors the planned Supabase schema (Milestone 3). All ids are
- * UUIDs so offline records can sync without collisions. All times are UTC ms.
+ * The schema mirrors Supabase (supabase/schema.sql). All ids are UUIDs so
+ * offline records sync without collisions. All times are UTC epoch ms.
+ *
+ * Sync bookkeeping: every synced row has `updatedAt` (client ms, for
+ * last-write-wins) and `dirty` (1 = not yet pushed). Every local write goes
+ * through this module, sets both, and notifies `onLocalWrite` listeners so
+ * the sync engine can push soon.
  */
-import { randomUUID } from 'expo-crypto';
+import { CryptoDigestAlgorithm, digestStringAsync, randomUUID } from 'expo-crypto';
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import { ChartPreset, Chart } from '../lib/ferber';
+import { nightIdSeed, uuidFromHex } from '../lib/ids';
 import { EventType, NightEvent } from '../lib/session';
 import { nightKey } from '../lib/time';
 
 export const DB_NAME = 'ferber.db';
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 
 export interface Baby {
   id: string;
@@ -20,6 +26,7 @@ export interface Baby {
   trainingStartDate: string | null;
   chartPreset: ChartPreset;
   customChart: Chart | null;
+  /** Set once this phone creates or joins a family (partner sync) */
   familyId: string | null;
 }
 
@@ -36,62 +43,101 @@ export interface Night {
   note: string | null;
 }
 
+// ---------- change notification ----------
+
+type Listener = () => void;
+const localWriteListeners = new Set<Listener>();
+
+/** Called after every local write (for the sync engine). Returns an unsubscribe function. */
+export function onLocalWrite(fn: Listener): () => void {
+  localWriteListeners.add(fn);
+  return () => localWriteListeners.delete(fn);
+}
+
+function wrote() {
+  for (const fn of localWriteListeners) fn();
+}
+
+// ---------- schema ----------
+
 export async function migrate(db: SQLiteDatabase): Promise<void> {
   const row = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
-  const version = row?.user_version ?? 0;
-  if (version >= SCHEMA_VERSION) return;
+  let version = row?.user_version ?? 0;
 
-  await db.execAsync(`
-    PRAGMA journal_mode = WAL;
-    CREATE TABLE IF NOT EXISTS baby (
-      id TEXT PRIMARY KEY NOT NULL,
-      name TEXT NOT NULL DEFAULT '',
-      birthDate TEXT,
-      trainingStartDate TEXT,
-      chartPreset TEXT NOT NULL DEFAULT 'ferber',
-      customChart TEXT,
-      familyId TEXT
-    );
-    CREATE TABLE IF NOT EXISTS night (
-      id TEXT PRIMARY KEY NOT NULL,
-      babyId TEXT NOT NULL REFERENCES baby(id),
-      nightNumber INTEGER NOT NULL,
-      chartNight INTEGER NOT NULL,
-      nightKey TEXT NOT NULL,
-      startedAt INTEGER NOT NULL,
-      note TEXT
-    );
-    CREATE INDEX IF NOT EXISTS night_baby_key ON night(babyId, nightKey);
-    CREATE TABLE IF NOT EXISTS event (
-      id TEXT PRIMARY KEY NOT NULL,
-      nightId TEXT NOT NULL REFERENCES night(id),
-      type TEXT NOT NULL,
-      at INTEGER NOT NULL,
-      createdBy TEXT,
-      deletedAt INTEGER
-    );
-    CREATE INDEX IF NOT EXISTS event_night_at ON event(nightId, at);
-    CREATE TABLE IF NOT EXISTS setting (
-      key TEXT PRIMARY KEY NOT NULL,
-      value TEXT NOT NULL
-    );
-    PRAGMA user_version = ${SCHEMA_VERSION};
-  `);
+  if (version < 1) {
+    await db.execAsync(`
+      PRAGMA journal_mode = WAL;
+      CREATE TABLE IF NOT EXISTS baby (
+        id TEXT PRIMARY KEY NOT NULL,
+        name TEXT NOT NULL DEFAULT '',
+        birthDate TEXT,
+        trainingStartDate TEXT,
+        chartPreset TEXT NOT NULL DEFAULT 'ferber',
+        customChart TEXT,
+        familyId TEXT
+      );
+      CREATE TABLE IF NOT EXISTS night (
+        id TEXT PRIMARY KEY NOT NULL,
+        babyId TEXT NOT NULL REFERENCES baby(id),
+        nightNumber INTEGER NOT NULL,
+        chartNight INTEGER NOT NULL,
+        nightKey TEXT NOT NULL,
+        startedAt INTEGER NOT NULL,
+        note TEXT
+      );
+      CREATE INDEX IF NOT EXISTS night_baby_key ON night(babyId, nightKey);
+      CREATE TABLE IF NOT EXISTS event (
+        id TEXT PRIMARY KEY NOT NULL,
+        nightId TEXT NOT NULL REFERENCES night(id),
+        type TEXT NOT NULL,
+        at INTEGER NOT NULL,
+        createdBy TEXT,
+        deletedAt INTEGER
+      );
+      CREATE INDEX IF NOT EXISTS event_night_at ON event(nightId, at);
+      CREATE TABLE IF NOT EXISTS setting (
+        key TEXT PRIMARY KEY NOT NULL,
+        value TEXT NOT NULL
+      );
+    `);
+    version = 1;
+  }
+
+  if (version < 2) {
+    // Sync bookkeeping. Existing rows start dirty so they upload when a family is created.
+    await db.execAsync(`
+      ALTER TABLE baby ADD COLUMN updatedAt INTEGER NOT NULL DEFAULT 0;
+      ALTER TABLE baby ADD COLUMN dirty INTEGER NOT NULL DEFAULT 1;
+      ALTER TABLE night ADD COLUMN updatedAt INTEGER NOT NULL DEFAULT 0;
+      ALTER TABLE night ADD COLUMN dirty INTEGER NOT NULL DEFAULT 1;
+      ALTER TABLE event ADD COLUMN updatedAt INTEGER NOT NULL DEFAULT 0;
+      ALTER TABLE event ADD COLUMN dirty INTEGER NOT NULL DEFAULT 1;
+    `);
+    version = 2;
+  }
+
+  await db.execAsync(`PRAGMA user_version = ${SCHEMA_VERSION}`);
 }
 
 // ---------- baby ----------
 
 type BabyRow = Omit<Baby, 'customChart' | 'chartPreset'> & { customChart: string | null; chartPreset: string };
 
+function babyFromRow(row: BabyRow): Baby {
+  return {
+    id: row.id,
+    name: row.name,
+    birthDate: row.birthDate,
+    trainingStartDate: row.trainingStartDate,
+    familyId: row.familyId,
+    chartPreset: (row.chartPreset as ChartPreset) ?? 'ferber',
+    customChart: row.customChart ? (JSON.parse(row.customChart) as Chart) : null,
+  };
+}
+
 export async function getOrCreateBaby(db: SQLiteDatabase): Promise<Baby> {
   const row = await db.getFirstAsync<BabyRow>('SELECT * FROM baby LIMIT 1');
-  if (row) {
-    return {
-      ...row,
-      chartPreset: (row.chartPreset as ChartPreset) ?? 'ferber',
-      customChart: row.customChart ? (JSON.parse(row.customChart) as Chart) : null,
-    };
-  }
+  if (row) return babyFromRow(row);
   const baby: Baby = {
     id: randomUUID(),
     name: '',
@@ -101,26 +147,46 @@ export async function getOrCreateBaby(db: SQLiteDatabase): Promise<Baby> {
     customChart: null,
     familyId: null,
   };
-  await db.runAsync('INSERT INTO baby (id, name, chartPreset) VALUES (?, ?, ?)', baby.id, baby.name, baby.chartPreset);
+  await db.runAsync(
+    'INSERT INTO baby (id, name, chartPreset, updatedAt, dirty) VALUES (?, ?, ?, ?, 1)',
+    baby.id,
+    baby.name,
+    baby.chartPreset,
+    Date.now(),
+  );
   return baby;
 }
 
 export async function updateBaby(db: SQLiteDatabase, baby: Baby): Promise<void> {
   await db.runAsync(
-    'UPDATE baby SET name = ?, birthDate = ?, trainingStartDate = ?, chartPreset = ?, customChart = ? WHERE id = ?',
+    `UPDATE baby SET name = ?, birthDate = ?, trainingStartDate = ?, chartPreset = ?, customChart = ?,
+       updatedAt = ?, dirty = 1 WHERE id = ?`,
     baby.name,
     baby.birthDate,
     baby.trainingStartDate,
     baby.chartPreset,
     baby.customChart ? JSON.stringify(baby.customChart) : null,
+    Date.now(),
     baby.id,
   );
+  wrote();
+}
+
+/** Links (or unlinks) this phone's baby to a family. Kept separate so ordinary edits never touch it. */
+export async function setBabyFamily(db: SQLiteDatabase, babyId: string, familyId: string | null): Promise<void> {
+  await db.runAsync('UPDATE baby SET familyId = ?, updatedAt = ?, dirty = 1 WHERE id = ?', familyId, Date.now(), babyId);
+  wrote();
 }
 
 // ---------- nights ----------
 
+/** Same baby + same night date → same id on every phone. */
+export async function nightIdFor(babyId: string, key: string): Promise<string> {
+  return uuidFromHex(await digestStringAsync(CryptoDigestAlgorithm.SHA1, nightIdSeed(babyId, key)));
+}
+
 export async function getNightForKey(db: SQLiteDatabase, babyId: string, key: string): Promise<Night | null> {
-  return db.getFirstAsync<Night>('SELECT * FROM night WHERE babyId = ? AND nightKey = ? LIMIT 1', babyId, key);
+  return db.getFirstAsync<Night>('SELECT * FROM night WHERE babyId = ? AND nightKey = ? ORDER BY startedAt LIMIT 1', babyId, key);
 }
 
 export async function getNight(db: SQLiteDatabase, nightId: string): Promise<Night | null> {
@@ -150,7 +216,8 @@ export async function getPreviousNight(
 }
 
 export async function setNightNote(db: SQLiteDatabase, nightId: string, note: string): Promise<void> {
-  await db.runAsync('UPDATE night SET note = ? WHERE id = ?', note.trim() ? note : null, nightId);
+  await db.runAsync('UPDATE night SET note = ?, updatedAt = ?, dirty = 1 WHERE id = ?', note.trim() ? note : null, Date.now(), nightId);
+  wrote();
 }
 
 /** What tonight's numbers would be, before a night row exists. */
@@ -162,6 +229,23 @@ export function plannedNumbers(prev: Night | null, repeatLastNight: boolean): { 
   };
 }
 
+async function upsertNightRow(db: SQLiteDatabase, night: Night): Promise<void> {
+  await db.runAsync(
+    `INSERT INTO night (id, babyId, nightNumber, chartNight, nightKey, startedAt, note, updatedAt, dirty)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
+     ON CONFLICT(id) DO UPDATE SET nightNumber = excluded.nightNumber, chartNight = excluded.chartNight,
+       startedAt = excluded.startedAt, note = excluded.note, updatedAt = excluded.updatedAt, dirty = 1`,
+    night.id,
+    night.babyId,
+    night.nightNumber,
+    night.chartNight,
+    night.nightKey,
+    night.startedAt,
+    night.note,
+    Date.now(),
+  );
+}
+
 export async function createNight(
   db: SQLiteDatabase,
   babyId: string,
@@ -170,24 +254,19 @@ export async function createNight(
   roundStartKey: string | null = null,
 ): Promise<Night> {
   const key = nightKey(at);
+  const existing = await getNightForKey(db, babyId, key);
+  if (existing) return existing;
   const prev = await getPreviousNight(db, babyId, key, roundStartKey);
   const nums = plannedNumbers(prev, repeatLastNight);
-  const night: Night = { id: randomUUID(), babyId, nightKey: key, startedAt: at, note: null, ...nums };
-  await db.runAsync(
-    'INSERT INTO night (id, babyId, nightNumber, chartNight, nightKey, startedAt, note) VALUES (?, ?, ?, ?, ?, ?, ?)',
-    night.id,
-    night.babyId,
-    night.nightNumber,
-    night.chartNight,
-    night.nightKey,
-    night.startedAt,
-    night.note,
-  );
+  const night: Night = { id: await nightIdFor(babyId, key), babyId, nightKey: key, startedAt: at, note: null, ...nums };
+  await upsertNightRow(db, night);
+  wrote();
   return night;
 }
 
 export async function setNightChartNight(db: SQLiteDatabase, nightId: string, chartNight: number): Promise<void> {
-  await db.runAsync('UPDATE night SET chartNight = ? WHERE id = ?', chartNight, nightId);
+  await db.runAsync('UPDATE night SET chartNight = ?, updatedAt = ?, dirty = 1 WHERE id = ?', chartNight, Date.now(), nightId);
+  wrote();
 }
 
 // ---------- events ----------
@@ -196,26 +275,36 @@ export async function listEvents(db: SQLiteDatabase, nightId: string): Promise<N
   return db.getAllAsync<NightEvent>('SELECT * FROM event WHERE nightId = ? ORDER BY at, id', nightId);
 }
 
-export async function insertEvent(db: SQLiteDatabase, nightId: string, type: EventType, at: number): Promise<NightEvent> {
-  const e: NightEvent = { id: randomUUID(), nightId, type, at, createdBy: null, deletedAt: null };
+export async function insertEvent(
+  db: SQLiteDatabase,
+  nightId: string,
+  type: EventType,
+  at: number,
+  createdBy: string | null = null,
+): Promise<NightEvent> {
+  const e: NightEvent = { id: randomUUID(), nightId, type, at, createdBy, deletedAt: null };
   await db.runAsync(
-    'INSERT INTO event (id, nightId, type, at, createdBy, deletedAt) VALUES (?, ?, ?, ?, ?, NULL)',
+    'INSERT INTO event (id, nightId, type, at, createdBy, deletedAt, updatedAt, dirty) VALUES (?, ?, ?, ?, ?, NULL, ?, 1)',
     e.id,
     e.nightId,
     e.type,
     e.at,
     e.createdBy ?? null,
+    Date.now(),
   );
+  wrote();
   return e;
 }
 
 export async function updateEventTime(db: SQLiteDatabase, eventId: string, at: number): Promise<void> {
-  await db.runAsync('UPDATE event SET at = ? WHERE id = ?', at, eventId);
+  await db.runAsync('UPDATE event SET at = ?, updatedAt = ?, dirty = 1 WHERE id = ?', at, Date.now(), eventId);
+  wrote();
 }
 
-/** Soft delete, so a delete can sync to the partner's phone later. */
+/** Soft delete, so a delete reaches the partner's phone. */
 export async function softDeleteEvent(db: SQLiteDatabase, eventId: string, at: number): Promise<void> {
-  await db.runAsync('UPDATE event SET deletedAt = ? WHERE id = ?', at, eventId);
+  await db.runAsync('UPDATE event SET deletedAt = ?, updatedAt = ?, dirty = 1 WHERE id = ?', at, Date.now(), eventId);
+  wrote();
 }
 
 // ---------- settings (key/value) ----------
@@ -240,6 +329,21 @@ export async function getSettings(db: SQLiteDatabase): Promise<Settings> {
 }
 
 export async function setSetting<K extends keyof Settings>(db: SQLiteDatabase, key: K, value: Settings[K]): Promise<void> {
+  await setRaw(db, key, value);
+}
+
+/** Sync bookkeeping (invite code, pull cursors), kept in the setting table under "sync." keys. */
+export async function getSyncValue<T>(db: SQLiteDatabase, key: string): Promise<T | null> {
+  const row = await db.getFirstAsync<{ value: string }>('SELECT value FROM setting WHERE key = ?', `sync.${key}`);
+  return row ? (JSON.parse(row.value) as T) : null;
+}
+
+export async function setSyncValue(db: SQLiteDatabase, key: string, value: unknown): Promise<void> {
+  if (value == null) await db.runAsync('DELETE FROM setting WHERE key = ?', `sync.${key}`);
+  else await setRaw(db, `sync.${key}`, value);
+}
+
+async function setRaw(db: SQLiteDatabase, key: string, value: unknown): Promise<void> {
   await db.runAsync(
     'INSERT INTO setting (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value',
     key,
@@ -266,14 +370,104 @@ export async function listNightsWithEvents(db: SQLiteDatabase, babyId: string): 
     .filter((n) => n.events.length > 0);
 }
 
-// ---------- testing helpers (shown only in development builds) ----------
+// ---------- sync support (used by src/data/sync.ts) ----------
 
-/** Deletes every night and event. Keeps the baby (name, chart) and settings. */
-export async function eraseAllNights(db: SQLiteDatabase): Promise<void> {
+export interface DirtyRows {
+  babies: (BabyRow & { updatedAt: number })[];
+  nights: (Night & { updatedAt: number })[];
+  events: (NightEvent & { updatedAt: number })[];
+}
+
+export async function listDirty(db: SQLiteDatabase): Promise<DirtyRows> {
+  return {
+    babies: await db.getAllAsync('SELECT * FROM baby WHERE dirty = 1'),
+    nights: await db.getAllAsync('SELECT * FROM night WHERE dirty = 1'),
+    events: await db.getAllAsync('SELECT * FROM event WHERE dirty = 1 LIMIT 500'),
+  };
+}
+
+/** Clears the dirty flag only if the row hasn't changed again since it was read. */
+export async function markClean(db: SQLiteDatabase, table: 'baby' | 'night' | 'event', rows: { id: string; updatedAt: number }[]): Promise<void> {
+  for (const r of rows) {
+    await db.runAsync(`UPDATE ${table} SET dirty = 0 WHERE id = ? AND updatedAt = ?`, r.id, r.updatedAt);
+  }
+}
+
+export async function markAllDirty(db: SQLiteDatabase): Promise<void> {
+  await db.execAsync('UPDATE baby SET dirty = 1; UPDATE night SET dirty = 1; UPDATE event SET dirty = 1;');
+}
+
+/** Rows from the server. Applied only if newer than (or equal to) the local copy; they arrive clean. */
+export async function applyRemoteBaby(db: SQLiteDatabase, b: Baby & { updatedAt: number }): Promise<void> {
+  await db.runAsync(
+    `INSERT INTO baby (id, name, birthDate, trainingStartDate, chartPreset, customChart, familyId, updatedAt, dirty)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+     ON CONFLICT(id) DO UPDATE SET name = excluded.name, birthDate = excluded.birthDate,
+       trainingStartDate = excluded.trainingStartDate, chartPreset = excluded.chartPreset,
+       customChart = excluded.customChart, familyId = excluded.familyId, updatedAt = excluded.updatedAt, dirty = 0
+     WHERE excluded.updatedAt >= baby.updatedAt`,
+    b.id,
+    b.name,
+    b.birthDate,
+    b.trainingStartDate,
+    b.chartPreset,
+    b.customChart ? JSON.stringify(b.customChart) : null,
+    b.familyId,
+    b.updatedAt,
+  );
+}
+
+export async function applyRemoteNight(db: SQLiteDatabase, n: Night & { updatedAt: number }): Promise<void> {
+  await db.runAsync(
+    `INSERT INTO night (id, babyId, nightNumber, chartNight, nightKey, startedAt, note, updatedAt, dirty)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+     ON CONFLICT(id) DO UPDATE SET nightNumber = excluded.nightNumber, chartNight = excluded.chartNight,
+       startedAt = excluded.startedAt, note = excluded.note, updatedAt = excluded.updatedAt, dirty = 0
+     WHERE excluded.updatedAt >= night.updatedAt`,
+    n.id,
+    n.babyId,
+    n.nightNumber,
+    n.chartNight,
+    n.nightKey,
+    n.startedAt,
+    n.note,
+    n.updatedAt,
+  );
+}
+
+export async function applyRemoteEvent(db: SQLiteDatabase, e: NightEvent & { updatedAt: number }): Promise<void> {
+  await db.runAsync(
+    `INSERT INTO event (id, nightId, type, at, createdBy, deletedAt, updatedAt, dirty)
+     VALUES (?, ?, ?, ?, ?, ?, ?, 0)
+     ON CONFLICT(id) DO UPDATE SET type = excluded.type, at = excluded.at, createdBy = excluded.createdBy,
+       deletedAt = excluded.deletedAt, updatedAt = excluded.updatedAt, dirty = 0
+     WHERE excluded.updatedAt >= event.updatedAt`,
+    e.id,
+    e.nightId,
+    e.type,
+    e.at,
+    e.createdBy ?? null,
+    e.deletedAt ?? null,
+    e.updatedAt,
+  );
+}
+
+/** Joining a partner's family: this phone's own (never-shared) data is replaced by the family's. */
+export async function clearLocalData(db: SQLiteDatabase): Promise<void> {
   await db.withTransactionAsync(async () => {
     await db.runAsync('DELETE FROM event');
     await db.runAsync('DELETE FROM night');
+    await db.runAsync('DELETE FROM baby');
   });
+}
+
+// ---------- testing helpers (shown only in development builds) ----------
+
+/** Removes every logged tap (soft delete, so it syncs). Keeps the baby (name, chart) and settings. */
+export async function eraseAllNights(db: SQLiteDatabase): Promise<void> {
+  const now = Date.now();
+  await db.runAsync('UPDATE event SET deletedAt = ?, updatedAt = ?, dirty = 1 WHERE deletedAt IS NULL', now, now);
+  wrote();
 }
 
 /** Replaces all nights with the given sample nights; the training round starts at the first one. */
@@ -283,26 +477,27 @@ export async function loadSampleNights(
   nights: { nightKey: string; nightNumber: number; note: string | null; events: { type: EventType; at: number }[] }[],
 ): Promise<void> {
   await eraseAllNights(db);
+  const ids = await Promise.all(nights.map((n) => nightIdFor(baby.id, n.nightKey)));
+  const now = Date.now();
   await db.withTransactionAsync(async () => {
-    for (const n of nights) {
-      const nightId = randomUUID();
-      await db.runAsync(
-        'INSERT INTO night (id, babyId, nightNumber, chartNight, nightKey, startedAt, note) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        nightId,
-        baby.id,
-        n.nightNumber,
-        n.nightNumber,
-        n.nightKey,
-        n.events[0].at,
-        n.note,
-      );
+    for (const [i, n] of nights.entries()) {
+      await upsertNightRow(db, {
+        id: ids[i],
+        babyId: baby.id,
+        nightNumber: n.nightNumber,
+        chartNight: n.nightNumber,
+        nightKey: n.nightKey,
+        startedAt: n.events[0].at,
+        note: n.note,
+      });
       for (const e of n.events) {
         await db.runAsync(
-          'INSERT INTO event (id, nightId, type, at, createdBy, deletedAt) VALUES (?, ?, ?, ?, NULL, NULL)',
+          'INSERT INTO event (id, nightId, type, at, createdBy, deletedAt, updatedAt, dirty) VALUES (?, ?, ?, ?, NULL, NULL, ?, 1)',
           randomUUID(),
-          nightId,
+          ids[i],
           e.type,
           e.at,
+          now,
         );
       }
     }

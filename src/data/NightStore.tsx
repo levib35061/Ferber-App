@@ -29,6 +29,7 @@ import {
   softDeleteEvent,
 } from './db';
 import { notificationPermission, reconcileCheckInAlert, requestNotificationPermission } from './notifications';
+import { SyncEngine, SyncStatus } from './sync';
 
 interface LastTap {
   eventId: string;
@@ -57,6 +58,9 @@ interface NightStoreValue {
   updateSetting: <K extends keyof Settings>(key: K, value: Settings[K]) => Promise<void>;
   saveBaby: (baby: Baby) => Promise<void>;
   reload: () => Promise<void>;
+  /** Partner sync */
+  sync: SyncEngine;
+  syncStatus: SyncStatus;
 }
 
 const Ctx = createContext<NightStoreValue | null>(null);
@@ -78,6 +82,8 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
   const [repeatLastNight, setRepeat] = useState(false);
   const [lastTap, setLastTap] = useState<LastTap | null>(null);
   const busy = useRef(false);
+  const [sync] = useState(() => new SyncEngine(db));
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>(() => sync.getStatus());
 
   const chart = useMemo(() => chartForPreset(baby?.chartPreset ?? 'ferber', baby?.customChart), [baby]);
   const planned = plannedNumbers(prevNight, repeatLastNight);
@@ -116,6 +122,20 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
     return () => sub.remove();
   }, [reload]);
 
+  // Partner's changes arrive here; re-read storage (which also re-syncs the alert).
+  useEffect(() => {
+    sync.setOnRemoteChange(() => void reload());
+  }, [reload, sync]);
+
+  useEffect(() => {
+    const off = sync.onStatus(setSyncStatus);
+    sync.start().catch(() => {});
+    return () => {
+      off();
+      sync.stop();
+    };
+  }, [sync]);
+
   const haptic = useCallback(() => {
     if (settings.haptics) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
   }, [settings.haptics]);
@@ -133,14 +153,14 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
         }
         let n = night;
         if (!n) n = await createNight(db, baby.id, now, repeatLastNight, baby.trainingStartDate);
-        const e = await insertEvent(db, n.id, action, now);
+        const e = await insertEvent(db, n.id, action, now, sync.userId);
         setLastTap({ eventId: e.id, type: action, tappedAt: now });
         await reload();
       } finally {
         busy.current = false;
       }
     },
-    [baby, db, haptic, night, reload, repeatLastNight],
+    [baby, db, haptic, night, reload, repeatLastNight, sync],
   );
 
   const undo = useCallback(async () => {
@@ -202,6 +222,8 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
     undo,
     updateSetting,
     saveBaby,
+    sync,
+    syncStatus,
     reload,
   };
 

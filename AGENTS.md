@@ -51,6 +51,7 @@ The product spec is `docs/SPEC.md`. Read it before changing behavior.
 - `src/lib/summary.ts` — crying minutes, check-ins, wakings. Crying time excludes quiet stretches: events `cry`/`quiet` mark crying start/stop; after `down` no wait runs until `cry` (see `walk()` in session.ts).
 - App name: "Check In: Baby Sleep Timer" (display name "Check In"). Don't use "Ferber" in the app name.
 - `src/data/db.ts` — SQLite schema (baby, night, event, setting). UUID ids, UTC epoch-ms times, soft deletes (`deletedAt`).
+- Partner sync: `src/data/sync.ts` (SyncEngine: push dirty rows, pull by `server_updated_at` cursor, realtime triggers a pull) with Supabase (`src/data/supabase.ts`, `src/config.ts`, `supabase/schema.sql`). Every local write must go through `db.ts` so it sets `updatedAt`/`dirty` and calls `wrote()`. Night ids are deterministic (`nightIdFor`). Last write wins per row. Network test: `npm run test:sync`.
 - `src/data/notifications.ts` — the check-in alert is ALWAYS a scheduled OS notification, reconciled after every write. Never rely on a JS timer for the alert or countdown.
 - Night UI uses the "Moonlight" theme in `src/theme/night.ts` (navy, lavender, peach when due, Nunito via `fonts.*` — set fontFamily, not fontWeight). No white, no confirmation dialogs (Undo instead).
 - Run `npm test`, `npm run typecheck`, `npm run lint` before declaring a task done.

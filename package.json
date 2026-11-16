@@ -5,6 +5,7 @@
   "dependencies": {
     "@expo-google-fonts/nunito": "^0.4.2",
     "@react-native-community/datetimepicker": "9.2.1",
+    "@supabase/supabase-js": "^2.119.0",
     "expo": "~58.0.25",
     "expo-constants": "~58.0.16",
     "expo-crypto": "~58.0.8",
@@ -39,13 +40,18 @@
     "ios": "expo start --ios",
     "test": "jest",
     "typecheck": "tsc --noEmit",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "test:sync": "SYNC_E2E=1 jest -c jest.e2e.config.js"
   },
   "private": true,
   "jest": {
     "preset": "jest-expo",
     "testMatch": [
       "**/__tests__/**/*.test.ts?(x)"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "\\.e2e\\.test\\.ts$"
     ]
   }
 }

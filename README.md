@@ -61,7 +61,10 @@ npm run lint
 - [x] App name: **Check In: Baby Sleep Timer** (home screen: "Check In")
 - [x] Bundle ID: `com.levibrown.checkin`
 - [ ] EAS development build on the phone
-- [ ] Supabase + Sign in with Apple, partner invite, sync, partner alerts
+- [x] Supabase project + schema (`supabase/schema.sql`), row-level security
+- [x] Partner sharing: invite code, join, two-way sync, realtime, offline catch-up (anonymous sign-in for now)
+- [ ] Sign in with Apple (needs a development build)
+- [ ] Partner alerts when the app is closed (push notification from the server)
 - [ ] RevenueCat one-time unlock ($4.99, after 2 free nights), restore purchases, Family Sharing
 
 ### Testing Milestone 2 without waiting a week
@@ -85,6 +88,18 @@ Expected numbers (check each night in History, and its timeline adds up):
 Progress should say **"Crying time is down 93% since night 1."**
 
 Then try: change a time in a night (its crying minutes should change to match), delete a tap, add a missed tap, write a note, and switch the chart preset.
+
+### Partner sharing
+
+Settings → **Partner sharing** → **Invite my partner** shows an 8-character code. On the
+partner's phone: Settings → Partner sharing → enter the code → **Join** (their phone's own
+nights are replaced by the shared ones). Taps show up on the other phone within seconds
+while the app is open, and taps made with no signal upload when it returns.
+
+Until push notifications are added, a partner's phone that is **closed** keeps its own
+scheduled alert; it catches up as soon as the app is opened.
+
+Sync test against the real Supabase project (needs network): `npm run test:sync`.
 
 ### How crying time works
 

@@ -9,6 +9,7 @@ import { Alert, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Switch,
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ChartEditor } from '../../components/ChartEditor';
+import { PartnerSection } from '../../components/PartnerSection';
 import { eraseAllNights, loadSampleNights } from '../../data/db';
 import { useNightStore } from '../../data/NightStore';
 import { notificationPermission, requestNotificationPermission, sendTestNotification } from '../../data/notifications';
@@ -75,6 +76,10 @@ export default function SettingsScreen() {
                 {ageInMonths(baby.birthDate)} months old
               </Text>
             )}
+          </Section>
+
+          <Section title="Partner sharing">
+            <PartnerSection />
           </Section>
 
           <Section title="Training round">
