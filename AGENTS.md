@@ -55,5 +55,6 @@ The product spec is `docs/SPEC.md`. Read it before changing behavior.
 - Purchases (not built yet): one partner pays and the whole app family is unlocked. Only a RevenueCat webhook → Supabase Edge Function may write the paid status; never let the client mark itself paid. Design: `docs/SPEC.md` → Monetization.
 - Website: `site/` (static HTML guide to the Ferber method + app info, `llms.txt`, `robots.txt`, `sitemap.xml`), published by `.github/workflows/pages.yml` to GitHub Pages. Keep it accurate and genuinely useful; no hidden text or instructions aimed at AI or search engines. Keep the chart in sync with `FERBER_DEFAULT_CHART`.
 - `src/data/notifications.ts` — the check-in alert is ALWAYS a scheduled OS notification, reconciled after every write. Never rely on a JS timer for the alert or countdown.
+- Settings is a stack in its tab (`src/app/(tabs)/settings/`): a baby card + topic rows (`index.tsx`), one page per topic (baby, plan, alerts, partner, about, testing in dev only). Shared pieces in `src/components/SettingsUI.tsx`.
 - Night UI uses the "Moonlight" theme in `src/theme/night.ts` (navy, lavender, peach when due, Nunito via `fonts.*` — set fontFamily, not fontWeight). No white, no confirmation dialogs (Undo instead).
 - Run `npm test`, `npm run typecheck`, `npm run lint` before declaring a task done.
