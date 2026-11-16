@@ -3,7 +3,7 @@
  * night screen. One function, so the "Back to Today" link can never show
  * when Today isn't actually available.
  */
-import { isNightTime, nightKey } from './time';
+import { NIGHT_ENDS_HOUR, isNightTime, nightKey } from './time';
 
 export interface ViewInput {
   now: number;
@@ -23,9 +23,21 @@ export interface ViewChoice {
 
 export function chooseView({ now, stateKind, bedtimeEarly, lastNightKey }: ViewInput): ViewChoice {
   const recent = lastNightKey != null && [nightKey(now), nightKey(now - 24 * 3600_000)].includes(lastNightKey);
-  const restful = stateKind === 'idle' || stateKind === 'asleep';
+  // Before 11am "asleep" is last night (morning); after 11am it's tonight, already under way.
+  const morning = new Date(now).getHours() < NIGHT_ENDS_HOUR;
+  const restful = stateKind === 'idle' || (stateKind === 'asleep' && morning);
   // After "Up for the day" the night is over, so Today shows at any hour.
   const canShowToday = recent && (stateKind === 'up' || (!isNightTime(now) && restful));
   const view = canShowToday && (stateKind === 'up' || !bedtimeEarly) ? 'today' : 'night';
   return { view, canShowToday };
+}
+
+/**
+ * Is a night key "last night" as seen at `now`? Before 11am, tonight's key is
+ * still last night; after 11am, tonight's key is the night ahead (or under way).
+ */
+export function isPastNight(key: string, now: number): boolean {
+  const current = nightKey(now);
+  if (key < current) return true;
+  return key === current && new Date(now).getHours() < NIGHT_ENDS_HOUR;
 }

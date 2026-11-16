@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Night, listNightsWithEvents } from '../data/db';
 import { useNightStore } from '../data/NightStore';
 import { nextWaitMinutes } from '../lib/ferber';
+import { isPastNight } from '../lib/nightView';
 import {
   Segment,
   SegmentKind,
@@ -25,7 +26,7 @@ import {
 } from '../lib/morning';
 import { NightEvent } from '../lib/session';
 import { summarizeNight } from '../lib/summary';
-import { formatClock, nightKey } from '../lib/time';
+import { formatClock } from '../lib/time';
 import { day, dayFonts } from '../theme/day';
 
 export interface LastNights {
@@ -43,9 +44,10 @@ export function useLastNights(): LastNights | null {
   useFocusEffect(
     useCallback(() => {
       if (!baby) return;
-      const key = nightKey(Date.now());
+      const now = Date.now();
       listNightsWithEvents(db, baby.id).then((rows) => {
-        const past = rows.filter((r) => r.night.nightKey <= key);
+        // Only finished nights: after 11am, tonight's night isn't "last night".
+        const past = rows.filter((r) => isPastNight(r.night.nightKey, now));
         setData({ last: past[0] ?? null, previous: past[1] ?? null });
       });
       // `events` changes whenever tonight's log (or a partner's sync) changes.
