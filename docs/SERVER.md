@@ -65,3 +65,20 @@ Put it in **both** places:
 - iOS may throttle silent pushes (Apple suggests a few per hour), so they're best effort;
   the on-duty phone's own scheduled alert is always the primary alarm, and opening the
   app always catches up.
+
+## Sign in with Apple (partner sharing accounts)
+
+New users sign in with Apple before turning on partner sharing (no anonymous
+sign-ups). The app asks Apple for no name or email.
+
+- Supabase → Authentication → Sign In / Providers → **Apple** → enable, with
+  **Client IDs**: `com.levibrown.checkin,host.exp.Exponent` (the second is Expo Go,
+  for testing). No secret key is needed for the native sign-in.
+- Then Supabase → Authentication → Sign In / Providers → turn **off** "Allow anonymous
+  sign-ins". Existing anonymous test accounts keep working and can upgrade from
+  Settings → Partner sharing.
+- **Before App Store submission:** Apple requires revoking the Apple token when an
+  account is deleted. That needs an Apple "Sign in with Apple" key (after approval);
+  add a revoke step to account deletion then.
+
+Login sessions are stored in the iOS Keychain (`src/data/supabase.ts`).

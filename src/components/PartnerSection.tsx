@@ -2,10 +2,13 @@
  * Settings → Partner sharing: invite a partner with a code, join with a
  * partner's code, see sync status.
  */
-import React, { useState } from 'react';
+import * as AppleAuthentication from 'expo-apple-authentication';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { appleSignInAvailable, signInWithApple } from '../data/appleAuth';
 import { useNightStore } from '../data/NightStore';
+import { accountKind } from '../data/supabase';
 import { makeStyles, useTheme } from '../theme';
 
 function ago(ms: number): string {
@@ -20,11 +23,47 @@ const pretty = (code: string) => (code.length === 8 ? `${code.slice(0, 4)} ${cod
 
 export function PartnerSection() {
   const styles = stylesHook();
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   const { sync, syncStatus: st, reload } = useNightStore();
   const [busy, setBusy] = useState(false);
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [account, setAccount] = useState<'apple' | 'anonymous' | null | undefined>(undefined);
+  const [appleOk, setAppleOk] = useState(false);
+
+  const refreshAccount = useCallback(() => {
+    accountKind().then(setAccount);
+  }, []);
+  useEffect(() => {
+    refreshAccount();
+    appleSignInAvailable().then(setAppleOk);
+  }, [refreshAccount]);
+
+  const appleSignIn = () =>
+    run(async () => {
+      await signInWithApple();
+      refreshAccount();
+      // A signed-in phone already in a family picks up its sync again.
+      sync.soon(0);
+    });
+
+  /** Apple's own button (required styling), dark or light to match the app. */
+  const appleButton = (type: AppleAuthentication.AppleAuthenticationButtonType) =>
+    appleOk ? (
+      <AppleAuthentication.AppleAuthenticationButton
+        buttonType={type}
+        buttonStyle={
+          scheme === 'dark'
+            ? AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
+            : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
+        }
+        cornerRadius={999}
+        style={styles.appleBtn}
+        onPress={appleSignIn}
+      />
+    ) : (
+      <Text style={styles.hint}>Sign in with Apple isn&apos;t available on this device.</Text>
+    );
 
   const run = async (fn: () => Promise<void>) => {
     setBusy(true);
@@ -38,6 +77,36 @@ export function PartnerSection() {
       setBusy(false);
     }
   };
+
+  if (account === undefined) return <ActivityIndicator color={colors.primary} />;
+
+  // Partner sharing needs an account: Sign in with Apple (no name or email requested).
+  if (!st.familyId && account === null) {
+    return (
+      <View>
+        <Text style={styles.body}>Share nights with your partner. Both phones see every tap within seconds.</Text>
+        <Text style={styles.hint}>
+          To share, sign in with Apple. We don&apos;t ask Apple for your name or email. It just keeps your family&apos;s data
+          private to the two of you.
+        </Text>
+        {appleButton(AppleAuthentication.AppleAuthenticationButtonType.CONTINUE)}
+        {busy && <ActivityIndicator color={colors.primary} style={{ marginTop: 12 }} />}
+        {error && <Text style={styles.error}>{error}</Text>}
+      </View>
+    );
+  }
+
+  // Older test accounts made without Apple: offer the upgrade (keeps everything).
+  const upgrade =
+    account === 'anonymous' ? (
+      <View style={{ marginTop: 18 }}>
+        <Text style={styles.hint}>
+          This phone shares without an Apple sign-in. Sign in with Apple to keep your sharing if you reinstall or change phones.
+          Your family and nights stay as they are.
+        </Text>
+        {appleButton(AppleAuthentication.AppleAuthenticationButtonType.CONTINUE)}
+      </View>
+    ) : null;
 
   if (!st.familyId) {
     return (
@@ -80,6 +149,7 @@ export function PartnerSection() {
           />
         </View>
         {busy && <ActivityIndicator color={colors.primary} style={{ marginTop: 12 }} />}
+        {upgrade}
         {error && <Text style={styles.error}>{error}</Text>}
       </View>
     );
@@ -125,6 +195,7 @@ export function PartnerSection() {
       >
         <Text style={styles.linkText}>Stop sharing on this phone</Text>
       </Pressable>
+      {upgrade}
       {error && <Text style={styles.error}>{error}</Text>}
     </View>
   );
@@ -156,6 +227,7 @@ const stylesHook = makeStyles(({ colors, fonts, type }) =>
     label: { color: colors.textDim, fontFamily: fonts.semibold, fontSize: 13, marginBottom: 6 },
     hint: { color: colors.textFaint, fontFamily: fonts.regular, fontSize: type.small, lineHeight: 20, marginTop: 4 },
     code: { color: colors.text, fontFamily: fonts.bold, fontSize: 34, letterSpacing: 3, fontVariant: ['tabular-nums'] },
+    appleBtn: { height: 50, marginTop: 14, alignSelf: 'stretch' },
     error: { color: colors.accent, fontFamily: fonts.semibold, fontSize: type.small, marginTop: 10, lineHeight: 20 },
     joinRow: { flexDirection: 'row', gap: 10, alignItems: 'center' },
     input: {

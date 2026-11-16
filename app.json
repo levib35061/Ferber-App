@@ -11,7 +11,8 @@
       "bundleIdentifier": "com.levibrown.checkin",
       "entitlements": {
         "com.apple.developer.usernotifications.time-sensitive": true
-      }
+      },
+      "usesAppleSignIn": true
     },
     "plugins": [
       "expo-router",
@@ -31,7 +32,8 @@
         {
           "enableBackgroundRemoteNotifications": true
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "scheme": "checkin",
     "backgroundColor": "#070B1C",

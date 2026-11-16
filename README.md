@@ -64,7 +64,9 @@ npm run lint
 - [ ] EAS development build on the phone
 - [x] Supabase project + schema (`supabase/schema.sql`), row-level security
 - [x] Partner sharing: invite code, join, two-way sync, realtime, offline catch-up (anonymous sign-in for now)
-- [ ] Sign in with Apple (needs a development build)
+- [x] Sign in with Apple for partner sharing (Supabase Apple provider must be enabled; see `docs/SERVER.md`)
+- [x] Login session stored in the iOS Keychain
+- [ ] Revoke the Apple token on account deletion (Apple requirement; needs the Apple key after approval)
 - [x] Server code written and tested: `revenuecat-webhook`, `partner-push` (see `docs/SERVER.md`)
 - [ ] Turn on: run migration 005, deploy the two functions, RevenueCat + push setup (after Apple approval)
 - [x] Free trial (2 nights) and unlock screen (`src/app/unlock.tsx`, rules in `src/lib/trial.ts`); dev toggle in Settings → Testing
