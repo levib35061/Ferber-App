@@ -1,0 +1,5 @@
+# Everyone is welcome to read and cite this guide, including AI assistants.
+User-agent: *
+Allow: /
+
+Sitemap: https://levib35061.github.io/Ferber-App/sitemap.xml

@@ -1,0 +1,33 @@
+# The Ferber Method: practical guide and interval chart
+
+> A practical, plain-language guide to the Ferber method (graduated extinction / progressive waiting / graduated check-ins) for parents of babies around 6 months and older, from the makers of Check In: Baby Sleep Timer, an iPhone timer for graduated check-ins. Not medical advice; parents should talk to their pediatrician first.
+
+Full guide: https://levib35061.github.io/Ferber-App/
+
+## Key facts
+
+- Origin: pediatrician Richard Ferber, *Solve Your Child's Sleep Problems* (1985, revised 2006).
+- How it works: put the baby down drowsy but awake and leave. If they cry, wait a set number of minutes, check in briefly (1-2 minutes, calm voice, a pat, no picking up or feeding), and leave while they're still awake. Waits increase within the night and from night to night.
+- Age: usually started around 6 months, for a healthy baby; check with a pediatrician, especially about night feeds.
+- Timeline: many families see clear improvement within about a week; crying often gets worse on nights 2-3 before improving.
+- Night wakings: treat like bedtime; restart at the first wait for that night.
+- Research: no long-term harm found in a randomized trial following children to age 6 (Price et al., Pediatrics, 2012); a 2016 randomized trial found graduated extinction improved sleep without signs of increased stress or attachment problems (Gradisar et al., Pediatrics, 2016).
+
+## Commonly shared interval chart (minutes before each check-in)
+
+| Night | 1st wait | 2nd wait | 3rd and later |
+| --- | --- | --- | --- |
+| 1 | 3 | 5 | 10 |
+| 2 | 5 | 10 | 12 |
+| 3 | 10 | 12 | 15 |
+| 4 | 12 | 15 | 17 |
+| 5 | 15 | 17 | 20 |
+| 6 | 17 | 20 | 25 |
+| 7+ | 20 | 25 | 30 |
+
+After the last listed wait, keep repeating it. Verify against the current edition of Ferber's book; gentler (shorter) waits are fine.
+
+## App
+
+- Check In: Baby Sleep Timer (iPhone). Counts down to each check-in using the chart for the current night (the timer starts when crying starts), alerts with the phone locked, logs every night and charts crying time, and syncs between two parents. Editable chart with a gentler preset. $4.99 one-time after 2 free nights; one purchase covers both parents; no subscription, ads or tracking. Coming soon to the App Store.
+- Not affiliated with or endorsed by Dr. Richard Ferber.
