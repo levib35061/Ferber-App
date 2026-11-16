@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useNightStore } from '../../data/NightStore';
 import { notificationPermission, requestNotificationPermission, sendTestNotification } from '../../data/notifications';
-import { colors, type } from '../../theme/night';
+import { colors, fonts, type } from '../../theme/night';
 
 export default function SettingsScreen() {
   const { settings, updateSetting, chart } = useNightStore();
@@ -100,7 +100,7 @@ function Row({ label, value, onChange, hint }: { label: string; value: boolean; 
         <Text style={styles.body}>{label}</Text>
         {hint && <Text style={styles.hint}>{hint}</Text>}
       </View>
-      <Switch value={value} onValueChange={onChange} trackColor={{ true: colors.textDim, false: colors.border }} thumbColor={colors.text} />
+      <Switch value={value} onValueChange={onChange} trackColor={{ true: colors.primary, false: colors.buttonBg }} thumbColor={colors.text} />
     </View>
   );
 }
@@ -115,24 +115,22 @@ function Button({ label, onPress }: { label: string; onPress: () => void }) {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20 },
-  title: { color: colors.text, fontSize: type.huge, fontWeight: '700', marginVertical: 16 },
+  title: { color: colors.text, fontSize: type.huge, fontFamily: fonts.bold, marginVertical: 16 },
   section: { marginBottom: 28 },
-  sectionTitle: { color: colors.textDim, fontSize: type.small, fontWeight: '700', textTransform: 'uppercase', marginBottom: 8 },
+  sectionTitle: { color: colors.textDim, fontSize: type.small, fontFamily: fonts.bold, textTransform: 'uppercase', marginBottom: 8 },
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10 },
-  body: { color: colors.text, fontSize: type.body, lineHeight: 23 },
-  hint: { color: colors.textFaint, fontSize: type.small, marginTop: 4 },
+  body: { color: colors.text, fontFamily: fonts.regular, fontSize: type.body, lineHeight: 23 },
+  hint: { color: colors.textFaint, fontFamily: fonts.regular, fontSize: type.small, marginTop: 4 },
   button: {
     marginTop: 12,
     paddingVertical: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
+    borderRadius: 999,
+    backgroundColor: colors.buttonBg,
     alignItems: 'center',
   },
-  buttonText: { color: colors.text, fontSize: type.body, fontWeight: '600' },
+  buttonText: { color: colors.text, fontSize: type.body, fontFamily: fonts.semibold },
   chartHeader: { flexDirection: 'row', paddingBottom: 4 },
   chartRow: { flexDirection: 'row', paddingVertical: 4 },
-  cell: { flex: 1, color: colors.text, fontSize: type.body, fontVariant: ['tabular-nums'] },
-  cellHead: { color: colors.textDim, fontWeight: '600' },
+  cell: { flex: 1, color: colors.text, fontFamily: fonts.regular, fontSize: type.body, fontVariant: ['tabular-nums'] },
+  cellHead: { color: colors.textDim, fontFamily: fonts.semibold },
 });

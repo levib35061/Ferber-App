@@ -19,14 +19,15 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#000000",
+          "backgroundColor": "#070B1C",
           "image": "./assets/splash-icon.png",
           "imageWidth": 120
         }
-      ]
+      ],
+      "expo-font"
     ],
     "scheme": "ferber",
-    "backgroundColor": "#000000",
+    "backgroundColor": "#070B1C",
     "experiments": {
       "typedRoutes": true
     }

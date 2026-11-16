@@ -51,5 +51,5 @@ The product spec is `docs/SPEC.md`. Read it before changing behavior.
 - `src/lib/summary.ts` — crying minutes, check-ins, wakings.
 - `src/data/db.ts` — SQLite schema (baby, night, event, setting). UUID ids, UTC epoch-ms times, soft deletes (`deletedAt`).
 - `src/data/notifications.ts` — the check-in alert is ALWAYS a scheduled OS notification, reconciled after every write. Never rely on a JS timer for the alert or countdown.
-- Night UI: true black, dim amber/red text, no white, no confirmation dialogs (Undo instead).
+- Night UI uses the "Moonlight" theme in `src/theme/night.ts` (navy, lavender, peach when due, Nunito via `fonts.*` — set fontFamily, not fontWeight). No white, no confirmation dialogs (Undo instead).
 - Run `npm test`, `npm run typecheck`, `npm run lint` before declaring a task done.

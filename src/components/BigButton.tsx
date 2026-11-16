@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
 
-import { colors, type } from '../theme/night';
+import { colors, fonts, type } from '../theme/night';
 
 interface Props {
   label: string;
@@ -11,7 +11,7 @@ interface Props {
   disabled?: boolean;
 }
 
-/** Large, thumb-sized button. Haptics are handled by the store on each tap. */
+/** Large, thumb-sized pill button. Haptics are handled by the store on each tap. */
 export function BigButton({ label, onPress, variant = 'primary', style, disabled }: Props) {
   return (
     <Pressable
@@ -21,23 +21,13 @@ export function BigButton({ label, onPress, variant = 'primary', style, disabled
       disabled={disabled}
       style={({ pressed }) => [
         styles.base,
-        variant === 'primary' && styles.primary,
-        variant === 'secondary' && styles.secondary,
-        variant === 'alert' && styles.alert,
-        variant === 'link' && styles.link,
-        pressed && { opacity: 0.6 },
+        styles[variant],
+        pressed && { opacity: 0.7 },
         disabled && { opacity: 0.3 },
         style,
       ]}
     >
-      <Text
-        style={[
-          styles.label,
-          variant === 'secondary' && styles.secondaryLabel,
-          variant === 'alert' && styles.alertLabel,
-          variant === 'link' && styles.linkLabel,
-        ]}
-      >
+      <Text style={[styles.label, labelStyles[variant]]} numberOfLines={1} adjustsFontSizeToFit>
         {label}
       </Text>
     </Pressable>
@@ -46,35 +36,21 @@ export function BigButton({ label, onPress, variant = 'primary', style, disabled
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: 22,
+    borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 20,
   },
-  primary: {
-    flex: 1,
-    minHeight: 96,
-    backgroundColor: colors.buttonBg,
-    borderWidth: 2,
-    borderColor: colors.text,
-  },
-  secondary: {
-    flex: 1,
-    minHeight: 72,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  alert: {
-    flex: 1,
-    minHeight: 96,
-    backgroundColor: colors.accentBg,
-    borderWidth: 2,
-    borderColor: colors.accent,
-  },
+  primary: { minHeight: 92, backgroundColor: colors.primary },
+  secondary: { minHeight: 92, backgroundColor: colors.buttonBg },
+  alert: { minHeight: 100, backgroundColor: colors.accent },
   link: { minHeight: 48 },
-  label: { color: colors.text, fontSize: type.huge, fontWeight: '700' },
-  secondaryLabel: { fontSize: type.big, fontWeight: '600', color: colors.text },
-  alertLabel: { color: colors.accent },
-  linkLabel: { fontSize: type.body, fontWeight: '500', color: colors.textDim },
+  label: { fontFamily: fonts.extrabold, fontSize: 26 },
+});
+
+const labelStyles = StyleSheet.create({
+  primary: { color: colors.onPrimary },
+  secondary: { color: colors.text, fontFamily: fonts.bold, fontSize: 22 },
+  alert: { color: colors.onAccent, fontSize: 28 },
+  link: { color: colors.textDim, fontFamily: fonts.bold, fontSize: type.body },
 });

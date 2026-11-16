@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router/js-tabs';
 import React from 'react';
 
-import { colors } from '../../theme/night';
+import { colors, fonts } from '../../theme/night';
 
 export default function TabsLayout() {
   return (
@@ -9,11 +9,11 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         sceneStyle: { backgroundColor: colors.bg },
-        tabBarStyle: { backgroundColor: colors.bg, borderTopColor: colors.border },
+        tabBarStyle: { backgroundColor: colors.bg, borderTopWidth: 0 },
         tabBarActiveTintColor: colors.text,
         tabBarInactiveTintColor: colors.textFaint,
         tabBarIconStyle: { display: 'none' },
-        tabBarLabelStyle: { fontSize: 15, fontWeight: '600' },
+        tabBarLabelStyle: { fontSize: 14, fontFamily: fonts.bold },
       }}
     >
       <Tabs.Screen name="index" options={{ title: 'Night' }} />

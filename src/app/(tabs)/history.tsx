@@ -12,7 +12,7 @@ import { Night, listNightsWithEvents } from '../../data/db';
 import { useNightStore } from '../../data/NightStore';
 import { NightEvent } from '../../lib/session';
 import { summarizeNight } from '../../lib/summary';
-import { colors, type } from '../../theme/night';
+import { colors, fonts, type } from '../../theme/night';
 
 export default function HistoryScreen() {
   const db = useSQLiteContext();
@@ -61,14 +61,14 @@ export default function HistoryScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20 },
-  title: { color: colors.text, fontSize: type.huge, fontWeight: '700', marginVertical: 16 },
-  empty: { color: colors.textDim, fontSize: type.body },
+  title: { color: colors.text, fontSize: type.huge, fontFamily: fonts.bold, marginVertical: 16 },
+  empty: { color: colors.textDim, fontFamily: fonts.regular, fontSize: type.body },
   row: {
     flexDirection: 'row',
     paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
   },
-  rowTitle: { color: colors.text, fontSize: type.body, fontWeight: '600' },
-  rowSub: { color: colors.textDim, fontSize: type.small, marginTop: 2 },
+  rowTitle: { color: colors.text, fontSize: type.body, fontFamily: fonts.semibold },
+  rowSub: { color: colors.textDim, fontFamily: fonts.regular, fontSize: type.small, marginTop: 2 },
 });

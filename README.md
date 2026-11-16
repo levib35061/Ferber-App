@@ -34,7 +34,7 @@ npm run lint
 
 ## Status
 
-**Milestone 1 (timer you can use tonight) — code done, needs a real-iPhone test**
+**Milestone 1 (timer you can use tonight) — done, passed on a real iPhone**
 
 - [x] Ferber default chart + `nextWaitMinutes` with unit tests
 - [x] Night screen states: idle → waiting → due → in the room → asleep → woke up
@@ -43,7 +43,8 @@ npm run lint
 - [x] Night-mode UI, keep-awake while waiting, haptics, 10-second Undo
 - [x] SQLite storage (pulled forward from M2 so force-quit works)
 - [x] Basic History list and Settings (sound, haptics, keep-awake, test alert)
-- [ ] **On-device acceptance test** — see below
+- [x] On-device acceptance test (alerts with phone locked, force-quit recovery)
+- [x] "Moonlight" look: navy, lavender progress ring, peach when a check-in is due, Nunito font
 
 ### Milestone 1 acceptance test (do this before building more)
 

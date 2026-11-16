@@ -1,7 +1,7 @@
 /**
  * Night screen — the product. Usable half-asleep with one thumb:
  * huge countdown, big buttons in the bottom third, no confirmation dialogs
- * (Undo instead), dim amber on true black.
+ * (Undo instead). "Moonlight" look: navy, lavender ring, peach when due.
  */
 import * as Haptics from 'expo-haptics';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
@@ -10,12 +10,13 @@ import { Animated, Pressable, StyleSheet, Switch, Text, View } from 'react-nativ
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BigButton } from '../../components/BigButton';
+import { CheckInDots, MoonIcon, ProgressRing } from '../../components/Moonlight';
 import { useNow } from '../../components/useNow';
 import { useNightStore } from '../../data/NightStore';
 import { Action, UNDO_WINDOW_MS } from '../../lib/session';
-import { summarizeNight, episodeCryingMs } from '../../lib/summary';
+import { episodeCryingMs, summarizeNight } from '../../lib/summary';
 import { formatClock, formatDuration } from '../../lib/time';
-import { colors, type } from '../../theme/night';
+import { colors, fonts, type } from '../../theme/night';
 
 const ACTION_LABEL: Record<Action, string> = {
   down: 'Down',
@@ -26,6 +27,7 @@ const ACTION_LABEL: Record<Action, string> = {
 };
 
 const KEEP_AWAKE_TAG = 'ferber-night';
+const MIN = 60_000;
 
 export default function NightScreen() {
   const store = useNightStore();
@@ -59,23 +61,29 @@ export default function NightScreen() {
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <View style={styles.header}>
+        <MoonIcon />
         <Text style={styles.nightLabel}>
-          {store.baby?.name ? `${store.baby.name} · ` : ''}Night {store.nightNumber}
-          {store.chartNight !== store.nightNumber ? `  (intervals of night ${store.chartNight})` : ''}
+          {store.baby?.name ? `${store.baby.name.toUpperCase()} · ` : ''}NIGHT {store.nightNumber}
         </Text>
       </View>
+      {store.chartNight !== store.nightNumber && (
+        <Text style={styles.subLabel}>using night {store.chartNight} intervals</Text>
+      )}
 
       {state.kind === 'idle' && (
         <>
           <View style={styles.middle}>
-            <Text style={styles.prompt}>Ready when you are.</Text>
+            <ProgressRing progress={0}>
+              <MoonIcon size={56} color={colors.primary} />
+              <Text style={[styles.ringCaption, { marginTop: 16 }]}>Ready when you are</Text>
+            </ProgressRing>
             {store.hasPreviousNight && (
               <View style={styles.repeatRow}>
                 <Text style={styles.repeatText}>{"Repeat last night's intervals"}</Text>
                 <Switch
                   value={store.repeatLastNight}
                   onValueChange={store.setRepeatLastNight}
-                  trackColor={{ true: colors.textDim, false: colors.border }}
+                  trackColor={{ true: colors.primary, false: colors.buttonBg }}
                   thumbColor={colors.text}
                 />
               </View>
@@ -83,7 +91,7 @@ export default function NightScreen() {
           </View>
           <View style={styles.bottom}>
             <BigButton label="Down for the night" onPress={() => store.tap('down')} />
-            <BigButton label="Night waking" variant="link" onPress={() => store.tap('woke')} style={styles.small} />
+            <BigButton label="Night waking" variant="link" onPress={() => store.tap('woke')} style={styles.linkGap} />
           </View>
         </>
       )}
@@ -91,17 +99,21 @@ export default function NightScreen() {
       {state.kind === 'waiting' && (
         <>
           <View style={styles.middle}>
-            <Text style={styles.caption}>Check-in #{state.checkInNumber} in</Text>
-            <Text style={styles.countdown} adjustsFontSizeToFit numberOfLines={1}>
-              {formatDuration(state.nextCheckInAt - now)}
-            </Text>
-            <Text style={styles.meta}>
-              {state.waitMinutes} min wait · crying {formatDuration(now - state.episodeStartAt)}
-            </Text>
+            <ProgressRing progress={(now - state.waitStartedAt) / (state.waitMinutes * MIN)}>
+              <Text style={styles.ringCaption}>Check-in #{state.checkInNumber} in</Text>
+              <Text style={styles.countdown} adjustsFontSizeToFit numberOfLines={1}>
+                {formatDuration(state.nextCheckInAt - now)}
+              </Text>
+              <Text style={styles.ringSub}>of {state.waitMinutes} min</Text>
+            </ProgressRing>
+            <CheckInDots
+              done={state.checkInNumber - 1}
+              label={`crying ${Math.floor((now - state.episodeStartAt) / MIN)} min`}
+            />
           </View>
-          <View style={styles.bottom}>
-            <BigButton label="Asleep" onPress={() => store.tap('asleep')} />
-            <BigButton label="Going in now" variant="secondary" onPress={() => store.tap('check_in_start')} style={styles.gap} />
+          <View style={[styles.bottom, styles.row]}>
+            <BigButton label="Going in" variant="secondary" onPress={() => store.tap('check_in_start')} style={{ flex: 1 }} />
+            <BigButton label="Asleep" onPress={() => store.tap('asleep')} style={{ flex: 1.4 }} />
           </View>
         </>
       )}
@@ -109,16 +121,24 @@ export default function NightScreen() {
       {state.kind === 'due' && (
         <>
           <View style={styles.middle}>
-            <Pulse>
-              <Text style={[styles.caption, { color: colors.accent }]}>Time for check-in #{state.checkInNumber}</Text>
-              <Text style={[styles.countdown, { color: colors.accent }]} adjustsFontSizeToFit numberOfLines={1}>
-                +{formatDuration(now - state.nextCheckInAt)}
-              </Text>
-            </Pulse>
+            <Glow>
+              <ProgressRing progress={1} color={colors.accent} track={colors.accent}>
+                <Text style={[styles.ringCaption, { color: colors.accent, fontFamily: fonts.bold }]}>Time to check in</Text>
+                <Text style={[styles.countdown, { color: colors.accentText }]}>#{state.checkInNumber}</Text>
+                <Text style={[styles.ringSub, { color: colors.accentDim }]}>
+                  due {formatDuration(now - state.nextCheckInAt)} ago
+                </Text>
+              </ProgressRing>
+            </Glow>
+            <CheckInDots
+              done={state.checkInNumber - 1}
+              due
+              label={`crying ${Math.floor((now - state.episodeStartAt) / MIN)} min`}
+            />
           </View>
           <View style={styles.bottom}>
             <BigButton label="I'm going in" variant="alert" onPress={() => store.tap('check_in_start')} />
-            <BigButton label="Asleep" variant="link" onPress={() => store.tap('asleep')} style={styles.small} />
+            <BigButton label="Asleep" variant="link" onPress={() => store.tap('asleep')} style={styles.linkGap} />
           </View>
         </>
       )}
@@ -126,13 +146,18 @@ export default function NightScreen() {
       {state.kind === 'in_room' && (
         <>
           <View style={styles.middle}>
-            <Text style={styles.caption}>In the room · check-in #{state.checkInNumber}</Text>
-            <Text style={styles.elapsed}>{formatDuration(now - state.since)}</Text>
-            <Text style={styles.meta}>Next wait starts when you tap Back out.</Text>
+            <ProgressRing progress={0}>
+              <Text style={styles.ringCaption}>In the room</Text>
+              <Text style={styles.countdown} adjustsFontSizeToFit numberOfLines={1}>
+                {formatDuration(now - state.since)}
+              </Text>
+              <Text style={styles.ringSub}>check-in #{state.checkInNumber}</Text>
+            </ProgressRing>
+            <Text style={styles.hint}>The next wait starts when you tap Back out.</Text>
           </View>
           <View style={styles.bottom}>
             <BigButton label="Back out" onPress={() => store.tap('check_in_end')} />
-            <BigButton label="Asleep" variant="link" onPress={() => store.tap('asleep')} style={styles.small} />
+            <BigButton label="Asleep" variant="link" onPress={() => store.tap('asleep')} style={styles.linkGap} />
           </View>
         </>
       )}
@@ -169,13 +194,15 @@ function AsleepView(props: {
   return (
     <>
       <View style={styles.middle}>
-        <Text style={styles.caption}>Asleep since {formatClock(props.since)}</Text>
-        <Text style={styles.summaryBig}>{Math.round(props.cryingMs / 60_000)} min</Text>
-        <Text style={styles.meta}>
-          crying this time · {props.checkIns} check-in{props.checkIns === 1 ? '' : 's'}
-        </Text>
+        <ProgressRing progress={1}>
+          <MoonIcon size={32} color={colors.primary} />
+          <Text style={[styles.ringCaption, { marginTop: 8 }]}>Asleep at {formatClock(props.since)}</Text>
+          <Text style={styles.countdown}>{Math.round(props.cryingMs / MIN)}</Text>
+          <Text style={styles.ringSub}>min crying</Text>
+        </ProgressRing>
+        <CheckInDots done={props.checkIns} label={`${props.checkIns} check-in${props.checkIns === 1 ? '' : 's'}`} />
         {night.episodeCount > 1 && (
-          <Text style={[styles.meta, { marginTop: 16 }]}>
+          <Text style={styles.hint}>
             Tonight: {night.cryingMinutes} min · {night.checkIns} check-ins · {night.wakings} waking
             {night.wakings === 1 ? '' : 's'}
           </Text>
@@ -188,43 +215,48 @@ function AsleepView(props: {
   );
 }
 
-function Pulse({ children }: { children: React.ReactNode }) {
-  const [v] = useState(() => new Animated.Value(1));
+/** Soft pulsing peach glow behind the ring when a check-in is due. */
+function Glow({ children }: { children: React.ReactNode }) {
+  const [v] = useState(() => new Animated.Value(0.15));
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(v, { toValue: 0.35, duration: 700, useNativeDriver: true }),
-        Animated.timing(v, { toValue: 1, duration: 700, useNativeDriver: true }),
+        Animated.timing(v, { toValue: 0.55, duration: 900, useNativeDriver: false }),
+        Animated.timing(v, { toValue: 0.15, duration: 900, useNativeDriver: false }),
       ]),
     );
     loop.start();
     return () => loop.stop();
   }, [v]);
-  return <Animated.View style={{ opacity: v, alignItems: 'center' }}>{children}</Animated.View>;
+  return (
+    <Animated.View style={{ shadowColor: colors.accent, shadowRadius: 40, shadowOffset: { width: 0, height: 0 }, shadowOpacity: v }}>
+      {children}
+    </Animated.View>
+  );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20 },
-  header: { paddingTop: 12, alignItems: 'center' },
-  nightLabel: { color: colors.textDim, fontSize: type.body, fontWeight: '600' },
-  middle: { flex: 2, alignItems: 'center', justifyContent: 'center' },
+  root: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 24 },
+  header: { paddingTop: 12, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8 },
+  nightLabel: { color: colors.textDim, fontFamily: fonts.bold, fontSize: 16, letterSpacing: 0.6 },
+  subLabel: { color: colors.textFaint, fontFamily: fonts.regular, fontSize: type.small, textAlign: 'center', marginTop: 2 },
+  middle: { flex: 2, alignItems: 'center', justifyContent: 'center', gap: 20 },
   // Bottom third of the screen: main buttons for one thumb.
-  bottom: { flex: 1.3, justifyContent: 'flex-end', paddingBottom: 16 },
-  gap: { marginTop: 12 },
-  small: { flex: 0, marginTop: 8 },
-  prompt: { color: colors.textDim, fontSize: type.big },
-  caption: { color: colors.textDim, fontSize: type.big, fontWeight: '600', marginBottom: 4 },
+  bottom: { flex: 1, justifyContent: 'flex-end', paddingBottom: 16 },
+  row: { flexDirection: 'row', alignItems: 'flex-end', gap: 12 },
+  linkGap: { marginTop: 6 },
+  ringCaption: { color: colors.textDim, fontFamily: fonts.semibold, fontSize: type.body, textAlign: 'center' },
   countdown: {
     color: colors.text,
+    fontFamily: fonts.light,
     fontSize: type.countdown,
-    fontWeight: '200',
     fontVariant: ['tabular-nums'],
+    lineHeight: type.countdown * 1.15,
   },
-  elapsed: { color: colors.text, fontSize: 56, fontWeight: '200', fontVariant: ['tabular-nums'] },
-  summaryBig: { color: colors.text, fontSize: 64, fontWeight: '300' },
-  meta: { color: colors.textFaint, fontSize: type.body, marginTop: 8, textAlign: 'center' },
-  repeatRow: { flexDirection: 'row', alignItems: 'center', marginTop: 32, gap: 12 },
-  repeatText: { color: colors.textDim, fontSize: type.body },
+  ringSub: { color: colors.textDim, fontFamily: fonts.regular, fontSize: 15 },
+  hint: { color: colors.textFaint, fontFamily: fonts.regular, fontSize: 15, textAlign: 'center' },
+  repeatRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  repeatText: { color: colors.textDim, fontFamily: fonts.semibold, fontSize: type.body },
   undo: {
     position: 'absolute',
     top: 56,
@@ -232,9 +264,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderColor: colors.border,
     borderWidth: 1,
-    borderRadius: 18,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    borderRadius: 999,
+    paddingHorizontal: 18,
+    paddingVertical: 9,
   },
-  undoText: { color: colors.text, fontSize: type.small, fontWeight: '600' },
+  undoText: { color: colors.text, fontFamily: fonts.bold, fontSize: type.small },
 });
