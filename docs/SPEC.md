@@ -31,7 +31,7 @@ The stack is Expo (React Native + TypeScript), built in Claude Code on the web, 
 | Haptics | expo-haptics | Taps confirm actions without sound |
 | Charts | victory-native or react-native-svg | Crying minutes per night |
 | Sync (Milestone 3) | Supabase (Postgres + auth + realtime) | Sign in with Apple; one shared "family" per baby |
-| Purchases (Milestone 3) | RevenueCat | One-time non-consumable unlock, Family Sharing on |
+| Purchases (Milestone 3) | RevenueCat | One-time non-consumable unlock, shared by everyone in the app's family (see Monetization); Family Sharing also on |
 | Builds and submission | EAS Build + EAS Submit | Triggered from GitHub |
 
 **Daily dev loop**
@@ -159,6 +159,7 @@ There are four milestones, each finished only when its checks pass on a real iPh
    - Switch to EAS development builds, onboarding, disclaimer
    - Supabase + Sign in with Apple, partner invite link, sync, partner alerts
    - RevenueCat one-time unlock (after the free trial nights), restore purchases, Family Sharing
+   - Shared unlock: one parent buys, every phone in the app's family is unlocked (design under Monetization)
    - Done when: two phones on different Apple IDs see each other's taps within 5 seconds, a TestFlight sandbox purchase unlocks the app on both, and offline taps sync once the signal returns.
 4. **Launch**
    - App icon, name, screenshots, App Store listing, privacy policy, terms
@@ -171,9 +172,22 @@ The model is a free download with a one-time unlock. No subscription, because mo
 
 **Monetization**
 
-- Free: the full timer and logging for the first 2 nights
-- Unlock (one-time, $4.99–$9.99): unlimited nights, partner sync, Progress chart, custom intervals
-- Family Sharing on, so one parent buys and the other gets it free
+- Free: the full timer and logging for the first 2 nights (counted per family, since partners share nights)
+- Unlock (one-time, **$4.99**, decided): unlimited nights, partner sync, Progress chart, custom intervals
+- **Only one partner pays.** The unlock belongs to the app's shared family, not to one Apple ID: if any member has bought it, every phone in the family is unlocked. Apple Family Sharing is also on, as a bonus for couples who use it, but isn't required.
+
+**Shared unlock design** (decided Nov 2026; build with the RevenueCat milestone)
+
+- The purchase is a normal non-consumable in-app purchase through RevenueCat. RevenueCat's app user id = the Supabase user id.
+- RevenueCat sends a webhook (purchase, restore/transfer, refund) to a Supabase Edge Function, authenticated with a shared secret header. The function records or clears the paying user in a server-only table, e.g. `unlocks (user_id, product_id, purchased_at, revoked_at)`.
+- A `security definer` function `is_family_unlocked(family_id)` returns true if any current family member has an active row in `unlocks`. The app shows the full version if RevenueCat says this user owns it **or** their family is unlocked.
+- The client can never mark itself paid: only the webhook writes `unlocks`.
+- Order doesn't matter: a parent who bought before creating or joining a family unlocks the family as soon as they're in it.
+- Leaving: the buyer keeps their unlock; the partner's phone goes back to the free version (the unlock follows the family).
+- Reinstall / new phone: Restore purchases → RevenueCat transfer event → webhook updates `unlocks`.
+- Refunds: RevenueCat's cancellation/refund event revokes the row, which re-locks the family unless another member paid.
+- Partner unlocks within seconds: realtime on the family, or a check on app foreground.
+- App Review note: explain that the purchase unlocks a shared household (like shared-list apps), and give a demo family code.
 - Listing pitch: "Buy once, use it for every kid"
 
 **Launch checklist**
@@ -188,8 +202,8 @@ The model is a free download with a one-time unlock. No subscription, because mo
 
 **Open questions**
 
-- App name?
-- Exact price, and is a 2-night free trial right?
+- ~~App name?~~ Decided: **Check In: Baby Sleep Timer** (home screen "Check In"), bundle ID `com.levibrown.checkin`
+- ~~Exact price~~ Decided: $4.99, one partner pays for the family. Is a 2-night free trial right?
 - Support more than one baby (twins, siblings) in v1, or later?
 - Show check-in duration in stats, or keep it hidden?
 - Later: Live Activity and an Apple Watch app once a newer Mac is bought

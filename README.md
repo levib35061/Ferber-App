@@ -66,6 +66,7 @@ npm run lint
 - [ ] Sign in with Apple (needs a development build)
 - [ ] Partner alerts when the app is closed (push notification from the server)
 - [ ] RevenueCat one-time unlock ($4.99, after 2 free nights), restore purchases, Family Sharing
+- [ ] Shared unlock: one partner pays, the whole family is unlocked (design in `docs/SPEC.md` → Monetization)
 
 ### Testing Milestone 2 without waiting a week
 
