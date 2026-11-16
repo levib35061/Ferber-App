@@ -18,6 +18,7 @@ import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { View } from 'react-native';
 
+import '../data/background'; // defines the background push task at startup
 import { DB_NAME, migrate } from '../data/db';
 import { NightStoreProvider, useNightStore } from '../data/NightStore';
 import { ThemeProvider, useTheme } from '../theme';

@@ -53,6 +53,8 @@ function phone() {
   let dbm!: DbModule;
   let syncm!: SyncModule;
   jest.isolateModules(() => {
+    // Push registration needs a real phone build; not part of this test.
+    jest.doMock('../push', () => ({ registerPushToken: async () => false }));
     jest.doMock('../supabase', () => {
       const { createClient } = jest.requireActual('@supabase/supabase-js');
       const { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } = jest.requireActual('../../config');

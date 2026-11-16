@@ -280,7 +280,17 @@ export async function createNight(
 /** Who's on duty tonight (a user id), or null to clear. */
 export async function setNightDuty(db: SQLiteDatabase, nightId: string, userId: string | null): Promise<void> {
   await db.runAsync('UPDATE night SET onDuty = ?, updatedAt = ?, dirty = 1 WHERE id = ?', userId, Date.now(), nightId);
+  dutyChanged.add(nightId);
   wrote();
+}
+
+/** Nights whose on-duty parent changed on this phone, waiting to tell the partner (partner push). */
+const dutyChanged = new Set<string>();
+export function pendingDutyChanges(): string[] {
+  return [...dutyChanged];
+}
+export function clearDutyChanges(ids: string[]): void {
+  for (const id of ids) dutyChanged.delete(id);
 }
 
 export async function setNightChartNight(db: SQLiteDatabase, nightId: string, chartNight: number): Promise<void> {

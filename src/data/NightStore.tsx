@@ -110,13 +110,14 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
   const [lastTap, setLastTap] = useState<LastTap | null>(null);
   const [bedtimeEarlyAt, setBedtimeEarlyAt] = useState<number | null>(null);
   const [nightsUsed, setNightsUsed] = useState(0);
-  // Until purchases are wired up (RevenueCat, after Apple approval) only the dev toggle unlocks.
-  const unlocked = settings.devUnlocked;
   const clockMode = useClockMode();
   const tick = useNow(30_000);
   const busy = useRef(false);
   const [sync] = useState(() => new SyncEngine(db));
   const [syncStatus, setSyncStatus] = useState<SyncStatus>(() => sync.getStatus());
+  // Unlocked when the server says someone in the family bought it (written only by the
+  // RevenueCat webhook), or in development via the Testing toggle.
+  const unlocked = settings.devUnlocked || syncStatus.unlocked === true;
 
   const chart = useMemo(() => chartForPreset(baby?.chartPreset ?? 'ferber', baby?.customChart), [baby]);
   const planned = plannedNumbers(prevNight, repeatLastNight);

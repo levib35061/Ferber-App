@@ -24,10 +24,13 @@ import {
   listDirty,
   markAllDirty,
   markClean,
+  pendingDutyChanges,
+  clearDutyChanges,
   onLocalWrite,
   setBabyFamily,
   setSyncValue,
 } from './db';
+import { registerPushToken } from './push';
 import { ensureUserId, supabase } from './supabase';
 
 export interface SyncStatus {
@@ -41,6 +44,8 @@ export interface SyncStatus {
   lastSyncedAt: number | null;
   syncing: boolean;
   error: string | null;
+  /** Server says this family has the unlock (null = not known yet) */
+  unlocked: boolean | null;
 }
 
 const PULL_OVERLAP_MS = 5_000;
@@ -60,6 +65,7 @@ export class SyncEngine {
     lastSyncedAt: null,
     syncing: false,
     error: null,
+    unlocked: null,
   };
   private statusListeners = new Set<(s: SyncStatus) => void>();
   private channel: RealtimeChannel | null = null;
@@ -75,7 +81,12 @@ export class SyncEngine {
 
   async start(): Promise<void> {
     const baby = await getOrCreateBaby(this.db);
-    this.setStatus({ familyId: baby.familyId, inviteCode: await getSyncValue<string>(this.db, 'inviteCode') });
+    this.setStatus({
+      familyId: baby.familyId,
+      inviteCode: await getSyncValue<string>(this.db, 'inviteCode'),
+      unlocked: await getSyncValue<boolean>(this.db, 'unlocked'),
+    });
+    this.checkUnlock().catch(() => {});
     this.cleanups.push(onLocalWrite(() => this.soon(400)));
     const sub = AppState.addEventListener('change', (s) => s === 'active' && this.soon(0));
     this.cleanups.push(() => sub.remove());
@@ -228,6 +239,35 @@ export class SyncEngine {
   /** The signed-in user's id once known (stamped on events as createdBy). */
   userId: string | null = null;
 
+  /** One sync from a background push (no listeners, timers or realtime). Returns true if anything changed. */
+  async backgroundSync(): Promise<boolean> {
+    const baby = await getOrCreateBaby(this.db);
+    this.setStatus({ familyId: baby.familyId });
+    if (!baby.familyId) return false;
+    this.userId = await ensureUserId();
+    this.setStatus({ userId: this.userId });
+    let changed = false;
+    const prev = this.onRemoteChange;
+    this.onRemoteChange = () => {
+      changed = true;
+    };
+    await this.runOnce();
+    this.onRemoteChange = prev;
+    return changed;
+  }
+
+  /** Ask the server whether anyone in this family bought the unlock (only if signed in). Cached for offline. */
+  async checkUnlock(): Promise<void> {
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) return;
+    const { data: unlocked, error } = await supabase.rpc('my_unlock_status');
+    if (error) return;
+    await setSyncValue(this.db, 'unlocked', !!unlocked);
+    if (this.status.unlocked !== !!unlocked) this.setStatus({ unlocked: !!unlocked });
+  }
+
+  private pushRegistered = false;
+
   private async runOnce(): Promise<void> {
     const familyId = this.status.familyId;
     if (!familyId) return;
@@ -247,9 +287,17 @@ export class SyncEngine {
         memberIds: members ? memberIds : this.status.memberIds,
       });
       if (changed) this.onRemoteChange();
+      await this.checkUnlock().catch(() => {});
+      if (!this.pushRegistered) this.pushRegistered = await registerPushToken().catch(() => false);
     } catch (e) {
       this.setStatus({ syncing: false, error: e instanceof Error ? e.message : String(e) });
     }
+  }
+
+  /** Fire-and-forget: the partner-push Edge Function nudges the other parent's phone. */
+  private notifyPartner(body: { eventIds?: string[]; nightId?: string }): void {
+    if (this.status.memberCount < 2) return;
+    supabase.functions.invoke('partner-push', { body }).catch(() => {});
   }
 
   private async push(familyId: string): Promise<void> {
@@ -285,6 +333,11 @@ export class SyncEngine {
       const { error } = await supabase.from('nights').upsert(rows);
       if (error) throw new Error(error.message);
       await markClean(this.db, 'night', dirty.nights);
+      // Tell the partner about duty hand-offs that just reached the server.
+      const pushed = new Set(dirty.nights.map((n) => n.id));
+      const handoffs = pendingDutyChanges().filter((id) => pushed.has(id));
+      clearDutyChanges(handoffs);
+      for (const nightId of handoffs) this.notifyPartner({ nightId });
     }
     if (dirty.events.length) {
       const rows = dirty.events.map((e) => ({
@@ -300,6 +353,8 @@ export class SyncEngine {
       const { error } = await supabase.from('events').upsert(rows);
       if (error) throw new Error(error.message);
       await markClean(this.db, 'event', dirty.events);
+      const mine = dirty.events.filter((e) => !e.deletedAt && e.createdBy && e.createdBy === this.userId).map((e) => e.id);
+      if (mine.length) this.notifyPartner({ eventIds: mine });
       if (dirty.events.length >= 500) this.again = true; // more to push
     }
   }
