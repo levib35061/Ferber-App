@@ -334,9 +334,11 @@ export interface Settings {
   keepAwake: boolean;
   /** First-launch onboarding finished */
   onboarded: boolean;
+  /** Development only: pretend the unlock was bought (until purchases are wired up) */
+  devUnlocked: boolean;
 }
 
-export const DEFAULT_SETTINGS: Settings = { sound: true, haptics: true, keepAwake: true, onboarded: false };
+export const DEFAULT_SETTINGS: Settings = { sound: true, haptics: true, keepAwake: true, onboarded: false, devUnlocked: false };
 
 export async function getSettings(db: SQLiteDatabase): Promise<Settings> {
   const rows = await db.getAllAsync<{ key: string; value: string }>('SELECT key, value FROM setting');
@@ -388,6 +390,12 @@ export async function listNightsWithEvents(
     byNight.set(e.nightId, list);
   }
   return nights.map((night) => ({ night, events: byNight.get(night.id) ?? [] })).filter((n) => n.events.length > 0);
+}
+
+/** Nights with at least one logged tap, ever (for the free trial). */
+export async function countNightsUsed(db: SQLiteDatabase): Promise<number> {
+  const row = await db.getFirstAsync<{ n: number }>('SELECT COUNT(DISTINCT nightId) AS n FROM event WHERE deletedAt IS NULL');
+  return row?.n ?? 0;
 }
 
 // ---------- sync support (used by src/data/sync.ts) ----------

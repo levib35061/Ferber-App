@@ -20,7 +20,7 @@ function syncedAgo(ms: number | null): string {
 export default function SettingsHome() {
   const styles = stylesHook();
   const { colors } = useTheme();
-  const { baby, nightNumber, syncStatus } = useNightStore();
+  const { baby, nightNumber, syncStatus, unlocked, freeNightsLeft } = useNightStore();
   if (!baby) return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
 
   const months = baby.birthDate ? ageInMonths(baby.birthDate) : null;
@@ -71,6 +71,18 @@ export default function SettingsHome() {
         title="Partner sharing"
         description={partnerDesc}
         onPress={() => router.push('/settings/partner')}
+      />
+      <TopicRow
+        icon="star"
+        title="Unlock"
+        description={
+          unlocked
+            ? 'Unlocked for your family'
+            : freeNightsLeft > 0
+              ? `${freeNightsLeft} free night${freeNightsLeft === 1 ? '' : 's'} left · then $4.99 once`
+              : 'Free nights used · $4.99 once to keep going'
+        }
+        onPress={() => router.push('/unlock')}
       />
       <TopicRow
         icon="info"

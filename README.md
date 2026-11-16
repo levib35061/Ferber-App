@@ -66,7 +66,8 @@ npm run lint
 - [x] Partner sharing: invite code, join, two-way sync, realtime, offline catch-up (anonymous sign-in for now)
 - [ ] Sign in with Apple (needs a development build)
 - [ ] Partner alerts when the app is closed (push notification from the server)
-- [ ] RevenueCat one-time unlock ($4.99, after 2 free nights), restore purchases, Family Sharing
+- [x] Free trial (2 nights) and unlock screen (`src/app/unlock.tsx`, rules in `src/lib/trial.ts`); dev toggle in Settings → Testing
+- [ ] RevenueCat one-time unlock ($4.99), restore purchases, Family Sharing (wire the unlock screen's buttons)
 - [x] In-app "Delete my account and data" (Settings → Help & about; needs `supabase/migrations/004_delete_account.sql`)
 - [ ] Shared unlock: one partner pays, the whole family is unlocked (design in `docs/SPEC.md` → Monetization)
 

@@ -3,7 +3,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import React from 'react';
 import { Alert, Text, View } from 'react-native';
 
-import { Card, SettingsButton, SettingsPage, useSettingsStyles } from '../../../components/SettingsUI';
+import { Card, SettingsButton, SettingsPage, SwitchRow, useSettingsStyles } from '../../../components/SettingsUI';
 import { eraseAllNights, loadSampleNights } from '../../../data/db';
 import { useNightStore } from '../../../data/NightStore';
 import { buildSampleWeek } from '../../../lib/sampleWeek';
@@ -14,7 +14,7 @@ export default function TestingSettings() {
   const s = useSettingsStyles();
   const { colors } = useTheme();
   const db = useSQLiteContext();
-  const { baby, saveBaby, reload } = useNightStore();
+  const { baby, saveBaby, reload, settings, updateSetting, nightsUsed } = useNightStore();
   if (!__DEV__ || !baby) return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
 
   return (
@@ -22,6 +22,12 @@ export default function TestingSettings() {
       <Card>
         <Text style={s.body}>Only in development. Not shown in the App Store version.</Text>
         <Text style={s.hint}>If partner sharing is on, these changes sync to your partner too.</Text>
+        <SwitchRow
+          label="Pretend it's unlocked"
+          hint={`Skips the free-trial limit (${nightsUsed} night${nightsUsed === 1 ? '' : 's'} logged so far)`}
+          value={settings.devUnlocked}
+          onChange={(v) => updateSetting('devUnlocked', v)}
+        />
         <SettingsButton
           label="Load a sample week"
           onPress={() =>

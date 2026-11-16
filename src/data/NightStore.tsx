@@ -2,6 +2,7 @@
  * App state for the current night: loads from SQLite, writes taps, and keeps
  * the scheduled check-in alert in sync with the event log.
  */
+import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useSQLiteContext } from 'expo-sqlite';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
@@ -11,11 +12,13 @@ import { Chart, chartForPreset } from '../lib/ferber';
 import { Action, NightEvent, NightState, UNDO_WINDOW_MS, deriveNightState, liveEvents } from '../lib/session';
 import { Duty, alertsOnThisPhone, dutyFor, partnerId } from '../lib/duty';
 import { NIGHT_ENDS_HOUR, nightKey } from '../lib/time';
+import { freeNightsLeft, needsUnlock } from '../lib/trial';
 import {
   Baby,
   Night,
   Settings,
   DEFAULT_SETTINGS,
+  countNightsUsed,
   createNight,
   getNightForKey,
   getOrCreateBaby,
@@ -75,6 +78,10 @@ interface NightStoreValue {
   nightMode: boolean;
   /** Delete the account on the server (if any) and wipe this phone. */
   deleteEverything: () => Promise<void>;
+  /** Free trial / unlock */
+  unlocked: boolean;
+  nightsUsed: number;
+  freeNightsLeft: number;
   /** Partner sync */
   sync: SyncEngine;
   syncStatus: SyncStatus;
@@ -102,6 +109,9 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
   const [repeatLastNight, setRepeat] = useState(false);
   const [lastTap, setLastTap] = useState<LastTap | null>(null);
   const [bedtimeEarlyAt, setBedtimeEarlyAt] = useState<number | null>(null);
+  const [nightsUsed, setNightsUsed] = useState(0);
+  // Until purchases are wired up (RevenueCat, after Apple approval) only the dev toggle unlocks.
+  const unlocked = settings.devUnlocked;
   const clockMode = useClockMode();
   const tick = useNow(30_000);
   const busy = useRef(false);
@@ -121,6 +131,7 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
     const n = await getNightForKey(db, b.id, key);
     const p = await getPreviousNight(db, b.id, key, b.trainingStartDate);
     const evs = n ? await listEvents(db, n.id) : [];
+    setNightsUsed(await countNightsUsed(db));
     setBaby(b);
     setSettings(s);
     setNight(n);
@@ -184,6 +195,12 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
         if ((action === 'down' || action === 'woke') && (await notificationPermission()) === 'undetermined') {
           await requestNotificationPermission().catch(() => false);
         }
+        // Free trial: starting a third night opens the unlock screen instead.
+        const startsNewNight = !night || liveEvents(events).length === 0;
+        if (needsUnlock({ unlocked, nightsUsed, startsNewNight })) {
+          router.push('/unlock');
+          return;
+        }
         let n = night;
         if (!n) n = await createNight(db, baby.id, now, repeatLastNight, baby.trainingStartDate);
         const e = await insertEvent(db, n.id, action, now, sync.userId);
@@ -197,7 +214,7 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
         busy.current = false;
       }
     },
-    [baby, db, haptic, night, reload, repeatLastNight, sync, syncStatus.memberCount],
+    [baby, db, events, haptic, night, nightsUsed, reload, repeatLastNight, sync, syncStatus.memberCount, unlocked],
   );
 
   const undo = useCallback(async () => {
@@ -304,6 +321,9 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
     setBedtimeEarly,
     nightMode,
     deleteEverything,
+    unlocked,
+    nightsUsed,
+    freeNightsLeft: freeNightsLeft(nightsUsed),
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
