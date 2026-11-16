@@ -12,13 +12,15 @@ import { colors, fonts, type } from '../theme/night';
 
 export const EVENT_LABEL: Record<EventType, string> = {
   down: 'Down for the night',
+  cry: 'Started crying',
+  quiet: 'Stopped crying',
   woke: 'Woke up',
   check_in_start: 'Went in',
   check_in_end: 'Came out',
   asleep: 'Asleep',
 };
 
-const ADD_ORDER: EventType[] = ['down', 'check_in_start', 'check_in_end', 'asleep', 'woke'];
+const ADD_ORDER: EventType[] = ['down', 'cry', 'quiet', 'check_in_start', 'check_in_end', 'asleep', 'woke'];
 
 interface Props {
   visible: boolean;

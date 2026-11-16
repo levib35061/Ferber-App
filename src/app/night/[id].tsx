@@ -142,6 +142,7 @@ export default function NightDetailScreen() {
 function nextLikelyType(events: NightEvent[]): EventType {
   const last = events[events.length - 1];
   if (!last) return 'down';
+  if (last.type === 'down' || last.type === 'quiet') return 'cry';
   if (last.type === 'check_in_start') return 'check_in_end';
   if (last.type === 'asleep') return 'woke';
   return 'asleep';

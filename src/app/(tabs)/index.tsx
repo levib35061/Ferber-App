@@ -20,6 +20,8 @@ import { colors, fonts, type } from '../../theme/night';
 
 const ACTION_LABEL: Record<Action, string> = {
   down: 'Down',
+  cry: 'Crying',
+  quiet: 'Stopped crying',
   woke: 'Woke up',
   check_in_start: 'Going in',
   check_in_end: 'Back out',
@@ -35,7 +37,8 @@ export default function NightScreen() {
   const state = store.stateAt(now);
 
   // Keep the screen on while a wait or check-in is running (setting can turn this off).
-  const awake = store.settings.keepAwake && (state.kind === 'waiting' || state.kind === 'due' || state.kind === 'in_room');
+  const awake =
+    store.settings.keepAwake && (state.kind === 'quiet' || state.kind === 'waiting' || state.kind === 'due' || state.kind === 'in_room');
   useEffect(() => {
     if (!awake) return;
     activateKeepAwakeAsync(KEEP_AWAKE_TAG).catch(() => {});
@@ -96,6 +99,28 @@ export default function NightScreen() {
         </>
       )}
 
+      {state.kind === 'quiet' && (
+        <>
+          <View style={styles.middle}>
+            <ProgressRing progress={0}>
+              <MoonIcon size={40} color={colors.primary} />
+              <Text style={[styles.countdown, styles.quietTitle]}>{state.checkInNumber === 1 && state.cryingMs === 0 ? 'Settling' : 'Quiet'}</Text>
+              <Text style={styles.ringSub}>
+                {state.checkInNumber === 1 && state.cryingMs === 0 ? 'No timer until they cry' : `Timer paused · ${formatDuration(now - state.since)}`}
+              </Text>
+            </ProgressRing>
+            <CheckInDots
+              done={state.checkInNumber - 1}
+              label={state.cryingMs > 0 ? `crying ${Math.floor(state.cryingMs / MIN)} min` : undefined}
+            />
+          </View>
+          <View style={[styles.bottom, styles.row]}>
+            <BigButton label="Asleep" variant="secondary" onPress={() => store.tap('asleep')} style={{ flex: 1 }} />
+            <BigButton label="Crying" onPress={() => store.tap('cry')} style={{ flex: 1.4 }} />
+          </View>
+        </>
+      )}
+
       {state.kind === 'waiting' && (
         <>
           <View style={styles.middle}>
@@ -106,14 +131,14 @@ export default function NightScreen() {
               </Text>
               <Text style={styles.ringSub}>of {state.waitMinutes} min</Text>
             </ProgressRing>
-            <CheckInDots
-              done={state.checkInNumber - 1}
-              label={`crying ${Math.floor((now - state.episodeStartAt) / MIN)} min`}
-            />
+            <CheckInDots done={state.checkInNumber - 1} label={`crying ${Math.floor(state.cryingMs / MIN)} min`} />
           </View>
-          <View style={[styles.bottom, styles.row]}>
-            <BigButton label="Going in" variant="secondary" onPress={() => store.tap('check_in_start')} style={{ flex: 1 }} />
-            <BigButton label="Asleep" onPress={() => store.tap('asleep')} style={{ flex: 1.4 }} />
+          <View style={styles.bottom}>
+            <BigButton label="Stopped crying" variant="link" onPress={() => store.tap('quiet')} style={styles.linkAbove} />
+            <View style={styles.row}>
+              <BigButton label="Going in" variant="secondary" onPress={() => store.tap('check_in_start')} style={{ flex: 1 }} />
+              <BigButton label="Asleep" onPress={() => store.tap('asleep')} style={{ flex: 1.4 }} />
+            </View>
           </View>
         </>
       )}
@@ -130,11 +155,7 @@ export default function NightScreen() {
                 </Text>
               </ProgressRing>
             </Glow>
-            <CheckInDots
-              done={state.checkInNumber - 1}
-              due
-              label={`crying ${Math.floor((now - state.episodeStartAt) / MIN)} min`}
-            />
+            <CheckInDots done={state.checkInNumber - 1} due label={`crying ${Math.floor(state.cryingMs / MIN)} min`} />
           </View>
           <View style={styles.bottom}>
             <BigButton label="I'm going in" variant="alert" onPress={() => store.tap('check_in_start')} />
@@ -245,6 +266,8 @@ const styles = StyleSheet.create({
   bottom: { flex: 1, justifyContent: 'flex-end', paddingBottom: 16 },
   row: { flexDirection: 'row', alignItems: 'flex-end', gap: 12 },
   linkGap: { marginTop: 6 },
+  linkAbove: { marginBottom: 6 },
+  quietTitle: { fontSize: 52, lineHeight: 64, marginTop: 4 },
   ringCaption: { color: colors.textDim, fontFamily: fonts.semibold, fontSize: type.body, textAlign: 'center' },
   countdown: {
     color: colors.text,

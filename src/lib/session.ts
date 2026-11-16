@@ -3,10 +3,15 @@
  * Events are the source of truth; nothing here is stored. Because the
  * countdown is computed from stored timestamps, it stays correct after the
  * app is force-quit and reopened.
+ *
+ * Crying vs quiet: after "Down" the baby may settle quietly, so no wait runs
+ * until "Crying" is tapped. "Stopped crying" pauses the wait; the next
+ * "Crying" restarts the same check-in's wait from the beginning. "Woke up"
+ * starts the wait straight away (you tap it because they're crying).
  */
 import { Chart, nextWaitMinutes } from './ferber';
 
-export type EventType = 'down' | 'check_in_start' | 'check_in_end' | 'asleep' | 'woke';
+export type EventType = 'down' | 'cry' | 'quiet' | 'check_in_start' | 'check_in_end' | 'asleep' | 'woke';
 
 export interface NightEvent {
   id: string;
@@ -30,6 +35,15 @@ export interface Episode {
 export type NightState =
   | { kind: 'idle' }
   | {
+      /** Down (or paused), not crying: no wait is running */
+      kind: 'quiet';
+      since: number;
+      /** 1-based number of the check-in that would come next */
+      checkInNumber: number;
+      episodeStartAt: number;
+      cryingMs: number;
+    }
+  | {
       kind: 'waiting' | 'due';
       episodeStartAt: number;
       waitStartedAt: number;
@@ -37,11 +51,12 @@ export type NightState =
       nextCheckInAt: number;
       /** 1-based number of the check-in being waited for */
       checkInNumber: number;
+      cryingMs: number;
     }
-  | { kind: 'in_room'; since: number; checkInNumber: number; episodeStartAt: number }
+  | { kind: 'in_room'; since: number; checkInNumber: number; episodeStartAt: number; cryingMs: number }
   | { kind: 'asleep'; since: number; episode: Episode };
 
-export type Action = 'down' | 'woke' | 'check_in_start' | 'check_in_end' | 'asleep';
+export type Action = EventType;
 
 const MINUTE = 60_000;
 
@@ -58,7 +73,7 @@ export function episodes(events: NightEvent[]): Episode[] {
   let cur: Episode | null = null;
   for (const e of liveEvents(events)) {
     if (e.type === 'down' || e.type === 'woke') {
-      // A new start while one is open closes nothing (missed "asleep"); start fresh.
+      // A new start while one is open (missed "asleep"): start fresh.
       cur = { start: e, end: null, checkIns: 0, events: [e] };
       out.push(cur);
       continue;
@@ -69,6 +84,80 @@ export function episodes(events: NightEvent[]): Episode[] {
     if (e.type === 'asleep') cur.end = e;
   }
   return out;
+}
+
+type Phase = 'quiet' | 'crying' | 'in_room' | 'asleep';
+
+interface Walk {
+  phase: Phase;
+  /** When the current phase began */
+  phaseSince: number;
+  /** For 'crying': when the current wait started (crying began, or Back out) */
+  waitStartedAt: number;
+  checkIns: number;
+  /** Crying + in-the-room time, up to the end of the episode (or `now`) */
+  cryingMs: number;
+}
+
+/**
+ * Replays an episode's events. Crying time counts while crying or in the
+ * room; quiet stretches don't count. A check-in tapped while "quiet" (e.g. a
+ * tap added afterwards) is treated as crying since the quiet stretch began.
+ */
+function walk(ep: Episode, now: number): Walk {
+  let phase: Phase = ep.start.type === 'woke' ? 'crying' : 'quiet';
+  let phaseSince = ep.start.at;
+  let waitStartedAt = ep.start.at;
+  let checkIns = 0;
+  let cryingMs = 0;
+  const close = (at: number) => {
+    if (phase === 'crying' || phase === 'in_room') cryingMs += Math.max(0, at - phaseSince);
+  };
+  for (const e of ep.events.slice(1)) {
+    switch (e.type) {
+      case 'cry':
+        if (phase === 'quiet') {
+          phase = 'crying';
+          phaseSince = e.at;
+          waitStartedAt = e.at;
+        }
+        break;
+      case 'quiet':
+        if (phase === 'crying') {
+          close(e.at);
+          phase = 'quiet';
+          phaseSince = e.at;
+        }
+        break;
+      case 'check_in_start':
+        if (phase === 'quiet') phase = 'crying'; // crying since the quiet stretch began
+        close(e.at);
+        checkIns += 1;
+        phase = 'in_room';
+        phaseSince = e.at;
+        break;
+      case 'check_in_end':
+        if (phase === 'in_room') {
+          close(e.at);
+          phase = 'crying';
+          phaseSince = e.at;
+          waitStartedAt = e.at;
+        }
+        break;
+      case 'asleep':
+        close(e.at);
+        phase = 'asleep';
+        phaseSince = e.at;
+        break;
+    }
+  }
+  if (phase !== 'asleep') close(now);
+  return { phase, phaseSince, waitStartedAt, checkIns, cryingMs };
+}
+
+/** Crying time for an episode (open episodes count up to `now`, or not at all without it). */
+export function episodeCryingMs(ep: Episode, now?: number): number {
+  return walk(ep, now ?? ep.end?.at ?? ep.start.at).cryingMs;
 }
 
 export function deriveNightState(
@@ -82,21 +171,21 @@ export function deriveNightState(
   if (!ep) return { kind: 'idle' };
   if (ep.end) return { kind: 'asleep', since: ep.end.at, episode: ep };
 
-  const last = ep.events[ep.events.length - 1];
-  if (last.type === 'check_in_start') {
-    return { kind: 'in_room', since: last.at, checkInNumber: ep.checkIns, episodeStartAt: ep.start.at };
-  }
+  const w = walk(ep, now);
+  const base = { episodeStartAt: ep.start.at, cryingMs: w.cryingMs };
+  if (w.phase === 'quiet') return { kind: 'quiet', since: w.phaseSince, checkInNumber: w.checkIns + 1, ...base };
+  if (w.phase === 'in_room') return { kind: 'in_room', since: w.phaseSince, checkInNumber: w.checkIns, ...base };
 
-  // last is down, woke, or check_in_end: a wait is running from that tap.
-  const waitMinutes = nextWaitMinutes(chart, chartNight, ep.checkIns);
-  const nextCheckInAt = last.at + waitMinutes * MINUTE;
+  // Crying: a wait is running from the crying start or the last Back out.
+  const waitMinutes = nextWaitMinutes(chart, chartNight, w.checkIns);
+  const nextCheckInAt = w.waitStartedAt + waitMinutes * MINUTE;
   return {
     kind: now >= nextCheckInAt ? 'due' : 'waiting',
-    episodeStartAt: ep.start.at,
-    waitStartedAt: last.at,
+    waitStartedAt: w.waitStartedAt,
     waitMinutes,
     nextCheckInAt,
-    checkInNumber: ep.checkIns + 1,
+    checkInNumber: w.checkIns + 1,
+    ...base,
   };
 }
 
@@ -105,9 +194,11 @@ export function allowedActions(state: NightState): Action[] {
   switch (state.kind) {
     case 'idle':
       return ['down', 'woke'];
+    case 'quiet':
+      return ['cry', 'asleep'];
     case 'waiting':
     case 'due':
-      return ['check_in_start', 'asleep'];
+      return ['check_in_start', 'quiet', 'asleep'];
     case 'in_room':
       return ['check_in_end', 'asleep'];
     case 'asleep':

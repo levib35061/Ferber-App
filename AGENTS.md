@@ -48,7 +48,8 @@ The product spec is `docs/SPEC.md`. Read it before changing behavior.
 - Routes live in `src/app/`. Pure logic lives in `src/lib/` (no React Native imports) and has Jest tests in `src/lib/__tests__/`.
 - `src/lib/ferber.ts` — interval chart + `nextWaitMinutes(chart, nightNumber, checkInsSoFarThisEpisode)`.
 - `src/lib/session.ts` — derives the Night-screen state from the event log. Events are the source of truth; never store derived values.
-- `src/lib/summary.ts` — crying minutes, check-ins, wakings.
+- `src/lib/summary.ts` — crying minutes, check-ins, wakings. Crying time excludes quiet stretches: events `cry`/`quiet` mark crying start/stop; after `down` no wait runs until `cry` (see `walk()` in session.ts).
+- App name: "Check In: Baby Sleep Timer" (display name "Check In"). Don't use "Ferber" in the app name.
 - `src/data/db.ts` — SQLite schema (baby, night, event, setting). UUID ids, UTC epoch-ms times, soft deletes (`deletedAt`).
 - `src/data/notifications.ts` — the check-in alert is ALWAYS a scheduled OS notification, reconciled after every write. Never rely on a JS timer for the alert or countdown.
 - Night UI uses the "Moonlight" theme in `src/theme/night.ts` (navy, lavender, peach when due, Nunito via `fonts.*` — set fontFamily, not fontWeight). No white, no confirmation dialogs (Undo instead).

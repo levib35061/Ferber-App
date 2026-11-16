@@ -1,4 +1,4 @@
-# Ferber
+# Check In: Baby Sleep Timer
 
 An iPhone app that tells parents when to check in during Ferber sleep training, logs each night, and shows whether crying time is dropping. See [`docs/SPEC.md`](docs/SPEC.md).
 
@@ -58,7 +58,8 @@ npm run lint
 - [x] First-launch onboarding: 3 intro cards + pediatrician note, baby name and birth date (under-6-months warning), notification explainer
 - [x] `eas.json` build profiles (development, preview, production)
 - [ ] Apple Developer account (enrollment pending)
-- [ ] Final app name and bundle ID
+- [x] App name: **Check In: Baby Sleep Timer** (home screen: "Check In")
+- [ ] Bundle ID
 - [ ] EAS development build on the phone
 - [ ] Supabase + Sign in with Apple, partner invite, sync, partner alerts
 - [ ] RevenueCat one-time unlock ($4.99, after 2 free nights), restore purchases, Family Sharing
@@ -84,6 +85,13 @@ Expected numbers (check each night in History, and its timeline adds up):
 Progress should say **"Crying time is down 93% since night 1."**
 
 Then try: change a time in a night (its crying minutes should change to match), delete a tap, add a missed tap, write a note, and switch the chart preset.
+
+### How crying time works
+
+After **Down for the night** the app shows **Settling**: no timer runs until you tap **Crying**.
+**Stopped crying** pauses a wait; the next **Crying** restarts that same check-in's wait.
+**Woke up** starts the wait straight away. Crying minutes count only time spent crying or on a
+check-in, not quiet settling. (This replaces the spec's original "Down to Asleep" definition.)
 
 ### Milestone 1 acceptance test (do this before building more)
 

@@ -1,20 +1,17 @@
 /**
  * Derived per-episode and per-night numbers. Computed from events, never stored.
  */
-import { Episode, NightEvent, episodes } from './session';
+import { NightEvent, episodeCryingMs, episodes } from './session';
+
+export { episodeCryingMs };
 
 const MINUTE = 60_000;
 
-/**
- * Crying minutes for an episode = asleep.at − (down or woke).at,
- * including time spent on check-ins. Open episodes count up to `now`
- * if given, otherwise 0.
+/*
+ * Crying minutes for an episode count only time spent crying or in the room
+ * on a check-in. Quiet settling after "Down" (before "Crying") and stretches
+ * after "Stopped crying" don't count. See walk() in session.ts.
  */
-export function episodeCryingMs(ep: Episode, now?: number): number {
-  const end = ep.end?.at ?? now;
-  if (end == null) return 0;
-  return Math.max(0, end - ep.start.at);
-}
 
 export interface NightSummary {
   cryingMinutes: number;

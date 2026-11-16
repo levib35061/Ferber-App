@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Ferber",
-    "slug": "ferber-app",
+    "name": "Check In",
+    "slug": "check-in-baby-sleep-timer",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -27,7 +27,7 @@
       "expo-font",
       "@react-native-community/datetimepicker"
     ],
-    "scheme": "ferber",
+    "scheme": "checkin",
     "backgroundColor": "#070B1C",
     "experiments": {
       "typedRoutes": true
