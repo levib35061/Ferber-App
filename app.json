@@ -21,7 +21,7 @@
         {
           "backgroundColor": "#070B1C",
           "image": "./assets/splash-icon.png",
-          "imageWidth": 120
+          "imageWidth": 150
         }
       ],
       "expo-font",

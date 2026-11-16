@@ -57,6 +57,7 @@ npm run lint
 
 - [x] First-launch onboarding: 3 intro cards + pediatrician note, baby name and birth date (under-6-months warning), notification explainer
 - [x] `eas.json` build profiles (development, preview, production)
+- [x] App icon (moon & check) and launch screen; source in `assets/icon-source.svg`
 - [ ] Apple Developer account (enrollment pending)
 - [x] App name: **Check In: Baby Sleep Timer** (home screen: "Check In")
 - [x] Bundle ID: `com.levibrown.checkin`
