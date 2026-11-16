@@ -3,19 +3,23 @@
  * huge countdown, big buttons in the bottom third, no confirmation dialogs
  * (Undo instead). "Moonlight" look: navy, lavender ring, peach when due.
  */
+import { useIsFocused, useNavigation } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
+import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
 import { Animated, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BigButton } from '../../components/BigButton';
 import { CheckInDots, MoonIcon, ProgressRing } from '../../components/Moonlight';
+import { TodaySummary, useLastNights } from '../../components/TodaySummary';
 import { useNow } from '../../components/useNow';
 import { useNightStore } from '../../data/NightStore';
 import { Action, UNDO_WINDOW_MS } from '../../lib/session';
 import { episodeCryingMs, summarizeNight } from '../../lib/summary';
-import { formatClock, formatDuration } from '../../lib/time';
+import { formatClock, formatDuration, isNightTime, nightKey } from '../../lib/time';
+import { day, dayFonts } from '../../theme/day';
 import { colors, fonts, type } from '../../theme/night';
 
 const ACTION_LABEL: Record<Action, string> = {
@@ -67,12 +71,47 @@ export default function NightScreen() {
     if (overTime && store.settings.haptics) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
   }, [overTime, store.settings.haptics]);
 
+  // Daytime: show last night's summary ("Today") unless something is in progress.
+  const lastNights = useLastNights();
+  const [nightForcedAt, setNightForcedAt] = useState<number | null>(null);
+  const recentKeys = [nightKey(now), nightKey(now - 24 * 3600_000)];
+  const showToday =
+    store.ready &&
+    !isNightTime(now) &&
+    !(nightForcedAt && now - nightForcedAt < 6 * 3600_000) &&
+    (state.kind === 'idle' || state.kind === 'asleep') &&
+    !!lastNights?.last &&
+    recentKeys.includes(lastNights.last.night.nightKey);
+
+  // The tab is called "Today" (with a peach tab bar) while the summary shows.
+  const navigation = useNavigation();
+  const focused = useIsFocused();
+  useEffect(() => {
+    navigation.setOptions({
+      title: showToday ? 'Today' : 'Night',
+      tabBarStyle: showToday ? { backgroundColor: day.bg, borderTopWidth: 0 } : { backgroundColor: colors.bg, borderTopWidth: 0 },
+      tabBarActiveTintColor: showToday ? day.plum : colors.text,
+      tabBarInactiveTintColor: showToday ? day.dim : colors.textFaint,
+      tabBarLabelStyle: { fontSize: 14, fontFamily: showToday ? dayFonts.bold : fonts.bold },
+    });
+  }, [navigation, showToday]);
+
   if (!store.ready) return <View style={styles.root} />;
+
+  if (showToday && lastNights) {
+    return (
+      <>
+        {focused && <StatusBar style="dark" />}
+        <TodaySummary data={lastNights} onStartTonight={() => setNightForcedAt(Date.now())} />
+      </>
+    );
+  }
 
   const undoLeft = store.lastTap ? UNDO_WINDOW_MS - (now - store.lastTap.tappedAt) : 0;
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
+      {focused && <StatusBar style="light" />}
       <View style={styles.header}>
         <MoonIcon />
         <Text style={styles.nightLabel}>
