@@ -27,10 +27,16 @@ import {
   setNightChartNight,
   setNightDuty,
   setSetting,
+  wipeAllLocalData,
   updateBaby,
   softDeleteEvent,
 } from './db';
-import { notificationPermission, reconcileCheckInAlert, requestNotificationPermission } from './notifications';
+import {
+  cancelCheckInAlert,
+  notificationPermission,
+  reconcileCheckInAlert,
+  requestNotificationPermission,
+} from './notifications';
 import { SyncEngine, SyncStatus } from './sync';
 import { useNow } from '../components/useNow';
 import { useClockMode } from '../theme';
@@ -67,6 +73,8 @@ interface NightStoreValue {
   setBedtimeEarly: (on: boolean) => void;
   /** Night mode for the whole app: clock night, a night in progress, or bedtime started early */
   nightMode: boolean;
+  /** Delete the account on the server (if any) and wipe this phone. */
+  deleteEverything: () => Promise<void>;
   /** Partner sync */
   sync: SyncEngine;
   syncStatus: SyncStatus;
@@ -231,6 +239,15 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
   const tonightAsleep = kindNow === 'asleep' && new Date(tick).getHours() >= NIGHT_ENDS_HOUR;
   const nightMode = (clockMode === 'night' && kindNow !== 'up') || nightActive || tonightAsleep || bedtimeEarly;
 
+  const deleteEverything = useCallback(async () => {
+    await sync.deleteAccount(); // throws if offline: nothing is wiped then
+    await cancelCheckInAlert().catch(() => {});
+    await wipeAllLocalData(db);
+    setLastTap(null);
+    setBedtimeEarlyAt(null);
+    await reload();
+  }, [db, reload, sync]);
+
   const shared = syncStatus.familyId != null && syncStatus.memberCount > 1;
   const duty = dutyFor(night?.onDuty, syncStatus.userId, shared);
 
@@ -286,6 +303,7 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
     bedtimeEarly,
     setBedtimeEarly,
     nightMode,
+    deleteEverything,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

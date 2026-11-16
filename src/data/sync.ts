@@ -135,12 +135,15 @@ export class SyncEngine {
   async joinFamily(code: string): Promise<void> {
     await ensureUserId();
     const { data, error } = await supabase.rpc('join_family', { code });
-    if (error) throw new Error(error.message.includes('not found') ? "That code wasn't found. Check it and try again." : error.message);
+    if (error)
+      throw new Error(error.message.includes('not found') ? "That code wasn't found. Check it and try again." : error.message);
     const familyId = data as string;
     const { data: fam } = await supabase.from('families').select('invite_code').eq('id', familyId).single();
     const { count } = await supabase.from('babies').select('*', { count: 'exact', head: true }).eq('family_id', familyId);
     if (!count) {
-      throw new Error("Your partner's phone hasn't finished sharing yet. Open the app on their phone (with signal), then try again.");
+      throw new Error(
+        "Your partner's phone hasn't finished sharing yet. Open the app on their phone (with signal), then try again.",
+      );
     }
     await clearLocalData(this.db);
     for (const t of TABLES) await setSyncValue(this.db, `cursor.${t}`, null);
@@ -150,6 +153,31 @@ export class SyncEngine {
     this.subscribe(familyId);
     this.onRemoteChange();
     await this.syncNow();
+  }
+
+  /**
+   * Delete this user's account on the server (Apple requires in-app deletion).
+   * Only if they ever signed in; never creates an account just to delete it.
+   * Throws if the server can't be reached, so nothing is half-deleted.
+   */
+  async deleteAccount(): Promise<void> {
+    const { data } = await supabase.auth.getSession();
+    if (data.session) {
+      const { error } = await supabase.rpc('delete_my_account');
+      if (error) throw new Error(error.message);
+      await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+    }
+    this.unsubscribe();
+    this.userId = null;
+    this.setStatus({
+      familyId: null,
+      inviteCode: null,
+      memberCount: 0,
+      memberIds: [],
+      userId: null,
+      lastSyncedAt: null,
+      error: null,
+    });
   }
 
   /** Stop sharing on this phone. Local data stays; the partner keeps theirs. */

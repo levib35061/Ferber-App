@@ -56,7 +56,9 @@ function phone() {
     jest.doMock('../supabase', () => {
       const { createClient } = jest.requireActual('@supabase/supabase-js');
       const { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } = jest.requireActual('../../config');
-      const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+      const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
       return {
         supabase,
         ensureUserId: async () => {
@@ -82,7 +84,10 @@ function phone() {
 
 const at = (h: number, m: number) => new Date(2026, 10, h < 11 ? 17 : 16, h, m).getTime();
 const live = async (p: ReturnType<typeof phone>, nightId: string) =>
-  (await p.dbm.listEvents(p.db, nightId)).filter((e) => !e.deletedAt).map((e) => `${e.type}@${e.at}`).sort();
+  (await p.dbm.listEvents(p.db, nightId))
+    .filter((e) => !e.deletedAt)
+    .map((e) => `${e.type}@${e.at}`)
+    .sort();
 const waitFor = async (cond: () => Promise<boolean>, ms = 8000) => {
   const t0 = Date.now();
   while (Date.now() - t0 < ms) {
@@ -200,5 +205,15 @@ d('partner sync (real Supabase)', () => {
     expect(await live(A, nA.id)).toHaveLength(2);
     expect(await live(B, nA.id)).toHaveLength(2);
     console.log(`family invite code used in this test: ${A.engine.getStatus().inviteCode}`);
+  });
+
+  it('deleting an account: the partner keeps the shared nights; the last one out deletes the family', async () => {
+    await B.engine.deleteAccount();
+    expect(B.engine.getStatus().familyId).toBeNull();
+    await A.engine.syncNow();
+    expect(A.engine.getStatus().memberCount).toBe(1);
+    expect((await live(A, nightId)).length).toBeGreaterThan(0);
+    await A.engine.deleteAccount();
+    expect(A.engine.getStatus().familyId).toBeNull();
   });
 });

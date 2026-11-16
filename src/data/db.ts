@@ -223,7 +223,12 @@ export async function getPreviousNight(
 }
 
 export async function setNightNote(db: SQLiteDatabase, nightId: string, note: string): Promise<void> {
-  await db.runAsync('UPDATE night SET note = ?, updatedAt = ?, dirty = 1 WHERE id = ?', note.trim() ? note : null, Date.now(), nightId);
+  await db.runAsync(
+    'UPDATE night SET note = ?, updatedAt = ?, dirty = 1 WHERE id = ?',
+    note.trim() ? note : null,
+    Date.now(),
+    nightId,
+  );
   wrote();
 }
 
@@ -366,7 +371,10 @@ async function setRaw(db: SQLiteDatabase, key: string, value: unknown): Promise<
 }
 
 /** All nights, newest first, with their live events. Fine for v1 volumes (weeks of data). */
-export async function listNightsWithEvents(db: SQLiteDatabase, babyId: string): Promise<{ night: Night; events: NightEvent[] }[]> {
+export async function listNightsWithEvents(
+  db: SQLiteDatabase,
+  babyId: string,
+): Promise<{ night: Night; events: NightEvent[] }[]> {
   const nights = await db.getAllAsync<Night>('SELECT * FROM night WHERE babyId = ? ORDER BY nightKey DESC', babyId);
   const events = await db.getAllAsync<NightEvent>(
     `SELECT e.* FROM event e JOIN night n ON n.id = e.nightId
@@ -379,9 +387,7 @@ export async function listNightsWithEvents(db: SQLiteDatabase, babyId: string): 
     list.push(e);
     byNight.set(e.nightId, list);
   }
-  return nights
-    .map((night) => ({ night, events: byNight.get(night.id) ?? [] }))
-    .filter((n) => n.events.length > 0);
+  return nights.map((night) => ({ night, events: byNight.get(night.id) ?? [] })).filter((n) => n.events.length > 0);
 }
 
 // ---------- sync support (used by src/data/sync.ts) ----------
@@ -401,7 +407,11 @@ export async function listDirty(db: SQLiteDatabase): Promise<DirtyRows> {
 }
 
 /** Clears the dirty flag only if the row hasn't changed again since it was read. */
-export async function markClean(db: SQLiteDatabase, table: 'baby' | 'night' | 'event', rows: { id: string; updatedAt: number }[]): Promise<void> {
+export async function markClean(
+  db: SQLiteDatabase,
+  table: 'baby' | 'night' | 'event',
+  rows: { id: string; updatedAt: number }[],
+): Promise<void> {
   for (const r of rows) {
     await db.runAsync(`UPDATE ${table} SET dirty = 0 WHERE id = ? AND updatedAt = ?`, r.id, r.updatedAt);
   }
@@ -473,6 +483,16 @@ export async function clearLocalData(db: SQLiteDatabase): Promise<void> {
     await db.runAsync('DELETE FROM event');
     await db.runAsync('DELETE FROM night');
     await db.runAsync('DELETE FROM baby');
+  });
+}
+
+/** "Delete my account and data": wipes everything on this phone, including settings. */
+export async function wipeAllLocalData(db: SQLiteDatabase): Promise<void> {
+  await db.withTransactionAsync(async () => {
+    await db.runAsync('DELETE FROM event');
+    await db.runAsync('DELETE FROM night');
+    await db.runAsync('DELETE FROM baby');
+    await db.runAsync('DELETE FROM setting');
   });
 }
 
