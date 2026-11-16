@@ -29,6 +29,8 @@ const ACTION_LABEL: Record<Action, string> = {
 };
 
 const KEEP_AWAKE_TAG = 'ferber-night';
+/** Check-ins should be short; the ring fills over this and nudges once when it's up. */
+const CHECK_IN_GOAL_MS = 2 * 60_000;
 const MIN = 60_000;
 
 export default function NightScreen() {
@@ -56,6 +58,12 @@ export default function NightScreen() {
     const id = setInterval(buzz, 3000);
     return () => clearInterval(id);
   }, [due, store.settings.haptics]);
+
+  // In the room: one gentle buzz when the check-in reaches 2 minutes.
+  const overTime = state.kind === 'in_room' && now - state.since >= CHECK_IN_GOAL_MS;
+  useEffect(() => {
+    if (overTime && store.settings.haptics) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+  }, [overTime, store.settings.haptics]);
 
   if (!store.ready) return <View style={styles.root} />;
 
@@ -167,14 +175,21 @@ export default function NightScreen() {
       {state.kind === 'in_room' && (
         <>
           <View style={styles.middle}>
-            <ProgressRing progress={0}>
+            <ProgressRing
+              progress={(now - state.since) / CHECK_IN_GOAL_MS}
+              color={overTime ? colors.accent : colors.primary}
+            >
               <Text style={styles.ringCaption}>In the room</Text>
-              <Text style={styles.countdown} adjustsFontSizeToFit numberOfLines={1}>
+              <Text style={[styles.countdown, overTime && { color: colors.accentText }]} adjustsFontSizeToFit numberOfLines={1}>
                 {formatDuration(now - state.since)}
               </Text>
               <Text style={styles.ringSub}>check-in #{state.checkInNumber}</Text>
             </ProgressRing>
-            <Text style={styles.hint}>The next wait starts when you tap Back out.</Text>
+            <Text style={[styles.hint, overTime && styles.nudge]}>
+              {overTime
+                ? "That's 2 minutes. Time to say goodnight and step out."
+                : 'Keep it calm and brief: a pat, your words, then out.'}
+            </Text>
           </View>
           <View style={styles.bottom}>
             <BigButton label="Back out" onPress={() => store.tap('check_in_end')} />
@@ -277,6 +292,7 @@ const styles = StyleSheet.create({
     lineHeight: type.countdown * 1.15,
   },
   ringSub: { color: colors.textDim, fontFamily: fonts.regular, fontSize: 15 },
+  nudge: { color: colors.accentText, fontFamily: fonts.bold },
   hint: { color: colors.textFaint, fontFamily: fonts.regular, fontSize: 15, textAlign: 'center' },
   repeatRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   repeatText: { color: colors.textDim, fontFamily: fonts.semibold, fontSize: type.body },
