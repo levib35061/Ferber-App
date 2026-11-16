@@ -18,8 +18,8 @@ export const day = {
 } as const;
 
 export const dayFonts = {
-  display: 'BricolageGrotesque_800ExtraBold',
-  regular: 'DMSans_400Regular',
-  medium: 'DMSans_500Medium',
-  bold: 'DMSans_700Bold',
+  display: 'PlusJakartaSans_800ExtraBold',
+  regular: 'PlusJakartaSans_400Regular',
+  medium: 'PlusJakartaSans_500Medium',
+  bold: 'PlusJakartaSans_700Bold',
 } as const;

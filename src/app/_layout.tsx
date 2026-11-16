@@ -1,5 +1,9 @@
-import { BricolageGrotesque_800ExtraBold } from '@expo-google-fonts/bricolage-grotesque';
-import { DMSans_400Regular, DMSans_500Medium, DMSans_700Bold } from '@expo-google-fonts/dm-sans';
+import {
+  PlusJakartaSans_400Regular,
+  PlusJakartaSans_500Medium,
+  PlusJakartaSans_700Bold,
+  PlusJakartaSans_800ExtraBold,
+} from '@expo-google-fonts/plus-jakarta-sans';
 import {
   Nunito_300Light,
   Nunito_400Regular,
@@ -25,10 +29,10 @@ export default function RootLayout() {
     Nunito_600SemiBold,
     Nunito_700Bold,
     Nunito_800ExtraBold,
-    BricolageGrotesque_800ExtraBold,
-    DMSans_400Regular,
-    DMSans_500Medium,
-    DMSans_700Bold,
+    PlusJakartaSans_400Regular,
+    PlusJakartaSans_500Medium,
+    PlusJakartaSans_700Bold,
+    PlusJakartaSans_800ExtraBold,
   });
 
   return (

@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: day.bg },
   scroll: { paddingHorizontal: 22, paddingTop: 20, paddingBottom: 40, gap: 16 },
   kicker: { color: day.dim, fontFamily: dayFonts.bold, fontSize: 14 },
-  headline: { color: day.plum, fontFamily: dayFonts.display, fontSize: 34, lineHeight: 37, letterSpacing: -0.6 },
+  headline: { color: day.plum, fontFamily: dayFonts.display, fontSize: 31, lineHeight: 35, letterSpacing: -0.9 },
   card: { backgroundColor: day.card, borderRadius: 24, padding: 18, gap: 10 },
   timeRow: { flexDirection: 'row', justifyContent: 'space-between' },
   small: { color: day.dim, fontFamily: dayFonts.medium, fontSize: 13 },
