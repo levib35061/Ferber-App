@@ -3,14 +3,16 @@ import { useSQLiteContext } from 'expo-sqlite';
 import React from 'react';
 import { Alert, Text, View } from 'react-native';
 
-import { Card, SettingsButton, SettingsPage, settingsStyles as s } from '../../../components/SettingsUI';
+import { Card, SettingsButton, SettingsPage, useSettingsStyles } from '../../../components/SettingsUI';
 import { eraseAllNights, loadSampleNights } from '../../../data/db';
 import { useNightStore } from '../../../data/NightStore';
 import { buildSampleWeek } from '../../../lib/sampleWeek';
 import { localDateString, nightKey } from '../../../lib/time';
-import { colors } from '../../../theme/night';
+import { useTheme } from '../../../theme';
 
 export default function TestingSettings() {
+  const s = useSettingsStyles();
+  const { colors } = useTheme();
   const db = useSQLiteContext();
   const { baby, saveBaby, reload } = useNightStore();
   if (!__DEV__ || !baby) return <View style={{ flex: 1, backgroundColor: colors.bg }} />;

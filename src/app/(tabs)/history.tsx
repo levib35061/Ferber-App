@@ -12,9 +12,10 @@ import { Night, listNightsWithEvents } from '../../data/db';
 import { useNightStore } from '../../data/NightStore';
 import { NightEvent } from '../../lib/session';
 import { summarizeNight } from '../../lib/summary';
-import { colors, fonts, type } from '../../theme/night';
+import { makeStyles } from '../../theme';
 
 export default function HistoryScreen() {
+  const styles = stylesHook();
   const db = useSQLiteContext();
   const { baby } = useNightStore();
   const [rows, setRows] = useState<{ night: Night; events: NightEvent[] }[]>([]);
@@ -67,17 +68,19 @@ export default function HistoryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20 },
-  title: { color: colors.text, fontSize: type.huge, fontFamily: fonts.bold, marginVertical: 16 },
-  empty: { color: colors.textDim, fontFamily: fonts.regular, fontSize: type.body },
-  row: {
-    flexDirection: 'row',
-    paddingVertical: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-  },
-  chevron: { color: colors.textFaint, fontSize: 22, marginLeft: 12, alignSelf: 'center' },
-  rowTitle: { color: colors.text, fontSize: type.body, fontFamily: fonts.semibold },
-  rowSub: { color: colors.textDim, fontFamily: fonts.regular, fontSize: type.small, marginTop: 2 },
-});
+const stylesHook = makeStyles(({ colors, fonts, type }) =>
+  StyleSheet.create({
+    root: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20 },
+    title: { color: colors.text, fontSize: type.huge, fontFamily: fonts.bold, marginVertical: 16 },
+    empty: { color: colors.textDim, fontFamily: fonts.regular, fontSize: type.body },
+    row: {
+      flexDirection: 'row',
+      paddingVertical: 14,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    chevron: { color: colors.textFaint, fontSize: 22, marginLeft: 12, alignSelf: 'center' },
+    rowTitle: { color: colors.text, fontSize: type.body, fontFamily: fonts.semibold },
+    rowSub: { color: colors.textDim, fontFamily: fonts.regular, fontSize: type.small, marginTop: 2 },
+  }),
+);

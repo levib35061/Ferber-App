@@ -9,7 +9,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Icon, SettingsPage, TopicRow } from '../../../components/SettingsUI';
 import { useNightStore } from '../../../data/NightStore';
 import { ageInMonths } from '../../../lib/time';
-import { colors, fonts } from '../../../theme/night';
+import { makeStyles, useTheme } from '../../../theme';
 
 function syncedAgo(ms: number | null): string {
   if (!ms) return 'not synced yet';
@@ -18,6 +18,8 @@ function syncedAgo(ms: number | null): string {
 }
 
 export default function SettingsHome() {
+  const styles = stylesHook();
+  const { colors } = useTheme();
   const { baby, nightNumber, syncStatus } = useNightStore();
   if (!baby) return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
 
@@ -52,21 +54,63 @@ export default function SettingsHome() {
         <Text style={styles.edit}>Edit</Text>
       </Pressable>
 
-      <TopicRow icon="clock" title="Sleep plan" description="Interval chart, presets, new round" onPress={() => router.push('/settings/plan')} />
-      <TopicRow icon="bell" title="Night mode & alerts" description="Sound, vibration, screen, test alert" onPress={() => router.push('/settings/alerts')} />
-      <TopicRow icon="people" title="Partner sharing" description={partnerDesc} onPress={() => router.push('/settings/partner')} />
-      <TopicRow icon="info" title="Help & about" description="How it works, privacy, contact" onPress={() => router.push('/settings/about')} />
+      <TopicRow
+        icon="clock"
+        title="Sleep plan"
+        description="Interval chart, presets, new round"
+        onPress={() => router.push('/settings/plan')}
+      />
+      <TopicRow
+        icon="bell"
+        title="Night mode & alerts"
+        description="Sound, vibration, screen, test alert"
+        onPress={() => router.push('/settings/alerts')}
+      />
+      <TopicRow
+        icon="people"
+        title="Partner sharing"
+        description={partnerDesc}
+        onPress={() => router.push('/settings/partner')}
+      />
+      <TopicRow
+        icon="info"
+        title="Help & about"
+        description="How it works, privacy, contact"
+        onPress={() => router.push('/settings/about')}
+      />
       {__DEV__ && (
-        <TopicRow icon="flask" title="Testing" description="Sample week, erase nights (development only)" onPress={() => router.push('/settings/testing')} />
+        <TopicRow
+          icon="flask"
+          title="Testing"
+          description="Sample week, erase nights (development only)"
+          onPress={() => router.push('/settings/testing')}
+        />
       )}
     </SettingsPage>
   );
 }
 
-const styles = StyleSheet.create({
-  babyCard: { flexDirection: 'row', alignItems: 'center', gap: 16, backgroundColor: colors.surface, borderRadius: 26, padding: 20, marginBottom: 18 },
-  avatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: colors.buttonBg, alignItems: 'center', justifyContent: 'center' },
-  babyName: { color: colors.text, fontFamily: fonts.extrabold, fontSize: 24 },
-  babySub: { color: colors.textDim, fontFamily: fonts.regular, fontSize: 15, marginTop: 2 },
-  edit: { color: colors.primary, fontFamily: fonts.bold, fontSize: 15 },
-});
+const stylesHook = makeStyles(({ colors, fonts, type }) =>
+  StyleSheet.create({
+    babyCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 16,
+      backgroundColor: colors.surface,
+      borderRadius: 26,
+      padding: 20,
+      marginBottom: 18,
+    },
+    avatar: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      backgroundColor: colors.buttonBg,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    babyName: { color: colors.text, fontFamily: fonts.extrabold, fontSize: 24 },
+    babySub: { color: colors.textDim, fontFamily: fonts.regular, fontSize: 15, marginTop: 2 },
+    edit: { color: colors.primary, fontFamily: fonts.bold, fontSize: 15 },
+  }),
+);

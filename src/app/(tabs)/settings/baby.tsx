@@ -3,12 +3,14 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import React, { useState } from 'react';
 import { Text, TextInput, View } from 'react-native';
 
-import { Card, SettingsPage, settingsStyles as s } from '../../../components/SettingsUI';
+import { Card, SettingsPage, useSettingsStyles } from '../../../components/SettingsUI';
 import { useNightStore } from '../../../data/NightStore';
 import { ageInMonths, localDateString } from '../../../lib/time';
-import { colors } from '../../../theme/night';
+import { useTheme } from '../../../theme';
 
 export default function BabySettings() {
+  const s = useSettingsStyles();
+  const { colors, scheme } = useTheme();
   const { baby, saveBaby } = useNightStore();
   const [name, setName] = useState(baby?.name ?? '');
   if (!baby) return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
@@ -33,7 +35,7 @@ export default function BabySettings() {
           value={baby.birthDate ? new Date(`${baby.birthDate}T12:00:00`) : new Date()}
           mode="date"
           display="spinner"
-          themeVariant="dark"
+          themeVariant={scheme}
           textColor={colors.text}
           maximumDate={new Date()}
           onChange={(_, d) => d && saveBaby({ ...baby, birthDate: localDateString(d) })}

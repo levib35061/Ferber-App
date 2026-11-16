@@ -3,12 +3,14 @@ import React from 'react';
 import { Alert, Text, View } from 'react-native';
 
 import { ChartEditor } from '../../../components/ChartEditor';
-import { Card, SectionLabel, SettingsButton, SettingsPage, settingsStyles as s } from '../../../components/SettingsUI';
+import { Card, SectionLabel, SettingsButton, SettingsPage, useSettingsStyles } from '../../../components/SettingsUI';
 import { useNightStore } from '../../../data/NightStore';
 import { nightKey } from '../../../lib/time';
-import { colors } from '../../../theme/night';
+import { useTheme } from '../../../theme';
 
 export default function PlanSettings() {
+  const s = useSettingsStyles();
+  const { colors } = useTheme();
   const { baby, saveBaby, night, nightNumber } = useNightStore();
   if (!baby) return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
 
@@ -25,7 +27,8 @@ export default function PlanSettings() {
         {
           text: 'Start new round',
           // If tonight is already logged, the new round starts tomorrow evening.
-          onPress: () => saveBaby({ ...baby, trainingStartDate: night ? nightKey(Date.now() + 24 * 3600_000) : nightKey(Date.now()) }),
+          onPress: () =>
+            saveBaby({ ...baby, trainingStartDate: night ? nightKey(Date.now() + 24 * 3600_000) : nightKey(Date.now()) }),
         },
       ],
     );
@@ -46,7 +49,9 @@ export default function PlanSettings() {
         <Text style={s.body}>
           {roundStart ? `This round started ${roundStart}.` : 'First round.'} Tonight is night {nightNumber}.
         </Text>
-        <Text style={s.hint}>Starting again later, or with a new baby? A new round restarts night numbers at 1 and keeps your history.</Text>
+        <Text style={s.hint}>
+          Starting again later, or with a new baby? A new round restarts night numbers at 1 and keeps your history.
+        </Text>
         <SettingsButton label="Start a new training round" onPress={startNewRound} />
       </Card>
     </SettingsPage>

@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { useNightStore } from '../data/NightStore';
-import { colors, fonts, type } from '../theme/night';
+import { makeStyles, useTheme } from '../theme';
 
 function ago(ms: number): string {
   const s = Math.round((Date.now() - ms) / 1000);
@@ -19,6 +19,8 @@ function ago(ms: number): string {
 const pretty = (code: string) => (code.length === 8 ? `${code.slice(0, 4)} ${code.slice(4)}` : code);
 
 export function PartnerSection() {
+  const styles = stylesHook();
+  const { colors } = useTheme();
   const { sync, syncStatus: st, reload } = useNightStore();
   const [busy, setBusy] = useState(false);
   const [code, setCode] = useState('');
@@ -47,7 +49,14 @@ export function PartnerSection() {
         <View style={styles.joinRow}>
           <TextInput
             value={code}
-            onChangeText={(t) => setCode(t.toUpperCase().replace(/[^0-9A-F]/g, '').slice(0, 8))}
+            onChangeText={(t) =>
+              setCode(
+                t
+                  .toUpperCase()
+                  .replace(/[^0-9A-F]/g, '')
+                  .slice(0, 8),
+              )
+            }
             placeholder="8-character code"
             placeholderTextColor={colors.textFaint}
             autoCapitalize="characters"
@@ -122,6 +131,7 @@ export function PartnerSection() {
 }
 
 function Btn(props: { label: string; onPress: () => void; primary?: boolean; disabled?: boolean; style?: object }) {
+  const styles = stylesHook();
   return (
     <Pressable
       onPress={props.onPress}
@@ -140,28 +150,38 @@ function Btn(props: { label: string; onPress: () => void; primary?: boolean; dis
   );
 }
 
-const styles = StyleSheet.create({
-  body: { color: colors.text, fontFamily: fonts.regular, fontSize: type.body, lineHeight: 23 },
-  label: { color: colors.textDim, fontFamily: fonts.semibold, fontSize: 13, marginBottom: 6 },
-  hint: { color: colors.textFaint, fontFamily: fonts.regular, fontSize: type.small, lineHeight: 20, marginTop: 4 },
-  code: { color: colors.text, fontFamily: fonts.bold, fontSize: 34, letterSpacing: 3, fontVariant: ['tabular-nums'] },
-  error: { color: colors.accent, fontFamily: fonts.semibold, fontSize: type.small, marginTop: 10, lineHeight: 20 },
-  joinRow: { flexDirection: 'row', gap: 10, alignItems: 'center' },
-  input: {
-    flex: 1,
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: colors.buttonBg,
-    paddingHorizontal: 14,
-    color: colors.text,
-    fontFamily: fonts.bold,
-    fontSize: 18,
-    letterSpacing: 2,
-  },
-  btn: { marginTop: 12, minHeight: 48, paddingVertical: 12, borderRadius: 999, backgroundColor: colors.buttonBg, alignItems: 'center', justifyContent: 'center' },
-  btnPrimary: { backgroundColor: colors.primary },
-  btnText: { color: colors.text, fontFamily: fonts.semibold, fontSize: type.body },
-  btnPrimaryText: { color: colors.onPrimary, fontFamily: fonts.extrabold },
-  linkBtn: { alignSelf: 'flex-start', paddingVertical: 12 },
-  linkText: { color: colors.accent, fontFamily: fonts.bold, fontSize: 15 },
-});
+const stylesHook = makeStyles(({ colors, fonts, type }) =>
+  StyleSheet.create({
+    body: { color: colors.text, fontFamily: fonts.regular, fontSize: type.body, lineHeight: 23 },
+    label: { color: colors.textDim, fontFamily: fonts.semibold, fontSize: 13, marginBottom: 6 },
+    hint: { color: colors.textFaint, fontFamily: fonts.regular, fontSize: type.small, lineHeight: 20, marginTop: 4 },
+    code: { color: colors.text, fontFamily: fonts.bold, fontSize: 34, letterSpacing: 3, fontVariant: ['tabular-nums'] },
+    error: { color: colors.accent, fontFamily: fonts.semibold, fontSize: type.small, marginTop: 10, lineHeight: 20 },
+    joinRow: { flexDirection: 'row', gap: 10, alignItems: 'center' },
+    input: {
+      flex: 1,
+      height: 48,
+      borderRadius: 14,
+      backgroundColor: colors.buttonBg,
+      paddingHorizontal: 14,
+      color: colors.text,
+      fontFamily: fonts.bold,
+      fontSize: 18,
+      letterSpacing: 2,
+    },
+    btn: {
+      marginTop: 12,
+      minHeight: 48,
+      paddingVertical: 12,
+      borderRadius: 999,
+      backgroundColor: colors.buttonBg,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    btnPrimary: { backgroundColor: colors.primary },
+    btnText: { color: colors.text, fontFamily: fonts.semibold, fontSize: type.body },
+    btnPrimaryText: { color: colors.onPrimary, fontFamily: fonts.extrabold },
+    linkBtn: { alignSelf: 'flex-start', paddingVertical: 12 },
+    linkText: { color: colors.accent, fontFamily: fonts.bold, fontSize: 15 },
+  }),
+);

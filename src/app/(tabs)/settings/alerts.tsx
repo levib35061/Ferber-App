@@ -3,12 +3,24 @@ import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import { Linking, StyleSheet, Text, View } from 'react-native';
 
-import { Card, Divider, SectionLabel, Segmented, SettingsButton, SettingsPage, SwitchRow, settingsStyles as s } from '../../../components/SettingsUI';
+import {
+  Card,
+  Divider,
+  SectionLabel,
+  Segmented,
+  SettingsButton,
+  SettingsPage,
+  SwitchRow,
+  useSettingsStyles,
+} from '../../../components/SettingsUI';
 import { useNightStore } from '../../../data/NightStore';
 import { notificationPermission, requestNotificationPermission, sendTestNotification } from '../../../data/notifications';
-import { colors, fonts } from '../../../theme/night';
+import { makeStyles, useTheme } from '../../../theme';
 
 export default function AlertSettings() {
+  const s = useSettingsStyles();
+  const styles = stylesHook();
+  const { colors } = useTheme();
   const { settings, updateSetting } = useNightStore();
   const [perm, setPerm] = useState<string>('…');
   const [testSent, setTestSent] = useState(false);
@@ -42,9 +54,19 @@ export default function AlertSettings() {
 
       <SectionLabel>While waiting</SectionLabel>
       <Card style={{ paddingVertical: 8 }}>
-        <SwitchRow label="Keep screen on" hint="So the countdown stays visible" value={settings.keepAwake} onChange={(v) => updateSetting('keepAwake', v)} />
+        <SwitchRow
+          label="Keep screen on"
+          hint="So the countdown stays visible"
+          value={settings.keepAwake}
+          onChange={(v) => updateSetting('keepAwake', v)}
+        />
         <Divider />
-        <SwitchRow label="Haptics" hint="A tap on every button press" value={settings.haptics} onChange={(v) => updateSetting('haptics', v)} />
+        <SwitchRow
+          label="Haptics"
+          hint="A tap on every button press"
+          value={settings.haptics}
+          onChange={(v) => updateSetting('haptics', v)}
+        />
       </Card>
 
       <SectionLabel>Notifications</SectionLabel>
@@ -74,8 +96,10 @@ export default function AlertSettings() {
   );
 }
 
-const styles = StyleSheet.create({
-  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  dot: { width: 8, height: 8, borderRadius: 4 },
-  status: { color: colors.text, fontFamily: fonts.semibold, fontSize: 16 },
-});
+const stylesHook = makeStyles(({ colors, fonts, type }) =>
+  StyleSheet.create({
+    statusRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    dot: { width: 8, height: 8, borderRadius: 4 },
+    status: { color: colors.text, fontFamily: fonts.semibold, fontSize: 16 },
+  }),
+);

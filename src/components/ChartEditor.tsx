@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Chart, ChartPreset, chartForPreset, setChartCell } from '../lib/ferber';
-import { colors, fonts, type } from '../theme/night';
+import { makeStyles } from '../theme';
 
 const PRESETS: { key: ChartPreset; label: string; hint: string }[] = [
   { key: 'ferber', label: 'Ferber', hint: 'The standard chart.' },
@@ -21,6 +21,7 @@ interface Props {
 }
 
 export function ChartEditor({ preset, customChart, onChange }: Props) {
+  const styles = stylesHook();
   const chart = chartForPreset(preset, customChart);
   const hint = PRESETS.find((p) => p.key === preset)?.hint;
 
@@ -82,6 +83,7 @@ export function ChartEditor({ preset, customChart, onChange }: Props) {
 }
 
 function CellInput({ value, label, onCommit }: { value: number; label: string; onCommit: (v: number) => void }) {
+  const styles = stylesHook();
   const [text, setText] = useState(String(value));
   const commit = () => {
     const n = parseInt(text, 10);
@@ -108,27 +110,29 @@ function CellInput({ value, label, onCommit }: { value: number; label: string; o
   );
 }
 
-const styles = StyleSheet.create({
-  segment: { flexDirection: 'row', backgroundColor: colors.bg, borderRadius: 999, padding: 4, marginBottom: 8 },
-  segBtn: { flex: 1, height: 38, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
-  segBtnOn: { backgroundColor: colors.buttonBg },
-  segText: { color: colors.textDim, fontFamily: fonts.semibold, fontSize: 15 },
-  segTextOn: { color: colors.text, fontFamily: fonts.bold },
-  hint: { color: colors.textFaint, fontFamily: fonts.regular, fontSize: type.small, marginVertical: 8, lineHeight: 20 },
-  headRow: { flexDirection: 'row', marginTop: 4, marginBottom: 4 },
-  row: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
-  cell: { flex: 1, paddingHorizontal: 3 },
-  head: { color: colors.textDim, fontFamily: fonts.semibold, fontSize: 13 },
-  nightCell: { fontSize: type.body, color: colors.text },
-  input: {
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: colors.buttonBg,
-    color: colors.text,
-    fontFamily: fonts.bold,
-    fontSize: type.body,
-    textAlign: 'center',
-  },
-  reset: { alignSelf: 'flex-start', paddingVertical: 10 },
-  resetText: { color: colors.primary, fontFamily: fonts.bold, fontSize: 15 },
-});
+const stylesHook = makeStyles(({ colors, fonts, type }) =>
+  StyleSheet.create({
+    segment: { flexDirection: 'row', backgroundColor: colors.bg, borderRadius: 999, padding: 4, marginBottom: 8 },
+    segBtn: { flex: 1, height: 38, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
+    segBtnOn: { backgroundColor: colors.buttonBg },
+    segText: { color: colors.textDim, fontFamily: fonts.semibold, fontSize: 15 },
+    segTextOn: { color: colors.text, fontFamily: fonts.bold },
+    hint: { color: colors.textFaint, fontFamily: fonts.regular, fontSize: type.small, marginVertical: 8, lineHeight: 20 },
+    headRow: { flexDirection: 'row', marginTop: 4, marginBottom: 4 },
+    row: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
+    cell: { flex: 1, paddingHorizontal: 3 },
+    head: { color: colors.textDim, fontFamily: fonts.semibold, fontSize: 13 },
+    nightCell: { fontSize: type.body, color: colors.text },
+    input: {
+      height: 44,
+      borderRadius: 12,
+      backgroundColor: colors.buttonBg,
+      color: colors.text,
+      fontFamily: fonts.bold,
+      fontSize: type.body,
+      textAlign: 'center',
+    },
+    reset: { alignSelf: 'flex-start', paddingVertical: 10 },
+    resetText: { color: colors.primary, fontFamily: fonts.bold, fontSize: 15 },
+  }),
+);

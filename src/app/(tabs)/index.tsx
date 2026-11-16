@@ -19,6 +19,7 @@ import { useNightStore } from '../../data/NightStore';
 import { Action, UNDO_WINDOW_MS } from '../../lib/session';
 import { episodeCryingMs, summarizeNight } from '../../lib/summary';
 import { formatClock, formatDuration, isNightTime, nightKey } from '../../lib/time';
+import { ThemeProvider } from '../../theme';
 import { day, dayFonts } from '../../theme/day';
 import { colors, fonts, type } from '../../theme/night';
 
@@ -46,7 +47,8 @@ export default function NightScreen() {
 
   // Keep the screen on while a wait or check-in is running (setting can turn this off).
   const awake =
-    store.settings.keepAwake && (state.kind === 'quiet' || state.kind === 'waiting' || state.kind === 'due' || state.kind === 'in_room');
+    store.settings.keepAwake &&
+    (state.kind === 'quiet' || state.kind === 'waiting' || state.kind === 'due' || state.kind === 'in_room');
   useEffect(() => {
     if (!awake) return;
     activateKeepAwakeAsync(KEEP_AWAKE_TAG).catch(() => {});
@@ -109,183 +111,181 @@ export default function NightScreen() {
 
   const undoLeft = store.lastTap ? UNDO_WINDOW_MS - (now - store.lastTap.tappedAt) : 0;
 
+  // Active night screens stay dark at any hour: you're in a dark nursery.
   return (
-    <SafeAreaView style={styles.root} edges={['top']}>
-      {focused && <StatusBar style="light" />}
-      <View style={styles.header}>
-        <MoonIcon />
-        <Text style={styles.nightLabel}>
-          {store.baby?.name ? `${store.baby.name.toUpperCase()} · ` : ''}NIGHT {store.nightNumber}
-        </Text>
-      </View>
-      {store.chartNight !== store.nightNumber && (
-        <Text style={styles.subLabel}>using night {store.chartNight} intervals</Text>
-      )}
-      {store.duty !== 'solo' && <DutyBar duty={store.duty} onSet={store.setDuty} />}
+    <ThemeProvider mode="night">
+      <SafeAreaView style={styles.root} edges={['top']}>
+        {focused && <StatusBar style="light" />}
+        <View style={styles.header}>
+          <MoonIcon />
+          <Text style={styles.nightLabel}>
+            {store.baby?.name ? `${store.baby.name.toUpperCase()} · ` : ''}NIGHT {store.nightNumber}
+          </Text>
+        </View>
+        {store.chartNight !== store.nightNumber && <Text style={styles.subLabel}>using night {store.chartNight} intervals</Text>}
+        {store.duty !== 'solo' && <DutyBar duty={store.duty} onSet={store.setDuty} />}
 
-      {state.kind === 'idle' && (
-        <>
-          <View style={styles.middle}>
-            <ProgressRing progress={0}>
-              <MoonIcon size={56} color={colors.primary} />
-              <Text style={[styles.ringCaption, { marginTop: 16 }]}>Ready when you are</Text>
-            </ProgressRing>
-            {store.hasPreviousNight && (
-              <View style={styles.repeatRow}>
-                <Text style={styles.repeatText}>{"Repeat last night's intervals"}</Text>
-                <Switch
-                  value={store.repeatLastNight}
-                  onValueChange={store.setRepeatLastNight}
-                  trackColor={{ true: colors.primary, false: colors.buttonBg }}
-                  thumbColor={colors.text}
-                />
-              </View>
-            )}
-          </View>
-          <View style={styles.bottom}>
-            <BigButton label="Down for the night" onPress={() => store.tap('down')} />
-            <BigButton label="Night waking" variant="link" onPress={() => store.tap('woke')} style={styles.linkGap} />
-          </View>
-        </>
-      )}
-
-      {state.kind === 'quiet' && (
-        <>
-          <View style={styles.middle}>
-            <ProgressRing progress={0}>
-              <MoonIcon size={40} color={colors.primary} />
-              <Text style={[styles.countdown, styles.quietTitle]}>{state.checkInNumber === 1 ? 'Settling' : 'Quiet'}</Text>
-              <Text style={styles.ringSub}>
-                {state.checkInNumber === 1 ? 'No timer until they cry' : `Timer paused · ${formatDuration(now - state.since)}`}
-              </Text>
-            </ProgressRing>
-            <CheckInDots
-              done={state.checkInNumber - 1}
-              label={state.cryingMs > 0 ? `crying ${Math.floor(state.cryingMs / MIN)} min` : undefined}
-            />
-          </View>
-          <View style={styles.bottom}>
-            <BigButton label="Night feed" variant="link" onPress={() => store.tap('feed_start')} style={styles.linkAbove} />
-            <View style={styles.row}>
-              <BigButton label="Asleep" variant="secondary" onPress={() => store.tap('asleep')} style={{ flex: 1 }} />
-              <BigButton label="Crying" onPress={() => store.tap('cry')} style={{ flex: 1.4 }} />
+        {state.kind === 'idle' && (
+          <>
+            <View style={styles.middle}>
+              <ProgressRing progress={0}>
+                <MoonIcon size={56} color={colors.primary} />
+                <Text style={[styles.ringCaption, { marginTop: 16 }]}>Ready when you are</Text>
+              </ProgressRing>
+              {store.hasPreviousNight && (
+                <View style={styles.repeatRow}>
+                  <Text style={styles.repeatText}>{"Repeat last night's intervals"}</Text>
+                  <Switch
+                    value={store.repeatLastNight}
+                    onValueChange={store.setRepeatLastNight}
+                    trackColor={{ true: colors.primary, false: colors.buttonBg }}
+                    thumbColor={colors.text}
+                  />
+                </View>
+              )}
             </View>
-          </View>
-        </>
-      )}
-
-      {state.kind === 'waiting' && (
-        <>
-          <View style={styles.middle}>
-            <ProgressRing progress={(now - state.waitStartedAt) / (state.waitMinutes * MIN)}>
-              <Text style={styles.ringCaption}>Check-in #{state.checkInNumber} in</Text>
-              <Text style={styles.countdown} adjustsFontSizeToFit numberOfLines={1}>
-                {formatDuration(state.nextCheckInAt - now)}
-              </Text>
-              <Text style={styles.ringSub}>of {state.waitMinutes} min</Text>
-            </ProgressRing>
-            <CheckInDots done={state.checkInNumber - 1} label={`crying ${Math.floor(state.cryingMs / MIN)} min`} />
-          </View>
-          <View style={styles.bottom}>
-            <View style={[styles.row, styles.linkRow]}>
-              <BigButton label="Stopped crying" variant="link" onPress={() => store.tap('quiet')} style={{ flex: 1 }} />
-              <BigButton label="Night feed" variant="link" onPress={() => store.tap('feed_start')} style={{ flex: 1 }} />
+            <View style={styles.bottom}>
+              <BigButton label="Down for the night" onPress={() => store.tap('down')} />
+              <BigButton label="Night waking" variant="link" onPress={() => store.tap('woke')} style={styles.linkGap} />
             </View>
-            <View style={styles.row}>
-              <BigButton label="Going in" variant="secondary" onPress={() => store.tap('check_in_start')} style={{ flex: 1 }} />
-              <BigButton label="Asleep" onPress={() => store.tap('asleep')} style={{ flex: 1.4 }} />
-            </View>
-          </View>
-        </>
-      )}
+          </>
+        )}
 
-      {state.kind === 'due' && (
-        <>
-          <View style={styles.middle}>
-            <Glow>
-              <ProgressRing progress={1} color={colors.accent} track={colors.accent}>
-                <Text style={[styles.ringCaption, { color: colors.accent, fontFamily: fonts.bold }]}>Time to check in</Text>
-                <Text style={[styles.countdown, { color: colors.accentText }]}>#{state.checkInNumber}</Text>
-                <Text style={[styles.ringSub, { color: colors.accentDim }]}>
-                  due {formatDuration(now - state.nextCheckInAt)} ago
+        {state.kind === 'quiet' && (
+          <>
+            <View style={styles.middle}>
+              <ProgressRing progress={0}>
+                <MoonIcon size={40} color={colors.primary} />
+                <Text style={[styles.countdown, styles.quietTitle]}>{state.checkInNumber === 1 ? 'Settling' : 'Quiet'}</Text>
+                <Text style={styles.ringSub}>
+                  {state.checkInNumber === 1 ? 'No timer until they cry' : `Timer paused · ${formatDuration(now - state.since)}`}
                 </Text>
               </ProgressRing>
-            </Glow>
-            <CheckInDots done={state.checkInNumber - 1} due label={`crying ${Math.floor(state.cryingMs / MIN)} min`} />
-          </View>
-          <View style={styles.bottom}>
-            <BigButton label="I'm going in" variant="alert" onPress={() => store.tap('check_in_start')} />
-            <BigButton label="Asleep" variant="link" onPress={() => store.tap('asleep')} style={styles.linkGap} />
-          </View>
-        </>
-      )}
+              <CheckInDots
+                done={state.checkInNumber - 1}
+                label={state.cryingMs > 0 ? `crying ${Math.floor(state.cryingMs / MIN)} min` : undefined}
+              />
+            </View>
+            <View style={styles.bottom}>
+              <BigButton label="Night feed" variant="link" onPress={() => store.tap('feed_start')} style={styles.linkAbove} />
+              <View style={styles.row}>
+                <BigButton label="Asleep" variant="secondary" onPress={() => store.tap('asleep')} style={{ flex: 1 }} />
+                <BigButton label="Crying" onPress={() => store.tap('cry')} style={{ flex: 1.4 }} />
+              </View>
+            </View>
+          </>
+        )}
 
-      {state.kind === 'in_room' && (
-        <>
-          <View style={styles.middle}>
-            <ProgressRing
-              progress={(now - state.since) / CHECK_IN_GOAL_MS}
-              color={overTime ? colors.accent : colors.primary}
-            >
-              <Text style={styles.ringCaption}>In the room</Text>
-              <Text style={[styles.countdown, overTime && { color: colors.accentText }]} adjustsFontSizeToFit numberOfLines={1}>
-                {formatDuration(now - state.since)}
+        {state.kind === 'waiting' && (
+          <>
+            <View style={styles.middle}>
+              <ProgressRing progress={(now - state.waitStartedAt) / (state.waitMinutes * MIN)}>
+                <Text style={styles.ringCaption}>Check-in #{state.checkInNumber} in</Text>
+                <Text style={styles.countdown} adjustsFontSizeToFit numberOfLines={1}>
+                  {formatDuration(state.nextCheckInAt - now)}
+                </Text>
+                <Text style={styles.ringSub}>of {state.waitMinutes} min</Text>
+              </ProgressRing>
+              <CheckInDots done={state.checkInNumber - 1} label={`crying ${Math.floor(state.cryingMs / MIN)} min`} />
+            </View>
+            <View style={styles.bottom}>
+              <View style={[styles.row, styles.linkRow]}>
+                <BigButton label="Stopped crying" variant="link" onPress={() => store.tap('quiet')} style={{ flex: 1 }} />
+                <BigButton label="Night feed" variant="link" onPress={() => store.tap('feed_start')} style={{ flex: 1 }} />
+              </View>
+              <View style={styles.row}>
+                <BigButton label="Going in" variant="secondary" onPress={() => store.tap('check_in_start')} style={{ flex: 1 }} />
+                <BigButton label="Asleep" onPress={() => store.tap('asleep')} style={{ flex: 1.4 }} />
+              </View>
+            </View>
+          </>
+        )}
+
+        {state.kind === 'due' && (
+          <>
+            <View style={styles.middle}>
+              <Glow>
+                <ProgressRing progress={1} color={colors.accent} track={colors.accent}>
+                  <Text style={[styles.ringCaption, { color: colors.accent, fontFamily: fonts.bold }]}>Time to check in</Text>
+                  <Text style={[styles.countdown, { color: colors.accentText }]}>#{state.checkInNumber}</Text>
+                  <Text style={[styles.ringSub, { color: colors.accentDim }]}>
+                    due {formatDuration(now - state.nextCheckInAt)} ago
+                  </Text>
+                </ProgressRing>
+              </Glow>
+              <CheckInDots done={state.checkInNumber - 1} due label={`crying ${Math.floor(state.cryingMs / MIN)} min`} />
+            </View>
+            <View style={styles.bottom}>
+              <BigButton label="I'm going in" variant="alert" onPress={() => store.tap('check_in_start')} />
+              <BigButton label="Asleep" variant="link" onPress={() => store.tap('asleep')} style={styles.linkGap} />
+            </View>
+          </>
+        )}
+
+        {state.kind === 'in_room' && (
+          <>
+            <View style={styles.middle}>
+              <ProgressRing progress={(now - state.since) / CHECK_IN_GOAL_MS} color={overTime ? colors.accent : colors.primary}>
+                <Text style={styles.ringCaption}>In the room</Text>
+                <Text style={[styles.countdown, overTime && { color: colors.accentText }]} adjustsFontSizeToFit numberOfLines={1}>
+                  {formatDuration(now - state.since)}
+                </Text>
+                <Text style={styles.ringSub}>check-in #{state.checkInNumber}</Text>
+              </ProgressRing>
+              <Text style={[styles.hint, overTime && styles.nudge]}>
+                {overTime
+                  ? "That's 2 minutes. Time to say goodnight and step out."
+                  : 'Keep it calm and brief: a pat, your words, then out.'}
               </Text>
-              <Text style={styles.ringSub}>check-in #{state.checkInNumber}</Text>
-            </ProgressRing>
-            <Text style={[styles.hint, overTime && styles.nudge]}>
-              {overTime
-                ? "That's 2 minutes. Time to say goodnight and step out."
-                : 'Keep it calm and brief: a pat, your words, then out.'}
-            </Text>
-          </View>
-          <View style={styles.bottom}>
-            <BigButton label="Back out" onPress={() => store.tap('check_in_end')} />
-            <BigButton label="Asleep" variant="link" onPress={() => store.tap('asleep')} style={styles.linkGap} />
-          </View>
-        </>
-      )}
+            </View>
+            <View style={styles.bottom}>
+              <BigButton label="Back out" onPress={() => store.tap('check_in_end')} />
+              <BigButton label="Asleep" variant="link" onPress={() => store.tap('asleep')} style={styles.linkGap} />
+            </View>
+          </>
+        )}
 
-      {state.kind === 'feeding' && (
-        <>
-          <View style={styles.middle}>
-            <ProgressRing progress={0}>
-              <Text style={styles.ringCaption}>Night feed</Text>
-              <Text style={styles.countdown} adjustsFontSizeToFit numberOfLines={1}>
-                {formatDuration(now - state.since)}
+        {state.kind === 'feeding' && (
+          <>
+            <View style={styles.middle}>
+              <ProgressRing progress={0}>
+                <Text style={styles.ringCaption}>Night feed</Text>
+                <Text style={styles.countdown} adjustsFontSizeToFit numberOfLines={1}>
+                  {formatDuration(now - state.since)}
+                </Text>
+                <Text style={styles.ringSub}>timer paused</Text>
+              </ProgressRing>
+              <Text style={styles.hint}>
+                {`When you're done, put ${store.baby?.name || 'baby'} down awake. If they cry, the waits start again from the first one.`}
               </Text>
-              <Text style={styles.ringSub}>timer paused</Text>
-            </ProgressRing>
-            <Text style={styles.hint}>
-              {`When you're done, put ${store.baby?.name || 'baby'} down awake. If they cry, the waits start again from the first one.`}
+            </View>
+            <View style={styles.bottom}>
+              <BigButton label="Done feeding" onPress={() => store.tap('feed_end')} />
+              <BigButton label="Asleep" variant="link" onPress={() => store.tap('asleep')} style={styles.linkGap} />
+            </View>
+          </>
+        )}
+
+        {state.kind === 'asleep' && (
+          <AsleepView
+            since={state.since}
+            cryingMs={episodeCryingMs(state.episode)}
+            checkIns={state.episode.checkIns}
+            night={summarizeNight(store.events)}
+            onWoke={() => store.tap('woke')}
+            onFeed={() => store.tap('feed_start')}
+          />
+        )}
+
+        {store.lastTap && undoLeft > 0 && (
+          <Pressable style={styles.undo} onPress={store.undo} accessibilityRole="button" hitSlop={12}>
+            <Text style={styles.undoText}>
+              Undo “{ACTION_LABEL[store.lastTap.type]}” · {Math.ceil(undoLeft / 1000)}s
             </Text>
-          </View>
-          <View style={styles.bottom}>
-            <BigButton label="Done feeding" onPress={() => store.tap('feed_end')} />
-            <BigButton label="Asleep" variant="link" onPress={() => store.tap('asleep')} style={styles.linkGap} />
-          </View>
-        </>
-      )}
-
-      {state.kind === 'asleep' && (
-        <AsleepView
-          since={state.since}
-          cryingMs={episodeCryingMs(state.episode)}
-          checkIns={state.episode.checkIns}
-          night={summarizeNight(store.events)}
-          onWoke={() => store.tap('woke')}
-          onFeed={() => store.tap('feed_start')}
-        />
-      )}
-
-      {store.lastTap && undoLeft > 0 && (
-        <Pressable style={styles.undo} onPress={store.undo} accessibilityRole="button" hitSlop={12}>
-          <Text style={styles.undoText}>
-            Undo “{ACTION_LABEL[store.lastTap.type]}” · {Math.ceil(undoLeft / 1000)}s
-          </Text>
-        </Pressable>
-      )}
-    </SafeAreaView>
+          </Pressable>
+        )}
+      </SafeAreaView>
+    </ThemeProvider>
   );
 }
 
@@ -326,7 +326,11 @@ function AsleepView(props: {
 /** With a partner: who gets tonight's check-in alerts. */
 function DutyBar({ duty, onSet }: { duty: 'unset' | 'me' | 'partner'; onSet: (who: 'me' | 'partner') => void }) {
   const text =
-    duty === 'me' ? "You're on duty tonight" : duty === 'partner' ? 'Partner is on duty · alerts off here' : "Who's on duty tonight?";
+    duty === 'me'
+      ? "You're on duty tonight"
+      : duty === 'partner'
+        ? 'Partner is on duty · alerts off here'
+        : "Who's on duty tonight?";
   const action = duty === 'me' ? 'Hand off' : duty === 'partner' ? 'Take over' : "I'm on";
   return (
     <View style={styles.duty}>
@@ -360,7 +364,9 @@ function Glow({ children }: { children: React.ReactNode }) {
     return () => loop.stop();
   }, [v]);
   return (
-    <Animated.View style={{ shadowColor: colors.accent, shadowRadius: 40, shadowOffset: { width: 0, height: 0 }, shadowOpacity: v }}>
+    <Animated.View
+      style={{ shadowColor: colors.accent, shadowRadius: 40, shadowOffset: { width: 0, height: 0 }, shadowOpacity: v }}
+    >
       {children}
     </Animated.View>
   );

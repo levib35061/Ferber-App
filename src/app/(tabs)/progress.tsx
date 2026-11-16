@@ -13,11 +13,12 @@ import { listNightsWithEvents } from '../../data/db';
 import { useNightStore } from '../../data/NightStore';
 import { NightPoint, trendLine } from '../../lib/progress';
 import { summarizeNight } from '../../lib/summary';
-import { colors, fonts, type } from '../../theme/night';
+import { makeStyles } from '../../theme';
 
 const MAX_NIGHTS = 21;
 
 export default function ProgressScreen() {
+  const styles = stylesHook();
   const db = useSQLiteContext();
   const { baby } = useNightStore();
   const [points, setPoints] = useState<(NightPoint & { id: string })[]>([]);
@@ -82,24 +83,25 @@ export default function ProgressScreen() {
           />
         )}
         <Text style={styles.footnote}>
-          Crying time runs from Down (or Woke up) to Asleep, including time spent on check-ins. Every night is listed in
-          History.
+          Crying time runs from Down (or Woke up) to Asleep, including time spent on check-ins. Every night is listed in History.
         </Text>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20 },
-  title: { color: colors.text, fontSize: type.huge, fontFamily: fonts.bold, marginVertical: 16 },
-  trend: { color: colors.text, fontFamily: fonts.semibold, fontSize: 20, lineHeight: 28, marginBottom: 20 },
-  segment: { flexDirection: 'row', backgroundColor: colors.surface, borderRadius: 999, padding: 4, marginBottom: 20 },
-  segBtn: { flex: 1, height: 40, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
-  segBtnOn: { backgroundColor: colors.buttonBg },
-  segText: { color: colors.textDim, fontFamily: fonts.semibold, fontSize: 15 },
-  segTextOn: { color: colors.text, fontFamily: fonts.bold },
-  chartTitle: { color: colors.text, fontFamily: fonts.bold, fontSize: type.body, marginBottom: 4 },
-  empty: { color: colors.textDim, fontFamily: fonts.regular, fontSize: type.body, marginVertical: 40 },
-  footnote: { color: colors.textFaint, fontFamily: fonts.regular, fontSize: 13, lineHeight: 19, marginTop: 20 },
-});
+const stylesHook = makeStyles(({ colors, fonts, type }) =>
+  StyleSheet.create({
+    root: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20 },
+    title: { color: colors.text, fontSize: type.huge, fontFamily: fonts.bold, marginVertical: 16 },
+    trend: { color: colors.text, fontFamily: fonts.semibold, fontSize: 20, lineHeight: 28, marginBottom: 20 },
+    segment: { flexDirection: 'row', backgroundColor: colors.surface, borderRadius: 999, padding: 4, marginBottom: 20 },
+    segBtn: { flex: 1, height: 40, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
+    segBtnOn: { backgroundColor: colors.buttonBg },
+    segText: { color: colors.textDim, fontFamily: fonts.semibold, fontSize: 15 },
+    segTextOn: { color: colors.text, fontFamily: fonts.bold },
+    chartTitle: { color: colors.text, fontFamily: fonts.bold, fontSize: type.body, marginBottom: 4 },
+    empty: { color: colors.textDim, fontFamily: fonts.regular, fontSize: type.body, marginVertical: 40 },
+    footnote: { color: colors.textFaint, fontFamily: fonts.regular, fontSize: 13, lineHeight: 19, marginTop: 20 },
+  }),
+);

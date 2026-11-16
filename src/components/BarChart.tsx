@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import { LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Line, Path, Text as SvgText } from 'react-native-svg';
 
-import { colors, fonts } from '../theme/night';
+import { makeStyles, useTheme } from '../theme';
 
 export interface Bar {
   key: string;
@@ -35,6 +35,8 @@ function columnPath(x: number, w: number, y: number, base: number): string {
 }
 
 export function BarChart({ bars, unit, accessibilityLabel }: { bars: Bar[]; unit: string; accessibilityLabel: string }) {
+  const styles = stylesHook();
+  const { colors, fonts } = useTheme();
   const [width, setWidth] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const onLayout = (e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width);
@@ -51,9 +53,7 @@ export function BarChart({ bars, unit, accessibilityLabel }: { bars: Bar[]; unit
 
   return (
     <View>
-      <Text style={styles.readout}>
-        {sel ? `Night ${sel.label}: ${sel.value} ${unit}` : 'Tap a bar to see its value'}
-      </Text>
+      <Text style={styles.readout}>{sel ? `Night ${sel.label}: ${sel.value} ${unit}` : 'Tap a bar to see its value'}</Text>
       <View onLayout={onLayout} accessibilityLabel={accessibilityLabel} style={{ height: H }}>
         {width > 0 && (
           <Svg width={width} height={H}>
@@ -61,8 +61,22 @@ export function BarChart({ bars, unit, accessibilityLabel }: { bars: Bar[]; unit
               const y = base - (t / max) * plotH;
               return (
                 <React.Fragment key={t}>
-                  <Line x1={LEFT} x2={width} y1={y} y2={y} stroke={colors.border} strokeWidth={t === 0 ? 1 : StyleSheet.hairlineWidth} />
-                  <SvgText x={LEFT - 8} y={y + 4} fill={colors.textFaint} fontSize={12} fontFamily={fonts.regular} textAnchor="end">
+                  <Line
+                    x1={LEFT}
+                    x2={width}
+                    y1={y}
+                    y2={y}
+                    stroke={colors.border}
+                    strokeWidth={t === 0 ? 1 : StyleSheet.hairlineWidth}
+                  />
+                  <SvgText
+                    x={LEFT - 8}
+                    y={y + 4}
+                    fill={colors.textFaint}
+                    fontSize={12}
+                    fontFamily={fonts.regular}
+                    textAnchor="end"
+                  >
                     {Math.round(t)}
                   </SvgText>
                 </React.Fragment>
@@ -77,12 +91,26 @@ export function BarChart({ bars, unit, accessibilityLabel }: { bars: Bar[]; unit
                 <React.Fragment key={b.key}>
                   <Path d={columnPath(x, barW, y, base)} fill={colors.primary} opacity={dim ? 0.45 : 1} />
                   {showValue && (
-                    <SvgText x={x + barW / 2} y={y - 6} fill={colors.text} fontSize={12} fontFamily={fonts.bold} textAnchor="middle">
+                    <SvgText
+                      x={x + barW / 2}
+                      y={y - 6}
+                      fill={colors.text}
+                      fontSize={12}
+                      fontFamily={fonts.bold}
+                      textAnchor="middle"
+                    >
                       {b.value}
                     </SvgText>
                   )}
                   {i % labelEvery === 0 && (
-                    <SvgText x={x + barW / 2} y={H - 8} fill={colors.textDim} fontSize={12} fontFamily={fonts.regular} textAnchor="middle">
+                    <SvgText
+                      x={x + barW / 2}
+                      y={H - 8}
+                      fill={colors.textDim}
+                      fontSize={12}
+                      fontFamily={fonts.regular}
+                      textAnchor="middle"
+                    >
                       {b.label}
                     </SvgText>
                   )}
@@ -109,7 +137,16 @@ export function BarChart({ bars, unit, accessibilityLabel }: { bars: Bar[]; unit
   );
 }
 
-const styles = StyleSheet.create({
-  readout: { color: colors.textDim, fontFamily: fonts.semibold, fontSize: 14, marginBottom: 8, minHeight: 20 },
-  axis: { color: colors.textFaint, fontFamily: fonts.regular, fontSize: 12, textAlign: 'center', marginTop: 2, marginLeft: LEFT },
-});
+const stylesHook = makeStyles(({ colors, fonts, type }) =>
+  StyleSheet.create({
+    readout: { color: colors.textDim, fontFamily: fonts.semibold, fontSize: 14, marginBottom: 8, minHeight: 20 },
+    axis: {
+      color: colors.textFaint,
+      fontFamily: fonts.regular,
+      fontSize: 12,
+      textAlign: 'center',
+      marginTop: 2,
+      marginLeft: LEFT,
+    },
+  }),
+);

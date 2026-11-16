@@ -20,7 +20,7 @@ import { View } from 'react-native';
 
 import { DB_NAME, migrate } from '../data/db';
 import { NightStoreProvider } from '../data/NightStore';
-import { colors } from '../theme/night';
+import { ThemeProvider, useTheme } from '../theme';
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -36,10 +36,20 @@ export default function RootLayout() {
   });
 
   return (
+    <ThemeProvider>
+      <Frame ready={fontsLoaded || !!fontError} />
+    </ThemeProvider>
+  );
+}
+
+/** Background and status bar follow the theme: Moonlight at night, Peach & plum by day. */
+function Frame({ ready }: { ready: boolean }) {
+  const { colors, scheme } = useTheme();
+  return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <StatusBar style="light" />
-      {/* Stay on the dark background (no white flash) until the font is ready. */}
-      {(fontsLoaded || fontError) && (
+      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+      {/* Stay on the plain background (no white flash) until the fonts are ready. */}
+      {ready && (
         <SQLiteProvider databaseName={DB_NAME} onInit={migrate}>
           <NightStoreProvider>
             <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }} />
