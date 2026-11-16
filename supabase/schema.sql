@@ -69,7 +69,7 @@ create table public.events (
   family_id uuid not null references public.families (id) on delete cascade,
   night_id uuid not null references public.nights (id) on delete cascade,
   type text not null constraint events_type_check
-    check (type in ('down', 'cry', 'quiet', 'check_in_start', 'check_in_end', 'feed_start', 'feed_end', 'asleep', 'woke')),
+    check (type in ('down', 'cry', 'quiet', 'check_in_start', 'check_in_end', 'feed_start', 'feed_end', 'asleep', 'woke', 'up')),
   at bigint not null,
   created_by uuid,
   deleted_at bigint,

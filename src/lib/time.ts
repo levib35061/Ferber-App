@@ -65,3 +65,14 @@ export function ageInMonths(birthDate: string, now: number = Date.now()): number
   if (n.getDate() < d) months -= 1;
   return Math.max(0, months);
 }
+
+/** 5am–11am: "Up for the day" is offered. */
+export function isMorningWindow(atMs: number): boolean {
+  const h = new Date(atMs).getHours();
+  return h >= 5 && h < NIGHT_ENDS_HOUR;
+}
+
+/** Before 6am, wakings are usually still treated as night wakings. */
+export function isVeryEarly(atMs: number): boolean {
+  return new Date(atMs).getHours() < 6;
+}

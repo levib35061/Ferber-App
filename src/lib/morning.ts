@@ -29,7 +29,14 @@ export function morningHeadline(name: string, events: NightEvent[]): string {
   if (!eps.length) return 'No night logged yet.';
   const bed = eps.find((e) => e.start.type === 'down');
   const wakings = summarizeNight(events).wakings;
-  const wakePart = wakings === 0 ? 'and slept through' : wakings === 1 ? 'and woke once' : wakings === 2 ? 'and woke twice' : `and woke ${wakings} times`;
+  const wakePart =
+    wakings === 0
+      ? 'and slept through'
+      : wakings === 1
+        ? 'and woke once'
+        : wakings === 2
+          ? 'and woke twice'
+          : `and woke ${wakings} times`;
   if (!bed || !bed.end) return `${who} woke ${wakings === 1 ? 'once' : plural(wakings, 'time')} in the night.`;
   const cry = Math.round(episodeCryingMs(bed) / MIN);
   const first = cry === 0 ? `${who} fell asleep without crying` : `${who} fell asleep after ${plural(cry, 'minute')} of crying`;
@@ -67,10 +74,17 @@ export function timeline(events: NightEvent[], end: number): Segment[] {
         return 'feeding';
       case 'asleep':
         return 'asleep';
+      case 'up':
+        return null;
     }
   };
   for (const e of evs) {
     const k = next(e);
+    if (e.type === 'up') {
+      // Up for the day: the timeline stops here.
+      push(kind, since, e.at);
+      return out;
+    }
     // "Stopped crying" only matters while crying; "cry" only while settling.
     if (e.type === 'quiet' && kind !== 'crying') continue;
     if (e.type === 'cry' && kind !== 'settling' && kind !== null) continue;
@@ -88,7 +102,8 @@ export function moments(events: NightEvent[], fmt: (at: number) => string): Mome
   const out: Moment[] = [];
   for (const ep of episodes(events)) {
     const evs = ep.events;
-    const asleep = ep.end ? `asleep by ${fmt(ep.end.at)}` : 'not logged as asleep';
+    // A waking that ended with "Up for the day" gets its own final line instead.
+    const tail = !ep.end ? ', not logged as asleep' : ep.end.type === 'asleep' ? `, asleep by ${fmt(ep.end.at)}` : '';
     if (ep.start.type === 'down') {
       out.push({ at: ep.start.at, text: 'Down for the night' });
       const cry = evs.find((e) => e.type === 'cry');
@@ -106,14 +121,38 @@ export function moments(events: NightEvent[], fmt: (at: number) => string): Mome
           out.push({ at: e.at, text: mins ? `Night feed, ${mins} min` : 'Night feed' });
         }
       }
-      if (ep.end) out.push({ at: ep.end.at, text: 'Asleep' });
+      if (ep.end?.type === 'asleep') out.push({ at: ep.end.at, text: 'Asleep' });
     } else {
       const fed = ep.start.type === 'feed_start' || evs.some((e) => e.type === 'feed_start');
       const extras = [fed ? 'fed' : null, ep.checkIns ? plural(ep.checkIns, 'check-in') : null].filter(Boolean).join(', ');
-      out.push({ at: ep.start.at, text: `Woke up${extras ? ` (${extras})` : ''}, ${asleep}` });
+      out.push({ at: ep.start.at, text: `Woke up${extras ? ` (${extras})` : ''}${tail}` });
     }
   }
+  const up = upAt(events);
+  if (up != null && !out.some((m) => m.at === up)) out.push({ at: up, text: 'Up for the day' });
   return out;
+}
+
+/** When the baby got up for the day, if it was logged. */
+export function upAt(events: NightEvent[]): number | null {
+  return liveEvents(events).find((e) => e.type === 'up')?.at ?? null;
+}
+
+/** Total time asleep from bedtime to "Up for the day" (null if up wasn't logged). */
+export function totalSleepMs(events: NightEvent[]): number | null {
+  const up = upAt(events);
+  if (up == null) return null;
+  return timeline(events, up)
+    .filter((s) => s.kind === 'asleep')
+    .reduce((sum, s) => sum + (s.to - s.from), 0);
+}
+
+/** 37_500_000 → "10 h 25 min" */
+export function formatHours(ms: number): string {
+  const total = Math.round(ms / MIN);
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  return h ? `${h} h ${m} min` : `${m} min`;
 }
 
 /** "9 less than night 2", "4 more than night 2", "Same as night 2", or null for the first night. */

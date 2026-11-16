@@ -12,7 +12,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Night, listNightsWithEvents } from '../data/db';
 import { useNightStore } from '../data/NightStore';
 import { nextWaitMinutes } from '../lib/ferber';
-import { Segment, SegmentKind, compareCrying, moments, morningHeadline, timeline } from '../lib/morning';
+import {
+  Segment,
+  SegmentKind,
+  compareCrying,
+  formatHours,
+  moments,
+  morningHeadline,
+  timeline,
+  totalSleepMs,
+  upAt,
+} from '../lib/morning';
 import { NightEvent } from '../lib/session';
 import { summarizeNight } from '../lib/summary';
 import { formatClock, nightKey } from '../lib/time';
@@ -27,6 +37,8 @@ export interface LastNights {
 export function useLastNights(): LastNights | null {
   const db = useSQLiteContext();
   const { baby, events } = useNightStore();
+  // Refetch when tonight's log actually changes (not on every re-render).
+  const eventsKey = `${events.length}:${events[events.length - 1]?.id ?? ''}:${events[events.length - 1]?.at ?? ''}`;
   const [data, setData] = useState<LastNights | null>(null);
   useFocusEffect(
     useCallback(() => {
@@ -37,7 +49,7 @@ export function useLastNights(): LastNights | null {
         setData({ last: past[0] ?? null, previous: past[1] ?? null });
       });
       // `events` changes whenever tonight's log (or a partner's sync) changes.
-    }, [db, baby, events]), // eslint-disable-line react-hooks/exhaustive-deps
+    }, [db, baby, eventsKey]), // eslint-disable-line react-hooks/exhaustive-deps
   );
   return data;
 }
@@ -50,8 +62,10 @@ const KIND_COLOR: Record<SegmentKind, string> = {
 };
 const KIND_LABEL: Record<SegmentKind, string> = { crying: 'Crying', asleep: 'Asleep', settling: 'Settling', feeding: 'Feeding' };
 
-/** When the night "ends" on the timeline: 6:30am after the night, or the last event if later. */
+/** When the night "ends" on the timeline: "Up for the day" if logged, else 6:30am (or the last event if later). */
 function timelineEnd(key: string, events: NightEvent[]): number {
+  const up = upAt(events);
+  if (up != null) return up;
   const [y, m, d] = key.split('-').map(Number);
   const morning = new Date(y, m - 1, d + 1, 6, 30).getTime();
   const lastAt = Math.max(...events.map((e) => e.at));
@@ -66,12 +80,16 @@ export function TodaySummary({ data, onStartTonight }: { data: LastNights; onSta
   const prevSummary = data.previous ? summarizeNight(data.previous.events) : null;
   const compare = compareCrying(
     summary.cryingMinutes,
-    data.previous && prevSummary ? { nightNumber: data.previous.night.nightNumber, cryingMinutes: prevSummary.cryingMinutes } : null,
+    data.previous && prevSummary
+      ? { nightNumber: data.previous.night.nightNumber, cryingMinutes: prevSummary.cryingMinutes }
+      : null,
   );
   const tonightNumber = last.night.nightNumber + 1;
   const tonightFirstWait = nextWaitMinutes(chart, last.night.chartNight + 1, 0);
 
   const end = timelineEnd(last.night.nightKey, last.events);
+  const upTime = upAt(last.events);
+  const sleepMs = totalSleepMs(last.events);
   const segs = timeline(last.events, end);
   const start = segs[0]?.from ?? end;
   const span = Math.max(1, end - start);
@@ -88,6 +106,12 @@ export function TodaySummary({ data, onStartTonight }: { data: LastNights; onSta
         <Text style={styles.headline} accessibilityRole="header">
           {morningHeadline(name, last.events)}
         </Text>
+        {upTime != null && (
+          <Text style={styles.upLine}>
+            Up at {formatClock(upTime)}
+            {sleepMs != null && sleepMs > 0 ? ` · ${formatHours(sleepMs)} of sleep` : ''}
+          </Text>
+        )}
 
         <View style={styles.card}>
           <View style={styles.timeRow}>
@@ -98,7 +122,9 @@ export function TodaySummary({ data, onStartTonight }: { data: LastNights; onSta
             style={styles.bar}
             accessible
             accessibilityRole="image"
-            accessibilityLabel={segs.map((s) => `${KIND_LABEL[s.kind]} ${formatClock(s.from)} to ${formatClock(s.to)}`).join('; ')}
+            accessibilityLabel={segs
+              .map((s) => `${KIND_LABEL[s.kind]} ${formatClock(s.from)} to ${formatClock(s.to)}`)
+              .join('; ')}
           >
             {segs.map((s: Segment, i) => (
               <View key={i} style={{ flex: (s.to - s.from) / span, minWidth: 3, backgroundColor: KIND_COLOR[s.kind] }} />
@@ -155,6 +181,7 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: 22, paddingTop: 20, paddingBottom: 40, gap: 16 },
   kicker: { color: day.dim, fontFamily: dayFonts.bold, fontSize: 14 },
   headline: { color: day.plum, fontFamily: dayFonts.display, fontSize: 31, lineHeight: 35, letterSpacing: -0.9 },
+  upLine: { color: day.text, fontFamily: dayFonts.bold, fontSize: 16, marginTop: -6 },
   card: { backgroundColor: day.card, borderRadius: 24, padding: 18, gap: 10 },
   timeRow: { flexDirection: 'row', justifyContent: 'space-between' },
   small: { color: day.dim, fontFamily: dayFonts.medium, fontSize: 13 },

@@ -13,6 +13,9 @@
  * "Done feeding" goes back to quiet (no timer until crying), and the waits
  * start again from the first interval, like a new waking. A feed started
  * while asleep begins a new episode (counted as a waking).
+ *
+ * "Up for the day" (`up`) ends the night: it closes any open episode (crying
+ * stops counting) and the state becomes `up` until the next night.
  */
 import { Chart, nextWaitMinutes } from './ferber';
 
@@ -25,7 +28,8 @@ export type EventType =
   | 'feed_start'
   | 'feed_end'
   | 'asleep'
-  | 'woke';
+  | 'woke'
+  | 'up';
 
 export interface NightEvent {
   id: string;
@@ -40,7 +44,7 @@ export interface NightEvent {
 export interface Episode {
   /** The down, woke or feed_start event that started it */
   start: NightEvent;
-  /** asleep event, if the episode has ended */
+  /** asleep (or up-for-the-day) event, if the episode has ended */
   end: NightEvent | null;
   checkIns: number;
   events: NightEvent[];
@@ -69,7 +73,9 @@ export type NightState =
     }
   | { kind: 'in_room'; since: number; checkInNumber: number; episodeStartAt: number; cryingMs: number }
   | { kind: 'feeding'; since: number; episodeStartAt: number; cryingMs: number }
-  | { kind: 'asleep'; since: number; episode: Episode };
+  | { kind: 'asleep'; since: number; episode: Episode }
+  /** Up for the day: tonight's tracking is over */
+  | { kind: 'up'; since: number };
 
 export type Action = EventType;
 
@@ -97,7 +103,7 @@ export function episodes(events: NightEvent[]): Episode[] {
     if (!cur || cur.end) continue;
     cur.events.push(e);
     if (e.type === 'check_in_start') cur.checkIns += 1;
-    if (e.type === 'asleep') cur.end = e;
+    if (e.type === 'asleep' || e.type === 'up') cur.end = e;
   }
   return out;
 }
@@ -179,6 +185,7 @@ function walk(ep: Episode, now: number): Walk {
         }
         break;
       case 'asleep':
+      case 'up':
         close(e.at);
         phase = 'asleep';
         phaseSince = e.at;
@@ -194,15 +201,17 @@ export function episodeCryingMs(ep: Episode, now?: number): number {
   return walk(ep, now ?? ep.end?.at ?? ep.start.at).cryingMs;
 }
 
-export function deriveNightState(
-  events: NightEvent[],
-  chart: Chart,
-  chartNight: number,
-  now: number,
-): NightState {
+export function deriveNightState(events: NightEvent[], chart: Chart, chartNight: number, now: number): NightState {
   const eps = episodes(events);
   const ep = eps[eps.length - 1];
-  if (!ep) return { kind: 'idle' };
+  if (!ep) {
+    const up = liveEvents(events).find((e) => e.type === 'up');
+    return up ? { kind: 'up', since: up.at } : { kind: 'idle' };
+  }
+  const up = liveEvents(events)
+    .filter((e) => e.type === 'up')
+    .pop();
+  if (up && up.at >= ep.start.at) return { kind: 'up', since: up.at };
   if (ep.end) return { kind: 'asleep', since: ep.end.at, episode: ep };
 
   const w = walk(ep, now);
@@ -230,16 +239,18 @@ export function allowedActions(state: NightState): Action[] {
     case 'idle':
       return ['down', 'woke'];
     case 'quiet':
-      return ['cry', 'asleep', 'feed_start'];
+      return ['cry', 'asleep', 'feed_start', 'up'];
     case 'waiting':
     case 'due':
-      return ['check_in_start', 'quiet', 'asleep', 'feed_start'];
+      return ['check_in_start', 'quiet', 'asleep', 'feed_start', 'up'];
     case 'in_room':
-      return ['check_in_end', 'asleep'];
+      return ['check_in_end', 'asleep', 'up'];
     case 'feeding':
-      return ['feed_end', 'asleep'];
+      return ['feed_end', 'asleep', 'up'];
     case 'asleep':
-      return ['woke', 'feed_start'];
+      return ['woke', 'feed_start', 'up'];
+    case 'up':
+      return [];
   }
 }
 

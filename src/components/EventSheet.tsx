@@ -16,6 +16,7 @@ export const EVENT_LABEL: Record<EventType, string> = {
   quiet: 'Stopped crying',
   feed_start: 'Started night feed',
   feed_end: 'Done feeding',
+  up: 'Up for the day',
   woke: 'Woke up',
   check_in_start: 'Went in',
   check_in_end: 'Came out',
@@ -32,6 +33,7 @@ const ADD_ORDER: EventType[] = [
   'feed_end',
   'asleep',
   'woke',
+  'up',
 ];
 
 interface Props {

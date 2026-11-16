@@ -16,9 +16,10 @@ import { CheckInDots, MoonIcon, ProgressRing } from '../../components/Moonlight'
 import { TodaySummary, useLastNights } from '../../components/TodaySummary';
 import { useNow } from '../../components/useNow';
 import { useNightStore } from '../../data/NightStore';
+import { chooseView } from '../../lib/nightView';
 import { Action, UNDO_WINDOW_MS } from '../../lib/session';
 import { episodeCryingMs, summarizeNight } from '../../lib/summary';
-import { formatClock, formatDuration, isNightTime, nightKey } from '../../lib/time';
+import { formatClock, formatDuration, isMorningWindow, isVeryEarly } from '../../lib/time';
 import { ThemeProvider } from '../../theme';
 import { day, dayFonts } from '../../theme/day';
 import { colors, fonts, type } from '../../theme/night';
@@ -29,6 +30,7 @@ const ACTION_LABEL: Record<Action, string> = {
   quiet: 'Stopped crying',
   feed_start: 'Night feed',
   feed_end: 'Done feeding',
+  up: 'Up for the day',
   woke: 'Woke up',
   check_in_start: 'Going in',
   check_in_end: 'Back out',
@@ -75,14 +77,13 @@ export default function NightScreen() {
 
   // Daytime: show last night's summary ("Today") unless something is in progress.
   const lastNights = useLastNights();
-  const recentKeys = [nightKey(now), nightKey(now - 24 * 3600_000)];
-  const showToday =
-    store.ready &&
-    !isNightTime(now) &&
-    !store.bedtimeEarly &&
-    (state.kind === 'idle' || state.kind === 'asleep') &&
-    !!lastNights?.last &&
-    recentKeys.includes(lastNights.last.night.nightKey);
+  const { view, canShowToday } = chooseView({
+    now,
+    stateKind: state.kind,
+    bedtimeEarly: store.bedtimeEarly,
+    lastNightKey: lastNights?.last?.night.nightKey ?? null,
+  });
+  const showToday = store.ready && view === 'today';
 
   // The tab is called "Today" (with a peach tab bar) while the summary shows.
   const navigation = useNavigation();
@@ -123,6 +124,12 @@ export default function NightScreen() {
         </View>
         {store.chartNight !== store.nightNumber && <Text style={styles.subLabel}>using night {store.chartNight} intervals</Text>}
         {store.duty !== 'solo' && <DutyBar duty={store.duty} onSet={store.setDuty} />}
+        {isMorningWindow(now) &&
+          (state.kind === 'quiet' || state.kind === 'waiting' || state.kind === 'due' || state.kind === 'feeding') && (
+            <Pressable onPress={() => store.tap('up')} accessibilityRole="button" style={styles.upPill} hitSlop={8}>
+              <Text style={styles.upPillText}>Up for the day? End the night</Text>
+            </Pressable>
+          )}
 
         {state.kind === 'idle' && (
           <>
@@ -146,7 +153,7 @@ export default function NightScreen() {
             <View style={styles.bottom}>
               <BigButton label="Down for the night" onPress={() => store.tap('down')} />
               <BigButton label="Night waking" variant="link" onPress={() => store.tap('woke')} style={styles.linkGap} />
-              {store.bedtimeEarly && !isNightTime(now) && (
+              {store.bedtimeEarly && canShowToday && (
                 <BigButton label="Not yet? Back to Today" variant="link" onPress={() => store.setBedtimeEarly(false)} />
               )}
             </View>
@@ -268,6 +275,14 @@ export default function NightScreen() {
           </>
         )}
 
+        {state.kind === 'up' && (
+          <View style={styles.middle}>
+            <MoonIcon size={40} color={colors.primary} />
+            <Text style={styles.ringCaption}>Up for the day at {formatClock(state.since)}</Text>
+            <Text style={styles.hint}>{"Tonight's tracking is done. See you at bedtime."}</Text>
+          </View>
+        )}
+
         {state.kind === 'asleep' && (
           <AsleepView
             since={state.since}
@@ -276,6 +291,9 @@ export default function NightScreen() {
             night={summarizeNight(store.events)}
             onWoke={() => store.tap('woke')}
             onFeed={() => store.tap('feed_start')}
+            onUp={() => store.tap('up')}
+            morning={isMorningWindow(now)}
+            veryEarly={isVeryEarly(now)}
           />
         )}
 
@@ -298,6 +316,11 @@ function AsleepView(props: {
   night: ReturnType<typeof summarizeNight>;
   onWoke: () => void;
   onFeed: () => void;
+  onUp: () => void;
+  /** 5am–11am: offer "Up for the day" */
+  morning: boolean;
+  /** before 6am: remind that it's usually still a night waking */
+  veryEarly: boolean;
 }) {
   const { night } = props;
   return (
@@ -318,7 +341,17 @@ function AsleepView(props: {
         )}
       </View>
       <View style={styles.bottom}>
-        <BigButton label="Woke up" variant="secondary" onPress={props.onWoke} />
+        {props.morning && props.veryEarly && (
+          <Text style={[styles.hint, styles.earlyHint]}>Before 6am? Most plans treat it as a night waking.</Text>
+        )}
+        {props.morning ? (
+          <View style={styles.row}>
+            <BigButton label="Woke up" variant="secondary" onPress={props.onWoke} style={{ flex: 1 }} />
+            <BigButton label="Up for the day" onPress={props.onUp} style={{ flex: 1.3 }} />
+          </View>
+        ) : (
+          <BigButton label="Woke up" variant="secondary" onPress={props.onWoke} />
+        )}
         <BigButton label="Night feed" variant="link" onPress={props.onFeed} style={styles.linkGap} />
       </View>
     </>
@@ -396,6 +429,16 @@ const styles = StyleSheet.create({
     lineHeight: type.countdown * 1.15,
   },
   ringSub: { color: colors.textDim, fontFamily: fonts.regular, fontSize: 15 },
+  upPill: {
+    alignSelf: 'center',
+    marginTop: 8,
+    backgroundColor: colors.surface,
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  upPillText: { color: colors.primary, fontFamily: fonts.bold, fontSize: 14 },
+  earlyHint: { marginBottom: 10 },
   duty: {
     flexDirection: 'row',
     alignItems: 'center',

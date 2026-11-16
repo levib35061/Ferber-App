@@ -18,7 +18,7 @@ describe('deriveNightState', () => {
   it('is quiet (no timer) after Down until crying starts', () => {
     const s = deriveNightState([ev('down', 0)], chart, 1, T0 + 10 * MIN);
     expect(s).toMatchObject({ kind: 'quiet', checkInNumber: 1, cryingMs: 0 });
-    expect(allowedActions(s)).toEqual(['cry', 'asleep', 'feed_start']);
+    expect(allowedActions(s)).toEqual(['cry', 'asleep', 'feed_start', 'up']);
   });
 
   it('counts down to the first check-in from when crying started', () => {
@@ -83,7 +83,21 @@ describe('deriveNightState', () => {
   it('is asleep after Asleep and offers Woke up or a night feed', () => {
     const s = deriveNightState([ev('down', 0), ev('asleep', 12)], chart, 1, T0 + 20 * MIN);
     expect(s.kind).toBe('asleep');
-    expect(allowedActions(s)).toEqual(['woke', 'feed_start']);
+    expect(allowedActions(s)).toEqual(['woke', 'feed_start', 'up']);
+  });
+});
+
+describe('up for the day', () => {
+  it('ends the night from sleep, from a waking, or from settling', () => {
+    expect(deriveNightState([ev('down', 0), ev('asleep', 10), ev('up', 600)], chart, 1, T0 + 601 * MIN)).toMatchObject({ kind: 'up' });
+    const early = [ev('down', 0), ev('asleep', 10), ev('woke', 560), ev('up', 575)];
+    expect(deriveNightState(early, chart, 1, T0 + 600 * MIN)).toMatchObject({ kind: 'up', since: T0 + 575 * MIN });
+    expect(summarizeNight(early).cryingMinutes).toBe(15);
+    expect(allowedActions({ kind: 'up', since: 0 })).toEqual([]);
+  });
+  it('is offered while asleep and during a waking', () => {
+    expect(allowedActions(deriveNightState([ev('down', 0), ev('asleep', 10)], chart, 1, T0 + 20 * MIN))).toContain('up');
+    expect(allowedActions(deriveNightState([ev('woke', 0)], chart, 1, T0 + MIN))).toContain('up');
   });
 });
 

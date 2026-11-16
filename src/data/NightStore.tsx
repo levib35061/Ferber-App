@@ -224,8 +224,10 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
   const bedtimeEarly = bedtimeEarlyAt != null && tick - bedtimeEarlyAt < 6 * 3600_000;
   const setBedtimeEarly = useCallback((on: boolean) => setBedtimeEarlyAt(on ? Date.now() : null), []);
   const activeKinds = ['quiet', 'waiting', 'due', 'in_room', 'feeding'];
-  const nightActive = night ? activeKinds.includes(deriveNightState(events, chart, night.chartNight, tick).kind) : false;
-  const nightMode = clockMode === 'night' || nightActive || bedtimeEarly;
+  const kindNow = night ? deriveNightState(events, chart, night.chartNight, tick).kind : 'idle';
+  const nightActive = activeKinds.includes(kindNow);
+  // After "Up for the day" the night is over, even if it's before 7am.
+  const nightMode = (clockMode === 'night' && kindNow !== 'up') || nightActive || bedtimeEarly;
 
   const shared = syncStatus.familyId != null && syncStatus.memberCount > 1;
   const duty = dutyFor(night?.onDuty, syncStatus.userId, shared);

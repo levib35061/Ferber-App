@@ -1,4 +1,4 @@
-import { compareCrying, moments, morningHeadline, timeline } from '../morning';
+import { compareCrying, formatHours, moments, morningHeadline, timeline, totalSleepMs, upAt } from '../morning';
 import { EventType, NightEvent } from '../session';
 
 const MIN = 60_000;
@@ -68,5 +68,28 @@ describe('compareCrying', () => {
     expect(compareCrying(60, { nightNumber: 2, cryingMinutes: 55 })).toBe('5 more than night 2');
     expect(compareCrying(55, { nightNumber: 2, cryingMinutes: 55 })).toBe('Same as night 2');
     expect(compareCrying(55, null)).toBeNull();
+  });
+});
+
+describe('up for the day', () => {
+  const withUp = [...night, ev('up', 660)];
+
+  it('ends the timeline at the wake-up time', () => {
+    const segs = timeline(withUp, T0 + 900 * MIN);
+    expect((segs[segs.length - 1].to - T0) / MIN).toBe(660);
+  });
+
+  it('adds a final moment and totals the sleep', () => {
+    expect(moments(withUp, fmt).pop()).toEqual({ at: T0 + 660 * MIN, text: 'Up for the day' });
+    expect(upAt(withUp)).toBe(T0 + 660 * MIN);
+    // asleep 36→450 and 464→660
+    expect(totalSleepMs(withUp)).toBe((414 + 196) * MIN);
+    expect(formatHours((414 + 196) * MIN)).toBe('10 h 10 min');
+    expect(totalSleepMs(night)).toBeNull();
+  });
+
+  it('an early waking ended by "up" reads as one line plus the up line', () => {
+    const evs = [ev('down', 0), ev('asleep', 5), ev('woke', 600), ev('up', 615)];
+    expect(moments(evs, fmt).slice(-2).map((m) => m.text)).toEqual(['Woke up', 'Up for the day']);
   });
 });

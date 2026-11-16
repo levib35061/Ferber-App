@@ -177,6 +177,11 @@ d('partner sync (real Supabase)', () => {
     await B.engine.syncNow();
     const types = (await live(B, nightId)).map((x) => x.split('@')[0]);
     expect(types).toEqual(expect.arrayContaining(['feed_start', 'feed_end']));
+    // "Up for the day" (needs migration 003)
+    await B.dbm.insertEvent(B.db, nightId, 'up', at(6, 40));
+    await B.engine.syncNow();
+    await A.engine.syncNow();
+    expect((await live(A, nightId)).some((x) => x.startsWith('up@'))).toBe(true);
     expect((await B.dbm.getNight(B.db, nightId))?.onDuty).toBe(bId);
     expect(A.engine.getStatus().memberIds).toHaveLength(2);
   });
