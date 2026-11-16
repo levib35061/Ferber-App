@@ -224,9 +224,11 @@ export interface Settings {
   sound: boolean;
   haptics: boolean;
   keepAwake: boolean;
+  /** First-launch onboarding finished */
+  onboarded: boolean;
 }
 
-export const DEFAULT_SETTINGS: Settings = { sound: true, haptics: true, keepAwake: true };
+export const DEFAULT_SETTINGS: Settings = { sound: true, haptics: true, keepAwake: true, onboarded: false };
 
 export async function getSettings(db: SQLiteDatabase): Promise<Settings> {
   const rows = await db.getAllAsync<{ key: string; value: string }>('SELECT key, value FROM setting');

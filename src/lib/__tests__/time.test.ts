@@ -1,4 +1,4 @@
-import { atTimeInNight, formatDuration, nightKey } from '../time';
+import { ageInMonths, atTimeInNight, formatDuration, nightKey } from '../time';
 
 describe('nightKey (night runs 5pm–11am local)', () => {
   it('puts 2am with the previous evening', () => {
@@ -33,5 +33,17 @@ describe('atTimeInNight', () => {
   });
   it('round-trips with nightKey', () => {
     for (const h of [0, 3, 10, 11, 17, 23]) expect(nightKey(atTimeInNight('2026-11-14', h, 0))).toBe('2026-11-14');
+  });
+});
+
+describe('ageInMonths', () => {
+  const now = new Date(2026, 10, 16, 12).getTime(); // Nov 16 2026
+  it('counts whole months', () => {
+    expect(ageInMonths('2026-05-16', now)).toBe(6);
+    expect(ageInMonths('2026-05-17', now)).toBe(5);
+    expect(ageInMonths('2025-11-16', now)).toBe(12);
+  });
+  it('never goes negative', () => {
+    expect(ageInMonths('2027-01-01', now)).toBe(0);
   });
 });

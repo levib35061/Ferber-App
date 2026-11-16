@@ -2,6 +2,7 @@
  * Settings: baby, training round, interval chart editor, alerts, about.
  * Milestone 3 adds partner invite and purchases.
  */
+import { router } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import React, { useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
@@ -12,7 +13,7 @@ import { eraseAllNights, loadSampleNights } from '../../data/db';
 import { useNightStore } from '../../data/NightStore';
 import { notificationPermission, requestNotificationPermission, sendTestNotification } from '../../data/notifications';
 import { buildSampleWeek } from '../../lib/sampleWeek';
-import { localDateString, nightKey } from '../../lib/time';
+import { ageInMonths, localDateString, nightKey } from '../../lib/time';
 import { colors, fonts, type } from '../../theme/night';
 
 export default function SettingsScreen() {
@@ -68,6 +69,12 @@ export default function SettingsScreen() {
               autoCapitalize="words"
               style={styles.input}
             />
+            {baby.birthDate && (
+              <Text style={styles.hint}>
+                Born {new Date(`${baby.birthDate}T12:00:00`).toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' })} ·{' '}
+                {ageInMonths(baby.birthDate)} months old
+              </Text>
+            )}
           </Section>
 
           <Section title="Training round">
@@ -160,6 +167,13 @@ export default function SettingsScreen() {
               This app is not medical advice. Sleep training is meant for babies about 6 months and older. Talk to
               your pediatrician before you start.
             </Text>
+            <Button
+              label="Show the intro again"
+              onPress={async () => {
+                await updateSetting('onboarded', false);
+                router.replace('/onboarding');
+              }}
+            />
           </Section>
         </ScrollView>
       </KeyboardAvoidingView>

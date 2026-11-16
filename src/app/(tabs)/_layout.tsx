@@ -1,9 +1,16 @@
+import { Redirect } from 'expo-router';
 import { Tabs } from 'expo-router/js-tabs';
 import React from 'react';
+import { View } from 'react-native';
+
+import { useNightStore } from '../../data/NightStore';
 
 import { colors, fonts } from '../../theme/night';
 
 export default function TabsLayout() {
+  const { ready, settings } = useNightStore();
+  if (!ready) return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
+  if (!settings.onboarded) return <Redirect href="/onboarding" />;
   return (
     <Tabs
       screenOptions={{

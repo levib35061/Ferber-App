@@ -53,6 +53,16 @@ npm run lint
 - [x] Settings: interval chart editor (Ferber / Gentle / Custom, reset), baby name, start a new training round
 - [ ] **Acceptance test:** log a full week of real nights, and check each night's numbers in History match a hand count
 
+**Milestone 3 (real app features) — in progress**
+
+- [x] First-launch onboarding: 3 intro cards + pediatrician note, baby name and birth date (under-6-months warning), notification explainer
+- [x] `eas.json` build profiles (development, preview, production)
+- [ ] Apple Developer account (enrollment pending)
+- [ ] Final app name and bundle ID
+- [ ] EAS development build on the phone
+- [ ] Supabase + Sign in with Apple, partner invite, sync, partner alerts
+- [ ] RevenueCat one-time unlock ($4.99, after 2 free nights), restore purchases, Family Sharing
+
 ### Testing Milestone 2 without waiting a week
 
 In the app (development only, hidden in App Store builds): **Settings → Testing → Load a sample week**.

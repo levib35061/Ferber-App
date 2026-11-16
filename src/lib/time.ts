@@ -56,3 +56,12 @@ export function atTimeInNight(key: string, hour: number, minute: number): number
   const dayOffset = hour < NIGHT_ENDS_HOUR ? 1 : 0;
   return new Date(y, m - 1, d + dayOffset, hour, minute, 0, 0).getTime();
 }
+
+/** Whole months between a "YYYY-MM-DD" birth date and `now` (local time). */
+export function ageInMonths(birthDate: string, now: number = Date.now()): number {
+  const [y, m, d] = birthDate.split('-').map(Number);
+  const n = new Date(now);
+  let months = (n.getFullYear() - y) * 12 + (n.getMonth() - (m - 1));
+  if (n.getDate() < d) months -= 1;
+  return Math.max(0, months);
+}
