@@ -116,11 +116,22 @@ export default function NightScreen() {
     <ThemeProvider mode="night">
       <SafeAreaView style={styles.root} edges={['top']}>
         {focused && <StatusBar style="light" />}
+        {/* For 10 s after a tap, Undo takes the label's place (same height, nothing moves). */}
         <View style={styles.header}>
-          <MoonIcon />
-          <Text style={styles.nightLabel}>
-            {store.baby?.name ? `${store.baby.name.toUpperCase()} · ` : ''}NIGHT {store.nightNumber}
-          </Text>
+          {store.lastTap && undoLeft > 0 ? (
+            <Pressable style={styles.undo} onPress={store.undo} accessibilityRole="button" hitSlop={12}>
+              <Text style={styles.undoText}>
+                Undo “{ACTION_LABEL[store.lastTap.type]}” · {Math.ceil(undoLeft / 1000)}s
+              </Text>
+            </Pressable>
+          ) : (
+            <>
+              <MoonIcon />
+              <Text style={styles.nightLabel}>
+                {store.baby?.name ? `${store.baby.name.toUpperCase()} · ` : ''}NIGHT {store.nightNumber}
+              </Text>
+            </>
+          )}
         </View>
         {store.chartNight !== store.nightNumber && <Text style={styles.subLabel}>using night {store.chartNight} intervals</Text>}
         {store.duty !== 'solo' && <DutyBar duty={store.duty} onSet={store.setDuty} />}
@@ -297,13 +308,6 @@ export default function NightScreen() {
           />
         )}
 
-        {store.lastTap && undoLeft > 0 && (
-          <Pressable style={styles.undo} onPress={store.undo} accessibilityRole="button" hitSlop={12}>
-            <Text style={styles.undoText}>
-              Undo “{ACTION_LABEL[store.lastTap.type]}” · {Math.ceil(undoLeft / 1000)}s
-            </Text>
-          </Pressable>
-        )}
       </SafeAreaView>
     </ThemeProvider>
   );
@@ -409,7 +413,7 @@ function Glow({ children }: { children: React.ReactNode }) {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 24 },
-  header: { paddingTop: 12, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8 },
+  header: { marginTop: 8, height: 40, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8 },
   nightLabel: { color: colors.textDim, fontFamily: fonts.bold, fontSize: 16, letterSpacing: 0.6 },
   subLabel: { color: colors.textFaint, fontFamily: fonts.regular, fontSize: type.small, textAlign: 'center', marginTop: 2 },
   middle: { flex: 2, alignItems: 'center', justifyContent: 'center', gap: 20 },
@@ -458,15 +462,12 @@ const styles = StyleSheet.create({
   repeatRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   repeatText: { color: colors.textDim, fontFamily: fonts.semibold, fontSize: type.body },
   undo: {
-    position: 'absolute',
-    top: 56,
-    alignSelf: 'center',
     backgroundColor: colors.surface,
     borderColor: colors.border,
     borderWidth: 1,
     borderRadius: 999,
     paddingHorizontal: 18,
-    paddingVertical: 9,
+    paddingVertical: 8,
   },
   undoText: { color: colors.text, fontFamily: fonts.bold, fontSize: type.small },
 });
