@@ -2,18 +2,22 @@
  * Settings: baby, training round, interval chart editor, alerts, about.
  * Milestone 3 adds partner invite and purchases.
  */
+import { useSQLiteContext } from 'expo-sqlite';
 import React, { useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ChartEditor } from '../../components/ChartEditor';
+import { eraseAllNights, loadSampleNights } from '../../data/db';
 import { useNightStore } from '../../data/NightStore';
 import { notificationPermission, requestNotificationPermission, sendTestNotification } from '../../data/notifications';
-import { nightKey } from '../../lib/time';
+import { buildSampleWeek } from '../../lib/sampleWeek';
+import { localDateString, nightKey } from '../../lib/time';
 import { colors, fonts, type } from '../../theme/night';
 
 export default function SettingsScreen() {
-  const { settings, updateSetting, baby, saveBaby, night, nightNumber } = useNightStore();
+  const db = useSQLiteContext();
+  const { settings, updateSetting, baby, saveBaby, night, nightNumber, reload } = useNightStore();
   const [perm, setPerm] = useState<string>('…');
   const [testSent, setTestSent] = useState(false);
   const [name, setName] = useState(baby?.name ?? '');
@@ -108,6 +112,48 @@ export default function SettingsScreen() {
               }}
             />
           </Section>
+
+          {__DEV__ && (
+            <Section title="Testing (development only)">
+              <Text style={styles.hint}>
+                Not shown in the App Store version. Loading the sample week replaces everything in History.
+              </Text>
+              <Button
+                label="Load a sample week"
+                onPress={() =>
+                  Alert.alert('Load a sample week?', 'This erases all logged nights and adds 7 sample nights ending last night.', [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                      text: 'Load sample week',
+                      style: 'destructive',
+                      onPress: async () => {
+                        const [y, m, d] = nightKey(Date.now()).split('-').map(Number);
+                        const lastNight = localDateString(new Date(y, m - 1, d - 1, 12));
+                        await loadSampleNights(db, baby, buildSampleWeek(lastNight));
+                        await reload();
+                      },
+                    },
+                  ])
+                }
+              />
+              <Button
+                label="Erase all nights"
+                onPress={() =>
+                  Alert.alert('Erase all nights?', 'Every logged night is deleted. Baby name, chart and settings are kept.', [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                      text: 'Erase',
+                      style: 'destructive',
+                      onPress: async () => {
+                        await eraseAllNights(db);
+                        await saveBaby({ ...baby, trainingStartDate: null });
+                      },
+                    },
+                  ])
+                }
+              />
+            </Section>
+          )}
 
           <Section title="About">
             <Text style={styles.body}>

@@ -263,3 +263,47 @@ export async function listNightsWithEvents(db: SQLiteDatabase, babyId: string): 
     .map((night) => ({ night, events: byNight.get(night.id) ?? [] }))
     .filter((n) => n.events.length > 0);
 }
+
+// ---------- testing helpers (shown only in development builds) ----------
+
+/** Deletes every night and event. Keeps the baby (name, chart) and settings. */
+export async function eraseAllNights(db: SQLiteDatabase): Promise<void> {
+  await db.withTransactionAsync(async () => {
+    await db.runAsync('DELETE FROM event');
+    await db.runAsync('DELETE FROM night');
+  });
+}
+
+/** Replaces all nights with the given sample nights; the training round starts at the first one. */
+export async function loadSampleNights(
+  db: SQLiteDatabase,
+  baby: Baby,
+  nights: { nightKey: string; nightNumber: number; note: string | null; events: { type: EventType; at: number }[] }[],
+): Promise<void> {
+  await eraseAllNights(db);
+  await db.withTransactionAsync(async () => {
+    for (const n of nights) {
+      const nightId = randomUUID();
+      await db.runAsync(
+        'INSERT INTO night (id, babyId, nightNumber, chartNight, nightKey, startedAt, note) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        nightId,
+        baby.id,
+        n.nightNumber,
+        n.nightNumber,
+        n.nightKey,
+        n.events[0].at,
+        n.note,
+      );
+      for (const e of n.events) {
+        await db.runAsync(
+          'INSERT INTO event (id, nightId, type, at, createdBy, deletedAt) VALUES (?, ?, ?, ?, NULL, NULL)',
+          randomUUID(),
+          nightId,
+          e.type,
+          e.at,
+        );
+      }
+    }
+  });
+  await updateBaby(db, { ...baby, trainingStartDate: nights[0]?.nightKey ?? null });
+}

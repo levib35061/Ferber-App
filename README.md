@@ -53,6 +53,28 @@ npm run lint
 - [x] Settings: interval chart editor (Ferber / Gentle / Custom, reset), baby name, start a new training round
 - [ ] **Acceptance test:** log a full week of real nights, and check each night's numbers in History match a hand count
 
+### Testing Milestone 2 without waiting a week
+
+In the app (development only, hidden in App Store builds): **Settings → Testing → Load a sample week**.
+It erases logged nights and adds 7 sample nights ending last night. Tonight becomes night 8.
+**Erase all nights** clears them again.
+
+Expected numbers (check each night in History, and its timeline adds up):
+
+| Night | Crying min | Check-ins | Wakings | Note |
+| --- | --- | --- | --- | --- |
+| 1 | 70 | 5 | 1 | yes |
+| 2 | 55 | 4 | 1 | |
+| 3 | 46 | 3 | 1 | |
+| 4 | 28 | 1 | 1 | yes |
+| 5 | 18 | 1 | 0 | |
+| 6 | 9 | 0 | 0 | |
+| 7 | 5 | 0 | 0 | |
+
+Progress should say **"Crying time is down 93% since night 1."**
+
+Then try: change a time in a night (its crying minutes should change to match), delete a tap, add a missed tap, write a note, and switch the chart preset.
+
 ### Milestone 1 acceptance test (do this before building more)
 
 1. Open the app, tap **Down for the night**, and allow notifications.
