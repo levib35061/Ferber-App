@@ -59,7 +59,7 @@ npm run lint
 - [x] `eas.json` build profiles (development, preview, production)
 - [ ] Apple Developer account (enrollment pending)
 - [x] App name: **Check In: Baby Sleep Timer** (home screen: "Check In")
-- [ ] Bundle ID
+- [x] Bundle ID: `com.levibrown.checkin`
 - [ ] EAS development build on the phone
 - [ ] Supabase + Sign in with Apple, partner invite, sync, partner alerts
 - [ ] RevenueCat one-time unlock ($4.99, after 2 free nights), restore purchases, Family Sharing
