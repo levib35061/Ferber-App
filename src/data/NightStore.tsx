@@ -32,6 +32,8 @@ import {
 } from './db';
 import { notificationPermission, reconcileCheckInAlert, requestNotificationPermission } from './notifications';
 import { SyncEngine, SyncStatus } from './sync';
+import { useNow } from '../components/useNow';
+import { useClockMode } from '../theme';
 
 interface LastTap {
   eventId: string;
@@ -60,6 +62,11 @@ interface NightStoreValue {
   updateSetting: <K extends keyof Settings>(key: K, value: Settings[K]) => Promise<void>;
   saveBaby: (baby: Baby) => Promise<void>;
   reload: () => Promise<void>;
+  /** "Starting bedtime early?": show the night screen (and dark theme) during the day */
+  bedtimeEarly: boolean;
+  setBedtimeEarly: (on: boolean) => void;
+  /** Night mode for the whole app: clock night, a night in progress, or bedtime started early */
+  nightMode: boolean;
   /** Partner sync */
   sync: SyncEngine;
   syncStatus: SyncStatus;
@@ -86,6 +93,9 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
   const [events, setEvents] = useState<NightEvent[]>([]);
   const [repeatLastNight, setRepeat] = useState(false);
   const [lastTap, setLastTap] = useState<LastTap | null>(null);
+  const [bedtimeEarlyAt, setBedtimeEarlyAt] = useState<number | null>(null);
+  const clockMode = useClockMode();
+  const tick = useNow(30_000);
   const busy = useRef(false);
   const [sync] = useState(() => new SyncEngine(db));
   const [syncStatus, setSyncStatus] = useState<SyncStatus>(() => sync.getStatus());
@@ -210,6 +220,13 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
     [db, reload],
   );
 
+  // Early bedtime lasts 6 hours unless cancelled ("Back to Today").
+  const bedtimeEarly = bedtimeEarlyAt != null && tick - bedtimeEarlyAt < 6 * 3600_000;
+  const setBedtimeEarly = useCallback((on: boolean) => setBedtimeEarlyAt(on ? Date.now() : null), []);
+  const activeKinds = ['quiet', 'waiting', 'due', 'in_room', 'feeding'];
+  const nightActive = night ? activeKinds.includes(deriveNightState(events, chart, night.chartNight, tick).kind) : false;
+  const nightMode = clockMode === 'night' || nightActive || bedtimeEarly;
+
   const shared = syncStatus.familyId != null && syncStatus.memberCount > 1;
   const duty = dutyFor(night?.onDuty, syncStatus.userId, shared);
 
@@ -262,6 +279,9 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
     duty,
     setDuty,
     reload,
+    bedtimeEarly,
+    setBedtimeEarly,
+    nightMode,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

@@ -19,7 +19,7 @@ import React from 'react';
 import { View } from 'react-native';
 
 import { DB_NAME, migrate } from '../data/db';
-import { NightStoreProvider } from '../data/NightStore';
+import { NightStoreProvider, useNightStore } from '../data/NightStore';
 import { ThemeProvider, useTheme } from '../theme';
 
 export default function RootLayout() {
@@ -52,10 +52,33 @@ function Frame({ ready }: { ready: boolean }) {
       {ready && (
         <SQLiteProvider databaseName={DB_NAME} onInit={migrate}>
           <NightStoreProvider>
-            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }} />
+            <AppShell />
           </NightStoreProvider>
         </SQLiteProvider>
       )}
+    </View>
+  );
+}
+
+/**
+ * Once the store is loaded, the theme follows night mode: night by the clock,
+ * a night in progress, or bedtime started early. Otherwise Peach & plum.
+ */
+function AppShell() {
+  const { nightMode } = useNightStore();
+  return (
+    <ThemeProvider mode={nightMode ? 'night' : 'day'}>
+      <ShellFrame />
+    </ThemeProvider>
+  );
+}
+
+function ShellFrame() {
+  const { colors, scheme } = useTheme();
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }} />
     </View>
   );
 }

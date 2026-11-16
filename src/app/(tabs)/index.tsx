@@ -75,12 +75,11 @@ export default function NightScreen() {
 
   // Daytime: show last night's summary ("Today") unless something is in progress.
   const lastNights = useLastNights();
-  const [nightForcedAt, setNightForcedAt] = useState<number | null>(null);
   const recentKeys = [nightKey(now), nightKey(now - 24 * 3600_000)];
   const showToday =
     store.ready &&
     !isNightTime(now) &&
-    !(nightForcedAt && now - nightForcedAt < 6 * 3600_000) &&
+    !store.bedtimeEarly &&
     (state.kind === 'idle' || state.kind === 'asleep') &&
     !!lastNights?.last &&
     recentKeys.includes(lastNights.last.night.nightKey);
@@ -104,7 +103,7 @@ export default function NightScreen() {
     return (
       <>
         {focused && <StatusBar style="dark" />}
-        <TodaySummary data={lastNights} onStartTonight={() => setNightForcedAt(Date.now())} />
+        <TodaySummary data={lastNights} onStartTonight={() => store.setBedtimeEarly(true)} />
       </>
     );
   }
@@ -147,6 +146,9 @@ export default function NightScreen() {
             <View style={styles.bottom}>
               <BigButton label="Down for the night" onPress={() => store.tap('down')} />
               <BigButton label="Night waking" variant="link" onPress={() => store.tap('woke')} style={styles.linkGap} />
+              {store.bedtimeEarly && !isNightTime(now) && (
+                <BigButton label="Not yet? Back to Today" variant="link" onPress={() => store.setBedtimeEarly(false)} />
+              )}
             </View>
           </>
         )}
