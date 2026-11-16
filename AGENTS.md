@@ -39,3 +39,17 @@ Docs: https://docs.expo.dev/eas/index.md
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
 - Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
 - Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+
+## This project: Ferber sleep-training app
+
+The product spec is `docs/SPEC.md`. Read it before changing behavior.
+
+- iPhone only (v1). No custom native Swift. Only Expo-compatible libraries.
+- Routes live in `src/app/`. Pure logic lives in `src/lib/` (no React Native imports) and has Jest tests in `src/lib/__tests__/`.
+- `src/lib/ferber.ts` — interval chart + `nextWaitMinutes(chart, nightNumber, checkInsSoFarThisEpisode)`.
+- `src/lib/session.ts` — derives the Night-screen state from the event log. Events are the source of truth; never store derived values.
+- `src/lib/summary.ts` — crying minutes, check-ins, wakings.
+- `src/data/db.ts` — SQLite schema (baby, night, event, setting). UUID ids, UTC epoch-ms times, soft deletes (`deletedAt`).
+- `src/data/notifications.ts` — the check-in alert is ALWAYS a scheduled OS notification, reconciled after every write. Never rely on a JS timer for the alert or countdown.
+- Night UI: true black, dim amber/red text, no white, no confirmation dialogs (Undo instead).
+- Run `npm test`, `npm run typecheck`, `npm run lint` before declaring a task done.
