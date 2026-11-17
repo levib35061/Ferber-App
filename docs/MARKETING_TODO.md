@@ -7,7 +7,7 @@ The running list. The reasons and evidence are in `reports/Check In app launch s
 - [x] App Store listing written: subtitle "Ferber Method Sleep Training", keywords, description (`docs/APP_STORE.md`)
 - [x] "Ferber" trademark search: clear
 - [x] Website on ferbertimer.com, with the free web timer and printable chart
-- [x] Site added to Google Search Console and Bing Webmaster Tools, sitemap submitted
+- [x] Site added to Google Search Console and Bing Webmaster Tools, sitemap read successfully
 - [x] Rating prompt after a good morning, shareable progress card (in the app)
 - [x] YouTube channel set up: name, picture, banner, description
 - [x] Videos 1 and 2 posted, with captions and thumbnails, and embedded on ferbertimer.com (tap-to-play, nothing loads from YouTube before)
@@ -17,7 +17,6 @@ The running list. The reasons and evidence are in `reports/Check In app launch s
 - [ ] **YouTube links** (waiting for YouTube to approve external links): once approved,
   - add the website link to all three video descriptions and the channel's Links section
   - pin a comment on each video with the website link (and the App Store link after launch)
-- [ ] **Search Console sitemap**: check it changed from "Couldn't fetch" to "Success". If not, remove it and submit `sitemap.xml` again.
 
 ## At App Store launch (after Apple approval)
 
@@ -29,7 +28,7 @@ The running list. The reasons and evidence are in `reports/Check In app launch s
 - [ ] Add the App Store link to: the three YouTube descriptions and pinned comments, the YouTube channel links, ferbertimer.com (I'll do the site)
 - [ ] Apple Ads: spend the free $100 credit on exact-match keywords, as keyword research; stop when it's used up
 - [ ] Campaign links (App Store Connect) on the website's download buttons, so you can see which page sends downloads
-- [ ] One post each: Product Hunt, r/SideProject, r/iosapps, r/iOSProgramming "App Saturday"; list on AlternativeTo
+- [ ] Launch listings (no Reddit): Product Hunt, AlternativeTo, Indie Hackers product page; optional Show HN
 - [ ] Email about 20 Ferber-friendly sleep consultants with a free unlock code for their clients
 - [ ] Ask the r/sleeptrain moderators and Facebook group admins for permission before posting anything (accept a no)
 
