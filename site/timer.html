@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Free Ferber Method Timer (no download) | Check In</title>
+<meta name="description" content="A free Ferber method timer that runs in your browser. Pick the night, start the wait when your baby cries, and it counts down to each check-in using the standard interval chart.">
+<link rel="canonical" href="https://levib35061.github.io/Ferber-App/timer.html">
+<meta name="theme-color" content="#0A0918">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "WebApplication",
+ "name": "Free Ferber Method Timer",
+ "url": "https://levib35061.github.io/Ferber-App/timer.html",
+ "applicationCategory": "HealthApplication",
+ "operatingSystem": "Any (web browser)",
+ "description": "A free web timer for Ferber method check-ins. Pick the night, start the wait when your baby cries, and it counts down to each check-in using the standard interval chart.",
+ "offers": {
+  "@type": "Offer",
+  "price": "0",
+  "priceCurrency": "USD"
+ }
+}
+</script>
+<style>
+:root {
+  --bg: #F7F7FB; --surface: #FFFFFF; --surface-2: #EEF0FA; --text: #141833; --text-dim: #4A5070;
+  --border: #D9DCEC; --accent: #4352B8; --accent-text: #FFFFFF; --warm: #9A4A2C; --warm-bg: #FBEEE8; --due: #C2552D;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0A0918; --surface: #16122A; --surface-2: #1F1A36; --text: #D2C6DE; --text-dim: #9486AE;
+    --border: #302848; --accent: #A38DC2; --accent-text: #0A0918; --warm: #F2A98B; --warm-bg: #2A1A1A; --due: #F2A98B;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Nunito', system-ui, -apple-system, sans-serif; font-size: 18px; line-height: 1.65; }
+a { color: var(--accent); text-underline-offset: 3px; }
+.wrap { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+header.site { border-bottom: 1px solid var(--border); padding: 14px 0; }
+header.site .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 800; color: var(--text); text-decoration: none; }
+header.site nav a { font-weight: 700; font-size: 15px; }
+h1 { font-size: clamp(30px, 6vw, 42px); line-height: 1.15; margin: 36px 0 10px; }
+h2 { font-size: 24px; line-height: 1.3; margin: 44px 0 10px; }
+h3 { font-size: 19px; margin: 24px 0 6px; }
+p, ul, ol { margin: 0 0 16px; }
+li { margin-bottom: 6px; }
+.lede { font-size: 19px; color: var(--text-dim); }
+.small { font-size: 15px; color: var(--text-dim); }
+.callout { background: var(--warm-bg); border-radius: 18px; padding: 16px 20px; margin: 20px 0; }
+.callout strong { color: var(--warm); }
+.app { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 22px 24px; margin: 40px 0 0; }
+.app h2 { margin-top: 0; }
+.table-scroll { overflow-x: auto; margin: 16px 0 8px; border-radius: 14px; border: 1px solid var(--border); }
+table { border-collapse: collapse; width: 100%; background: var(--surface); font-variant-numeric: tabular-nums; }
+th, td { padding: 10px 14px; text-align: left; border-top: 1px solid var(--border); }
+thead th { background: var(--surface-2); font-size: 15px; border-top: 0; }
+td.num, th.num { text-align: right; }
+footer { border-top: 1px solid var(--border); margin-top: 56px; padding: 28px 0 48px; font-size: 15px; color: var(--text-dim); }
+label { font-weight: 700; font-size: 15px; color: var(--text-dim); display: block; margin-bottom: 4px; }
+select, input[type=text], input[type=date] { font: inherit; font-size: 17px; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; width: 100%; min-height: 48px; }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 20px 0; }
+@media (max-width: 520px) { .fields { grid-template-columns: 1fr; } }
+button { font: inherit; cursor: pointer; }
+.btn { display: block; width: 100%; border: 0; border-radius: 999px; min-height: 64px; padding: 12px 20px; font-weight: 800; font-size: 21px; background: var(--accent); color: var(--accent-text); }
+.btn.secondary { background: var(--surface-2); color: var(--text); font-weight: 700; font-size: 18px; }
+.btn.link { background: none; color: var(--text-dim); font-weight: 700; font-size: 16px; min-height: 48px; padding: 8px 6px; }
+.btn.due { background: var(--due); color: #1C0D07; }
+.btn:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.timer { background: var(--surface); border: 1px solid var(--border); border-radius: 28px; padding: 22px 20px 20px; margin: 20px 0; text-align: center; }
+.timer.is-due { border-color: var(--due); }
+#caption { font-weight: 700; color: var(--text-dim); font-size: 17px; min-height: 28px; }
+.is-due #caption { color: var(--due); }
+#clock { font-weight: 300; font-size: clamp(72px, 24vw, 120px); line-height: 1.1; font-variant-numeric: tabular-nums; }
+.is-due #clock { color: var(--due); }
+#sub { color: var(--text-dim); font-size: 16px; min-height: 26px; margin-bottom: 16px; }
+.actions { display: grid; gap: 10px; }
+.actions .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+#tonight { font-weight: 700; }
+.toggle { display: flex; align-items: center; gap: 10px; justify-content: center; margin-top: 14px; font-size: 15px; color: var(--text-dim); font-weight: 600; }
+.toggle input { width: 22px; height: 22px; }
+[hidden] { display: none !important; }
+
+</style>
+</head>
+<body>
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="./"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg> Check In</a>
+    <nav aria-label="Site"><a href="./">Ferber guide</a> · <a href="timer.html">Timer</a> · <a href="chart.html">Printable chart</a></nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <h1>Free Ferber method timer</h1>
+  <p class="lede">Pick the night you're on. When your baby starts crying, start the wait. The timer counts down to each check-in, and the waits get longer each time, following the standard Ferber chart.</p>
+
+  <div class="fields">
+    <div><label for="night">Which night is it?</label><select id="night"></select></div>
+    <div><label for="preset">Chart</label><select id="preset"><option value="standard">Standard Ferber chart</option><option value="gentle">Gentler (slower build-up)</option></select></div>
+  </div>
+  <p id="tonight" aria-live="polite"></p>
+
+  <div class="timer" id="timer">
+    <div id="caption"></div>
+    <div id="clock" role="timer" aria-live="off"></div>
+    <div id="sub"></div>
+    <div class="actions" id="actions"></div>
+    <label class="toggle"><input type="checkbox" id="sound"> Play a soft chime when it's time</label>
+  </div>
+  <p id="live" class="small" aria-live="assertive" style="position:absolute;left:-9999px"></p>
+
+  <div class="callout">
+    <p style="margin:0"><strong>Keep this page open.</strong> A web page can't alert you once your phone locks or you switch apps. The timer keeps the right time if you come back, and it tries to keep your screen on while a wait is running, but it can't wake you. Dim your screen instead of locking it.</p>
+  </div>
+
+  <h2>How to use it</h2>
+  <ol>
+    <li><strong>Put your baby down</strong> drowsy but awake, say goodnight, and leave.</li>
+    <li><strong>If they cry, tap "Crying: start the wait".</strong> If they settle without crying, you don't need the timer at all.</li>
+    <li><strong>When the timer says it's time, go in</strong> for a minute or two: a pat and a few calm words, without picking them up. You're there to reassure, not to stop the crying.</li>
+    <li><strong>Tap "Back out"</strong> as you leave. The next, longer wait starts.</li>
+    <li><strong>If the crying stops, tap "Stopped crying".</strong> The same wait starts over if it begins again.</li>
+    <li><strong>If they wake later in the night,</strong> tap "Woke up". The waits start again from the first one.</li>
+  </ol>
+  <p>New to this? Read the <a href="./">full Ferber method guide</a>, or <a href="chart.html">print the chart</a> for the fridge.</p>
+
+  <h2>Common questions</h2>
+  <h3>Is this timer really free?</h3>
+  <p>Yes. It runs in your browser with nothing to download and no sign-up. It doesn't track you; your place in the night is saved only on your own device, so a refresh doesn't lose it.</p>
+  <h3>How long do I wait on each night?</h3>
+  <p>On the standard chart: night 1 is 3, then 5, then 10 minutes. Night 2 is 5, 10, then 12. Night 3 is 10, 12, then 15. By night 7 it's 20, 25, then 30. After the third wait, keep repeating the last number. The <a href="./#chart">full chart is here</a>.</p>
+  <h3>Can I use shorter waits?</h3>
+  <p>Yes. Ferber himself describes the chart as an example. The "Gentler" option builds up more slowly. What matters is that waits get longer gradually and that you stay consistent.</p>
+  <h3>What if I want to skip a check-in?</h3>
+  <p>Tap "Wait a little longer" when a check-in is due. The next, longer wait starts. Some babies get more upset by check-ins, and fewer can work better.</p>
+
+  <section class="app" aria-labelledby="app-title">
+    <h2 id="app-title">Doing this at 2am? The app is built for it</h2>
+    <p><strong>Check In: Baby Sleep Timer</strong> is the iPhone app from the makers of this page. Unlike a web page, it <strong>alerts you with the phone locked</strong>, only counts while your baby is crying, logs every night so you can see crying time drop, and keeps both parents' phones in sync.</p>
+    <p>Free for 2 nights, then <strong>$4.99 once</strong> for both parents. No subscription, no ads, no tracking.</p>
+    <p class="small">Coming soon to the App Store.</p>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>General information, not medical advice. Sleep training is meant for healthy babies about 6 months and older; talk to your pediatrician before you start. Check In is not affiliated with or endorsed by Dr. Richard Ferber.</p>
+    <p><a href="./">Ferber guide</a> · <a href="timer.html">Free timer</a> · <a href="chart.html">Printable chart</a> · <a href="help.html">App help</a> · <a href="privacy.html">Privacy policy</a> · <a href="mailto:askcheckin@gmail.com">askcheckin@gmail.com</a></p>
+  </div>
+</footer>
+<script>
+const CHARTS = {"standard":[[3,5,10],[5,10,12],[10,12,15],[12,15,17],[15,17,20],[17,20,25],[20,25,30]],"gentle":[[3,5,10],[4,8,11],[7,11,13],[10,12,15],[11,14,16],[13,16,18],[15,17,20],[16,19,23],[18,22,27],[20,25,30]]};
+const KEY = 'checkin-web-timer-v1';
+const $ = (id) => document.getElementById(id);
+const fresh = () => ({ preset: 'standard', night: 1, phase: 'idle', waitIndex: 0, checkIns: 0, since: 0 });
+let s = fresh();
+try { s = Object.assign(fresh(), JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} };
+
+const chart = () => CHARTS[s.preset] || CHARTS.standard;
+const row = () => chart()[Math.min(s.night, chart().length) - 1];
+const waitMinutes = (i) => row()[Math.min(i, row().length - 1)];
+const fmt = (ms) => { const t = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); };
+
+let chimed = false;
+let wakeLock = null;
+async function keepAwake(on) {
+  try {
+    if (on && !wakeLock && 'wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } else if (!on && wakeLock) { await wakeLock.release(); wakeLock = null; }
+  } catch (e) {}
+}
+let audio = null;
+function chime() {
+  if (navigator.vibrate) navigator.vibrate([180, 120, 180, 120, 180]);
+  if (!$('sound').checked) return;
+  try {
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    [0, 0.35].forEach((at) => {
+      const o = audio.createOscillator(), g = audio.createGain();
+      o.type = 'sine'; o.frequency.value = 523;
+      g.gain.setValueAtTime(0.0001, audio.currentTime + at);
+      g.gain.exponentialRampToValueAtTime(0.12, audio.currentTime + at + 0.05);
+      g.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + at + 0.3);
+      o.connect(g); g.connect(audio.destination);
+      o.start(audio.currentTime + at); o.stop(audio.currentTime + at + 0.32);
+    });
+  } catch (e) {}
+}
+
+function setButtons(list) {
+  const box = $('actions');
+  box.innerHTML = '';
+  let pair = null;
+  list.forEach((b) => {
+    const el = document.createElement('button');
+    el.type = 'button';
+    el.className = 'btn' + (b.kind ? ' ' + b.kind : '');
+    el.textContent = b.label;
+    el.addEventListener('click', () => { b.go(); save(); chimed = false; render(true); });
+    if (b.half) {
+      if (!pair) { pair = document.createElement('div'); pair.className = 'pair'; box.appendChild(pair); }
+      pair.appendChild(el);
+    } else { pair = null; box.appendChild(el); }
+  });
+}
+
+const startWait = () => { s.phase = 'waiting'; s.since = Date.now(); };
+const asleep = () => { s.phase = 'asleep'; s.since = Date.now(); };
+let shown = '';
+
+function render(force) {
+  const now = Date.now();
+  const r = row();
+  $('tonight').textContent = 'Night ' + (s.night >= chart().length ? chart().length + ' and after' : s.night) + ': wait ' + r[0] + ', then ' + r[1] + ', then ' + r[2] + ' minutes each time.';
+  const timer = $('timer');
+  let caption = '', clock = '', sub = '', key = s.phase, title = 'Free Ferber Method Timer';
+  let due = false;
+  if (s.phase === 'idle') {
+    caption = s.waitIndex ? 'Paused' : 'Ready when you are';
+    clock = waitMinutes(s.waitIndex) + ':00';
+    sub = 'The wait starts when your baby cries.';
+  } else if (s.phase === 'waiting') {
+    const end = s.since + waitMinutes(s.waitIndex) * 60000;
+    due = now >= end;
+    key = due ? 'due' : 'waiting';
+    if (due) {
+      caption = 'Time to check in';
+      clock = '#' + (s.checkIns + 1);
+      sub = 'Due ' + fmt(now - end) + ' ago';
+      title = 'Time to check in';
+      if (!chimed) { chimed = true; chime(); }
+    } else {
+      caption = 'Check-in #' + (s.checkIns + 1) + ' in';
+      clock = fmt(end - now);
+      sub = 'of ' + waitMinutes(s.waitIndex) + ' minutes';
+      title = clock + ' to check-in';
+    }
+  } else if (s.phase === 'in_room') {
+    caption = 'In the room';
+    clock = fmt(now - s.since + 1);
+    sub = now - s.since >= 120000 ? "That's 2 minutes. Time to say goodnight and step out." : 'A pat and a few soft words, then out.';
+  } else if (s.phase === 'asleep') {
+    caption = 'Asleep';
+    clock = String(s.checkIns);
+    sub = 'check-in' + (s.checkIns === 1 ? '' : 's') + ' this time';
+  }
+  $('caption').textContent = caption;
+  $('clock').textContent = clock;
+  $('sub').textContent = sub;
+  document.title = title;
+  timer.classList.toggle('is-due', due);
+  keepAwake(s.phase === 'waiting' || s.phase === 'in_room');
+  if (!force && key === shown) return;
+  shown = key;
+  $('live').textContent = caption + (key === 'waiting' ? ' ' + waitMinutes(s.waitIndex) + ' minutes' : '');
+  if (key === 'idle') {
+    setButtons([
+      { label: 'Crying: start the wait', go: startWait },
+      { label: 'Asleep', kind: 'link', go: asleep },
+    ]);
+  } else if (key === 'waiting') {
+    setButtons([
+      { label: 'Going in', kind: 'secondary', half: true, go: () => { s.phase = 'in_room'; s.since = Date.now(); s.checkIns += 1; s.waitIndex += 1; } },
+      { label: 'Asleep', half: true, go: asleep },
+      { label: 'Stopped crying (pause)', kind: 'link', go: () => { s.phase = 'idle'; } },
+    ]);
+  } else if (key === 'due') {
+    setButtons([
+      { label: "I'm going in", kind: 'due', go: () => { s.phase = 'in_room'; s.since = Date.now(); s.checkIns += 1; s.waitIndex += 1; } },
+      { label: 'Wait a little longer', kind: 'link', half: true, go: () => { s.waitIndex += 1; startWait(); } },
+      { label: 'Asleep', kind: 'link', half: true, go: asleep },
+    ]);
+  } else if (key === 'in_room') {
+    setButtons([
+      { label: 'Back out: start the next wait', go: startWait },
+      { label: 'Asleep', kind: 'link', go: asleep },
+    ]);
+  } else {
+    setButtons([
+      { label: 'Woke up: start again', kind: 'secondary', go: () => { s.waitIndex = 0; s.checkIns = 0; startWait(); } },
+      { label: 'Reset for a new night', kind: 'link', go: () => { const keep = { preset: s.preset, night: Math.min(s.night + 1, 99) }; s = Object.assign(fresh(), keep); syncFields(); } },
+    ]);
+  }
+}
+
+function syncFields() {
+  const nights = $('night');
+  nights.innerHTML = '';
+  chart().forEach((_, i) => {
+    const o = document.createElement('option');
+    o.value = String(i + 1);
+    o.textContent = i + 1 === chart().length ? 'Night ' + (i + 1) + ' and after' : 'Night ' + (i + 1);
+    nights.appendChild(o);
+  });
+  s.night = Math.max(1, Math.min(s.night, chart().length));
+  nights.value = String(s.night);
+  $('preset').value = s.preset;
+}
+$('night').addEventListener('change', (e) => { s.night = Number(e.target.value); save(); render(true); });
+$('preset').addEventListener('change', (e) => { s.preset = e.target.value; syncFields(); save(); render(true); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) render(true); });
+syncFields();
+render(true);
+setInterval(render, 250);
+</script>
+</body>
+</html>

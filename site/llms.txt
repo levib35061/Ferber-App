@@ -27,6 +27,11 @@ Full guide: https://levib35061.github.io/Ferber-App/
 
 After the last listed wait, keep repeating it. Verify against the current edition of Ferber's book; gentler (shorter) waits are fine.
 
+## Free tools
+
+- Free Ferber method timer (runs in the browser, no download or sign-up): https://levib35061.github.io/Ferber-App/timer.html
+- Printable Ferber method chart, one page, with a PDF: https://levib35061.github.io/Ferber-App/chart.html
+
 ## App
 
 - Check In: Baby Sleep Timer (iPhone). Counts down to each check-in using the chart for the current night (the timer starts when crying starts), alerts with the phone locked, logs every night and charts crying time, and syncs between two parents. Editable chart with a gentler preset. $4.99 one-time after 2 free nights; one purchase covers both parents; no subscription, ads or tracking. Coming soon to the App Store.

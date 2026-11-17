@@ -8,7 +8,7 @@ Apple's; every field below fits.
 | Field | Value |
 | --- | --- |
 | Name (30) | Check In: Baby Sleep Timer |
-| Subtitle (30) | Sleep training check-in timer |
+| Subtitle (30) | Ferber Method Sleep Training |
 | Primary category | Health & Fitness |
 | Secondary category | Lifestyle |
 | Age rating | 4+ (answer "None" to every content question) |
@@ -20,14 +20,44 @@ Apple's; every field below fits.
 
 Don't tick "Made for Kids": the app is for parents, not children.
 
-## Keywords (100)
+## Before you paste: two checks
+
+1. **Trademark search for "Ferber".** The subtitle uses the method's name, as every rival
+   timer does, but that isn't legal clearance. Search "Ferber" at
+   https://tmsearch.uspto.gov and look for a live trademark covering software or apps.
+   If there is one, use the fallback subtitle `Sleep training check-in timer` and put
+   `ferber` back at the front of the keyword field.
+2. **Small Business Program.** Enroll in App Store Connect before launch. Apple's 15%
+   rate isn't automatic; without it Apple keeps 30%.
+
+## Keywords (100 each)
+
+The name and subtitle already cover: check, in, baby, sleep, timer, ferber, method,
+training. Apple counts those automatically, so they aren't repeated.
+
+**English (U.S.)**
 
 ```
-ferber,cry it out,cio,graduated,interval,nap,toddler,infant,night waking,log,tracker,routine,bedtime
+cry it out,cio,graduated,interval,nap,toddler,infant,newborn,night waking,trainer,schedule,bedtime
 ```
 
-Words already in the name and subtitle (check, baby, sleep, timer, training) count
-automatically, so they aren't repeated here.
+**Spanish (Mexico)** — add this as a second language in App Store Connect and fill in
+only its keyword field (copy the English name, subtitle and description). App Store
+experts consistently report that the US store also searches this field, which roughly
+doubles the keyword space. Apple doesn't document it.
+
+```
+ferber method,sleep trainer,controlled crying,wake window,coach,dormir,bebe,sueño,entrenamiento
+```
+
+**English (U.K.) and English (Australia)** — same idea, with the local terms.
+
+```
+controlled crying,cry it out,self settling,graduated,interval,nap,toddler,newborn,night waking
+```
+
+After launch, replace words that get no searches using what the Apple Ads test shows
+(see `reports/Check In app launch strategy.md`).
 
 ## Promotional text (170)
 
@@ -40,9 +70,11 @@ Tonight, know exactly when to go in. Check In times every wait, alerts you on th
 ## Description (4000)
 
 ```
-Sleep training is hard enough at 2am. Check In keeps the time so you don't have to.
+Check In is an iPhone timer for the Ferber method of baby sleep training (also called graduated check-ins or progressive waiting). It counts down to each check-in using the Ferber interval chart, alerts you with the phone locked, and logs every night so you can see crying time drop.
 
-Check In is a calm, one-thumb timer for the Ferber method (also called graduated or interval sleep training). Put your baby down, tap once, and the app tells you when it's time for a short check-in. The waits get a little longer each time and each night, just like the chart in the book.
+It's free for your first 2 nights, then $4.99 once. One purchase covers both parents. No subscription, no ads, no tracking.
+
+Sleep training is hard enough at 2am. Put your baby down, tap once, and Check In tells you when it's time for a short check-in. The waits get a little longer each time and each night, just like the chart in the book.
 
 MADE FOR A DARK NURSERY
 • Huge countdown and big buttons you can hit half-asleep
@@ -136,11 +168,17 @@ Leave everything else unticked:
 
 ## Screenshots (to make after the development build)
 
-Apple needs 6.9" iPhone screenshots (1320 × 2868). Suggested five, with a short
-caption on each:
+Apple needs 6.9" iPhone screenshots (1320 × 2868). The first three show in search
+results, so they carry the message on their own:
 
-1. Waiting countdown: "Know exactly when to go in"
-2. Check-in due (peach): "Alerts even on the lock screen"
-3. Today morning summary: "See last night at a glance"
-4. Progress chart: "Watch crying time drop"
-5. Partner sharing / duty bar: "Share the nights with your partner"
+1. Waiting countdown: "Ferber method check-in timer"
+2. Lock-screen alert: "Alerts you with the screen locked"
+3. Partner sharing / duty bar: "One purchase covers both parents"
+4. Today morning summary: "See last night at a glance"
+5. Progress chart: "Watch crying time drop"
+
+## Featuring nomination
+
+In App Store Connect, submit a Featuring Nomination at least two weeks before launch.
+Lead with: a parent built it during their own sleep training; a calm, dim night design
+with VoiceOver and large-text support; pay once, no ads, no tracking.
