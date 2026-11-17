@@ -10,7 +10,8 @@ The running list. The reasons and evidence are in `reports/Check In app launch s
 - [x] Site added to Google Search Console and Bing Webmaster Tools, sitemap submitted
 - [x] Rating prompt after a good morning, shareable progress card (in the app)
 - [x] YouTube channel set up: name, picture, banner, description
-- [x] Three videos posted, with captions and thumbnails
+- [x] Videos 1 and 2 posted, with captions and thumbnails, and embedded on ferbertimer.com (tap-to-play, nothing loads from YouTube before)
+- [ ] Video 3 (app walkthrough): post at App Store launch, then embed it in the site's app section
 
 ## Waiting on something
 

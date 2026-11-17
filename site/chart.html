@@ -87,6 +87,14 @@ button { font: inherit; cursor: pointer; }
   .sheet h2 { font-size: 26pt; }
 }
 
+.video { position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 18px; overflow: hidden; margin: 20px 0 8px; background: #0A0918; border: 0; padding: 0; cursor: pointer; }
+.video img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.video .play { position: absolute; left: 50%; top: 50%; width: 84px; height: 84px; margin: -42px 0 0 -42px; border-radius: 50%; background: rgba(10,9,24,.78); border: 2px solid rgba(255,255,255,.7); }
+.video .play::after { content: ""; position: absolute; left: 33px; top: 25px; border-style: solid; border-width: 17px 0 17px 26px; border-color: transparent transparent transparent #fff; }
+.video:hover .play, .video:focus-visible .play { background: #A38DC2; }
+.video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.video-note { font-size: 14px; color: var(--text-dim); margin: 0 0 16px; }
+@media print { .video, .video-note { display: none !important; } }
 </style>
 </head>
 <body>
@@ -141,6 +149,8 @@ button { font: inherit; cursor: pointer; }
     <p>Use the two empty columns to write down total crying time and the number of check-ins. Seeing those numbers shrink is what keeps most parents going on a hard night.</p>
     <p>Want the full method? Read the <a href="./">Ferber method guide</a>. Want something to do the counting? Use the <a href="timer.html">free web timer</a>.</p>
 
+    <button type="button" class="video" data-id="985lCMJeDZg" data-title="Ferber Method Chart Explained: How Long to Wait Each Night" aria-label="Play video: Ferber Method Chart Explained: How Long to Wait Each Night"><img src="video-ferber-chart.jpg" alt="" width="960" height="540" loading="lazy"><span class="play" aria-hidden="true"></span></button>
+<p class="video-note">Video (2 min): the chart, night by night. Plays from YouTube when you tap it.</p>
     <h2>Common questions</h2>
     <h3>Is this the official Ferber chart?</h3>
     <p>It's the widely shared version of the progressive-waiting schedule from Dr. Richard Ferber's book, <em>Solve Your Child's Sleep Problems</em>. Ferber describes the numbers as an example, not a rule. Check the current edition if you want the exact wording.</p>
@@ -195,6 +205,22 @@ function draw() {
 ['preset', 'name', 'start'].forEach((id) => $(id).addEventListener('input', draw));
 $('print').addEventListener('click', () => window.print());
 draw();
+</script>
+<script>
+// Video embeds load nothing from YouTube until you tap play (privacy-enhanced mode).
+document.querySelectorAll('button.video').forEach(function (b) {
+  b.addEventListener('click', function () {
+    var f = document.createElement('iframe');
+    f.src = 'https://www.youtube-nocookie.com/embed/' + b.dataset.id + '?autoplay=1&rel=0';
+    f.title = b.dataset.title;
+    f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+    f.allowFullscreen = true;
+    var box = document.createElement('div');
+    box.className = 'video';
+    box.appendChild(f);
+    b.replaceWith(box);
+  });
+});
 </script>
 </body>
 </html>

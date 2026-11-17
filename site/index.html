@@ -181,6 +181,14 @@ footer { border-top: 1px solid var(--border); margin-top: 64px; padding: 28px 0 
   .table-scroll { border: 0; }
   a { color: #000; }
 }
+.video { position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 18px; overflow: hidden; margin: 20px 0 8px; background: #0A0918; border: 0; padding: 0; cursor: pointer; }
+.video img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.video .play { position: absolute; left: 50%; top: 50%; width: 84px; height: 84px; margin: -42px 0 0 -42px; border-radius: 50%; background: rgba(10,9,24,.78); border: 2px solid rgba(255,255,255,.7); }
+.video .play::after { content: ""; position: absolute; left: 33px; top: 25px; border-style: solid; border-width: 17px 0 17px 26px; border-color: transparent transparent transparent #fff; }
+.video:hover .play, .video:focus-visible .play { background: #A38DC2; }
+.video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.video-note { font-size: 14px; color: var(--text-dim); margin: 0 0 16px; }
+@media print { .video, .video-note { display: none !important; } }
 </style>
 </head>
 <body>
@@ -279,6 +287,8 @@ footer { border-top: 1px solid var(--border); margin-top: 64px; padding: 28px 0 
     <p class="note">This is the widely shared version of the progressive-waiting schedule. Check it against the current edition of Ferber's book, and feel free to use shorter waits if they feel right for your family; the key is that waits increase gradually and you stay consistent. </p>
     <p><strong>Free tools:</strong> <a href="chart.html">print this chart</a> (one page, with space to log each night) or use the <a href="timer.html">free web timer</a> that counts down to each check-in.</p>
 
+    <button type="button" class="video" data-id="985lCMJeDZg" data-title="Ferber Method Chart Explained: How Long to Wait Each Night" aria-label="Play video: Ferber Method Chart Explained: How Long to Wait Each Night"><img src="video-ferber-chart.jpg" alt="" width="960" height="540" loading="lazy"><span class="play" aria-hidden="true"></span></button>
+<p class="video-note">Video (2 min): the chart, night by night. Plays from YouTube when you tap it.</p>
     <h3>Example: night 2</h3>
     <p>Your baby starts crying at 7:40. You wait <strong>5 minutes</strong>, check in, and leave at 7:46. They keep crying, so you wait <strong>10 minutes</strong>, check in, and leave at 7:58. From then on you wait <strong>12 minutes</strong> each time until they're asleep. If they wake at 2:00, you start again at 5 minutes.</p>
 
@@ -295,6 +305,8 @@ footer { border-top: 1px solid var(--border); margin-top: 64px; padding: 28px 0 
     <h2 id="wakings">Night wakings and naps</h2>
     <h3>Night wakings</h3>
     <p>Handle a waking the same way as bedtime: wait the first interval for that night, check in, and keep going through the chart. If your pediatrician has advised keeping a night feed, give it as planned, then put your baby back down awake.</p>
+    <button type="button" class="video" data-id="zX8bwYIx-pk" data-title="Ferber Method Night Wakings: What to Do at 2am" aria-label="Play video: Ferber Method Night Wakings: What to Do at 2am"><img src="video-night-wakings.jpg" alt="" width="960" height="540" loading="lazy"><span class="play" aria-hidden="true"></span></button>
+<p class="video-note">Video (2 min): what to do when your baby wakes at 2am. Plays from YouTube when you tap it.</p>
     <h3>Naps</h3>
     <p>You can use the same waits for naps. Many families cap a nap attempt at about 30 to 60 minutes: if your baby hasn't fallen asleep by then, get them up and try again at the next nap. Some families start with bedtime only and add naps once nights improve.</p>
     <h3>Early-morning wakings</h3>
@@ -363,5 +375,21 @@ footer { border-top: 1px solid var(--border); margin-top: 64px; padding: 28px 0 
     <p><a href="timer.html">Free timer</a> · <a href="chart.html">Printable chart</a> · <a href="help.html">App help &amp; FAQ</a> · <a href="privacy.html">Privacy policy</a> · Questions: <a href="mailto:askcheckin@gmail.com">askcheckin@gmail.com</a> · A summary for AI tools and other readers: <a href="llms.txt">llms.txt</a>.</p>
   </div>
 </footer>
+<script>
+// Video embeds load nothing from YouTube until you tap play (privacy-enhanced mode).
+document.querySelectorAll('button.video').forEach(function (b) {
+  b.addEventListener('click', function () {
+    var f = document.createElement('iframe');
+    f.src = 'https://www.youtube-nocookie.com/embed/' + b.dataset.id + '?autoplay=1&rel=0';
+    f.title = b.dataset.title;
+    f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+    f.allowFullscreen = true;
+    var box = document.createElement('div');
+    box.className = 'video';
+    box.appendChild(f);
+    b.replaceWith(box);
+  });
+});
+</script>
 </body>
 </html>

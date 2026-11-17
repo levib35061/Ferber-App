@@ -90,6 +90,14 @@ button { font: inherit; cursor: pointer; }
 .toggle input { width: 22px; height: 22px; }
 [hidden] { display: none !important; }
 
+.video { position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 18px; overflow: hidden; margin: 20px 0 8px; background: #0A0918; border: 0; padding: 0; cursor: pointer; }
+.video img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.video .play { position: absolute; left: 50%; top: 50%; width: 84px; height: 84px; margin: -42px 0 0 -42px; border-radius: 50%; background: rgba(10,9,24,.78); border: 2px solid rgba(255,255,255,.7); }
+.video .play::after { content: ""; position: absolute; left: 33px; top: 25px; border-style: solid; border-width: 17px 0 17px 26px; border-color: transparent transparent transparent #fff; }
+.video:hover .play, .video:focus-visible .play { background: #A38DC2; }
+.video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.video-note { font-size: 14px; color: var(--text-dim); margin: 0 0 16px; }
+@media print { .video, .video-note { display: none !important; } }
 </style>
 </head>
 <body>
@@ -134,6 +142,8 @@ button { font: inherit; cursor: pointer; }
   </ol>
   <p>New to this? Read the <a href="./">full Ferber method guide</a>, or <a href="chart.html">print the chart</a> for the fridge.</p>
 
+  <button type="button" class="video" data-id="zX8bwYIx-pk" data-title="Ferber Method Night Wakings: What to Do at 2am" aria-label="Play video: Ferber Method Night Wakings: What to Do at 2am"><img src="video-night-wakings.jpg" alt="" width="960" height="540" loading="lazy"><span class="play" aria-hidden="true"></span></button>
+<p class="video-note">Video (2 min): what to do when your baby wakes at 2am. Plays from YouTube when you tap it.</p>
   <h2>Common questions</h2>
   <h3>Is this timer really free?</h3>
   <p>Yes. It runs in your browser with nothing to download and no sign-up. It doesn't track you; your place in the night is saved only on your own device, so a refresh doesn't lose it.</p>
@@ -315,6 +325,22 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) rend
 syncFields();
 render(true);
 setInterval(render, 250);
+</script>
+<script>
+// Video embeds load nothing from YouTube until you tap play (privacy-enhanced mode).
+document.querySelectorAll('button.video').forEach(function (b) {
+  b.addEventListener('click', function () {
+    var f = document.createElement('iframe');
+    f.src = 'https://www.youtube-nocookie.com/embed/' + b.dataset.id + '?autoplay=1&rel=0';
+    f.title = b.dataset.title;
+    f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+    f.allowFullscreen = true;
+    var box = document.createElement('div');
+    box.className = 'video';
+    box.appendChild(f);
+    b.replaceWith(box);
+  });
+});
 </script>
 </body>
 </html>
