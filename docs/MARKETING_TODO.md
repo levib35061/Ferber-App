@@ -41,7 +41,7 @@ The running list. The reasons and evidence are in `reports/Check In app launch s
 - [ ] Optional: App Store preview video (15–30 s, real screen recording, must work without sound). Same recording can replace the drawn screens in YouTube video 3
 - [ ] One new guide page on ferbertimer.com every week or two (I'll write them)
   - [x] 1. Ferber method night by night (nights 1 to 7)
-  - [ ] 2. Ferber method not working: things to check
+  - [x] 2. Ferber method not working: things to check
   - [ ] 3. Night wakings and night feeds
   - [ ] 4. Ferber for naps
   - [ ] 5. What age to start

@@ -31,6 +31,8 @@ After the last listed wait, keep repeating it. Verify against the current editio
 
 - Ferber method night by night (nights 1 to 7, what is normal, when a night goes backwards): https://ferbertimer.com/ferber-method-night-by-night.html
 
+- Ferber method not working: 10 things to check, and when to talk to a pediatrician: https://ferbertimer.com/ferber-method-not-working.html
+
 ## Free tools
 
 - Free Ferber method timer (runs in the browser, no download or sign-up): https://ferbertimer.com/timer.html
