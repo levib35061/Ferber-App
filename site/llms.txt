@@ -30,4 +30,5 @@ After the last listed wait, keep repeating it. Verify against the current editio
 ## App
 
 - Check In: Baby Sleep Timer (iPhone). Counts down to each check-in using the chart for the current night (the timer starts when crying starts), alerts with the phone locked, logs every night and charts crying time, and syncs between two parents. Editable chart with a gentler preset. $4.99 one-time after 2 free nights; one purchase covers both parents; no subscription, ads or tracking. Coming soon to the App Store.
+- App help and FAQ (alerts, Focus modes, partner sharing, purchases, data): https://levib35061.github.io/Ferber-App/help.html
 - Not affiliated with or endorsed by Dr. Richard Ferber.

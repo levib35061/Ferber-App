@@ -13,7 +13,7 @@ Apple's; every field below fits.
 | Secondary category | Lifestyle |
 | Age rating | 4+ (answer "None" to every content question) |
 | Price | Free (the unlock is an in-app purchase) |
-| Support URL | https://levib35061.github.io/Ferber-App/ |
+| Support URL | https://levib35061.github.io/Ferber-App/help.html |
 | Marketing URL | https://levib35061.github.io/Ferber-App/ |
 | Privacy Policy URL | https://levib35061.github.io/Ferber-App/privacy.html |
 | Copyright | 2026 followed by your name as it appears on your developer account |

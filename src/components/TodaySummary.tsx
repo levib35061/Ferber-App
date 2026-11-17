@@ -4,8 +4,9 @@
  * tonight's first wait. Peach & plum theme.
  */
 import { router, useFocusEffect } from 'expo-router';
+import * as StoreReview from 'expo-store-review';
 import { useSQLiteContext } from 'expo-sqlite';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -26,6 +27,7 @@ import {
   upAt,
 } from '../lib/morning';
 import { NightEvent } from '../lib/session';
+import { shouldAskForReview } from '../lib/review';
 import { summarizeNight } from '../lib/summary';
 import { formatClock } from '../lib/time';
 import { day, dayFonts } from '../theme/day';
@@ -87,8 +89,29 @@ function timelineEnd(key: string, events: NightEvent[]): number {
 }
 
 export function TodaySummary({ data, onStartTonight }: { data: LastNights; onStartTonight: () => void }) {
-  const { baby, chart } = useNightStore();
+  const { baby, chart, settings, updateSetting } = useNightStore();
   const last = data.last!;
+
+  // On a good morning (never during a night), ask for an App Store rating. Rarely: see lib/review.
+  const cryingKey = data.crying.join(',');
+  useEffect(() => {
+    const ask = shouldAskForReview({
+      crying: data.crying,
+      asks: settings.reviewAsks,
+      lastAskedAt: settings.reviewAskedAt,
+      now: Date.now(),
+    });
+    if (!ask) return;
+    // Let them read the summary first.
+    const t = setTimeout(async () => {
+      if (!(await StoreReview.isAvailableAsync().catch(() => false))) return;
+      await updateSetting('reviewAsks', settings.reviewAsks + 1);
+      await updateSetting('reviewAskedAt', Date.now());
+      StoreReview.requestReview().catch(() => {});
+    }, 6000);
+    return () => clearTimeout(t);
+    // Re-check when the nights or the ask record change.
+  }, [cryingKey, settings.reviewAsks, settings.reviewAskedAt]); // eslint-disable-line react-hooks/exhaustive-deps
   const name = baby?.name ?? '';
   const summary = summarizeNight(last.events);
   const prevSummary = data.previous ? summarizeNight(data.previous.events) : null;

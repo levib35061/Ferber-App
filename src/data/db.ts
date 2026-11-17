@@ -355,6 +355,9 @@ export interface Settings {
   onboarded: boolean;
   /** Development only: pretend the unlock was bought (until purchases are wired up) */
   devUnlocked: boolean;
+  /** App Store rating prompt: how many times we've asked, and when we last did (epoch ms, 0 = never) */
+  reviewAsks: number;
+  reviewAskedAt: number;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -363,6 +366,8 @@ export const DEFAULT_SETTINGS: Settings = {
   keepAwake: true,
   onboarded: false,
   devUnlocked: false,
+  reviewAsks: 0,
+  reviewAskedAt: 0,
 };
 
 export async function getSettings(db: SQLiteDatabase): Promise<Settings> {

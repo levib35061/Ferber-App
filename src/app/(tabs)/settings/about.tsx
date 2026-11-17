@@ -55,6 +55,7 @@ export default function AboutSettings() {
     <SettingsPage title="Help & about">
       <SectionLabel>Help</SectionLabel>
       <Card style={{ paddingVertical: 4 }}>
+        <LinkRow label="Help & FAQ" onPress={() => Linking.openURL(`${SITE}help.html`)} />
         <LinkRow label="How the Ferber method works" onPress={() => Linking.openURL(SITE)} />
         <Divider />
         <LinkRow label="Contact us" detail={CONTACT} onPress={() => Linking.openURL(`mailto:${CONTACT}`)} />
