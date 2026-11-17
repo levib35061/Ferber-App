@@ -39,15 +39,16 @@ The running list. The reasons and evidence are in `reports/Check In app launch s
 - [ ] Email authors of "best sleep training apps" articles about Check In
 - [ ] Optional: video 3 with real screen recordings of the app (I'll rebuild it)
 - [ ] Optional: App Store preview video (15–30 s, real screen recording, must work without sound). Same recording can replace the drawn screens in YouTube video 3
-- [ ] One new guide page on ferbertimer.com every week or two (I'll write them)
+- [x] Eight guide pages on ferbertimer.com
+- [ ] Keep the apps-compared page current (check rival prices every few months)
   - [x] 1. Ferber method night by night (nights 1 to 7)
   - [x] 2. Ferber method not working: things to check
   - [x] 3. Night wakings and night feeds
-  - [ ] 4. Ferber for naps
-  - [ ] 5. What age to start
-  - [ ] 6. Ferber vs cry it out vs the chair method
-  - [ ] 7. Check-ins and two parents, one plan
-  - [ ] 8. Ferber timer apps compared (honest, says we make one)
+  - [x] 4. Ferber for naps
+  - [x] 5. What age to start
+  - [x] 6. Ferber vs cry it out vs the chair method
+  - [x] 7. Check-ins and two parents, one plan
+  - [x] 8. Ferber timer apps compared (honest, says we make one)
 
 ## Every month
 
