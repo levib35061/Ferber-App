@@ -63,7 +63,7 @@ npm run lint
 - [x] Bundle ID: `com.levibrown.checkin`
 - [ ] EAS development build on the phone
 - [x] Supabase project + schema (`supabase/schema.sql`), row-level security
-- [x] Partner sharing: invite code, join, two-way sync, realtime, offline catch-up (anonymous sign-in for now)
+- [x] Partner sharing: invite code, join, two-way sync, realtime, offline catch-up (Sign in with Apple optional)
 - [x] Sign in with Apple for partner sharing (Supabase Apple provider must be enabled; see `docs/SERVER.md`)
 - [x] Login session stored in the iOS Keychain
 - [ ] Revoke the Apple token on account deletion (Apple requirement; needs the Apple key after approval)

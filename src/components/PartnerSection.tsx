@@ -80,29 +80,17 @@ export function PartnerSection() {
 
   if (account === undefined) return <ActivityIndicator color={colors.primary} />;
 
-  // Partner sharing needs an account: Sign in with Apple (no name or email requested).
-  if (!st.familyId && account === null) {
-    return (
-      <View>
-        <Text style={styles.body}>Share nights with your partner. Both phones see every tap within seconds.</Text>
-        <Text style={styles.hint}>
-          To share, sign in with Apple. We don&apos;t ask Apple for your name or email. It just keeps your family&apos;s data
-          private to the two of you.
-        </Text>
-        {appleButton(AppleAuthentication.AppleAuthenticationButtonType.CONTINUE)}
-        {busy && <ActivityIndicator color={colors.primary} style={{ marginTop: 12 }} />}
-        {error && <Text style={styles.error}>{error}</Text>}
-      </View>
-    );
-  }
-
-  // Older test accounts made without Apple: offer the upgrade (keeps everything).
+  // Sign in with Apple is optional. Without it, sharing uses a private account
+  // that lives on this phone only; signing in with Apple keeps it (same family,
+  // same nights) and lets you get it back after a reinstall or on a new phone.
   const upgrade =
-    account === 'anonymous' ? (
-      <View style={{ marginTop: 18 }}>
+    account !== 'apple' ? (
+      <View style={{ marginTop: 22 }}>
+        <Text style={styles.label}>Optional: sign in with Apple</Text>
         <Text style={styles.hint}>
-          This phone shares without an Apple sign-in. Sign in with Apple to keep your sharing if you reinstall or change phones.
-          Your family and nights stay as they are.
+          {st.familyId
+            ? 'Keeps your sharing if you reinstall the app or change phones. Your family and nights stay as they are.'
+            : 'Already shared from another phone, or want your sharing kept if you change phones? We don\u2019t ask Apple for your name or email.'}
         </Text>
         {appleButton(AppleAuthentication.AppleAuthenticationButtonType.CONTINUE)}
       </View>

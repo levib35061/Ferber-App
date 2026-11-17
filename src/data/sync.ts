@@ -129,7 +129,7 @@ export class SyncEngine {
 
   /** Start sharing: creates a family on the server and uploads everything on this phone. */
   async createFamily(): Promise<void> {
-    await ensureUserId();
+    await ensureUserId({ create: true });
     const { data, error } = await supabase.rpc('create_family');
     if (error) throw new Error(error.message);
     const fam = data as { id: string; invite_code: string };
@@ -144,7 +144,7 @@ export class SyncEngine {
 
   /** Join the partner's family. This phone's own logged nights are replaced by the family's. */
   async joinFamily(code: string): Promise<void> {
-    await ensureUserId();
+    await ensureUserId({ create: true });
     const { data, error } = await supabase.rpc('join_family', { code });
     if (error)
       throw new Error(error.message.includes('not found') ? "That code wasn't found. Check it and try again." : error.message);

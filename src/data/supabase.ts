@@ -50,22 +50,26 @@ AppState.addEventListener('change', (state) => {
   else supabase.auth.stopAutoRefresh();
 });
 
-/** Thrown when partner sharing needs a sign-in first (Sign in with Apple). */
+/** Thrown when there's no account yet and none should be made here (e.g. a background sync). */
 export class NeedsSignInError extends Error {
   constructor() {
-    super('Please sign in with Apple to share with your partner.');
+    super('Not signed in.');
   }
 }
 
 /**
- * The signed-in user's id. No anonymous sign-ups any more: a new user signs in
- * with Apple (see appleAuth.ts) before turning on partner sharing. Existing
- * anonymous sessions keep working and can be upgraded to Apple.
+ * The signed-in user's id. Sign in with Apple is optional: with
+ * `{ create: true }` (starting or joining partner sharing) a phone with no
+ * account gets a private anonymous one, which can be upgraded to Apple later
+ * (see appleAuth.ts). Other callers never create accounts.
  */
-export async function ensureUserId(): Promise<string> {
+export async function ensureUserId(opts: { create?: boolean } = {}): Promise<string> {
   const { data } = await supabase.auth.getSession();
   if (data.session) return data.session.user.id;
-  throw new NeedsSignInError();
+  if (!opts.create) throw new NeedsSignInError();
+  const { data: anon, error } = await supabase.auth.signInAnonymously();
+  if (error || !anon.user) throw new Error(error?.message ?? "Couldn't connect. Check your signal and try again.");
+  return anon.user.id;
 }
 
 /** 'apple', 'anonymous' (older test accounts) or null when signed out. */
