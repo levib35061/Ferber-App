@@ -32,7 +32,7 @@ Made by a parent who built Check In. The numbers match the app's chart
 | # | Voiceover | On screen |
 |---|---|---|
 | 01 | If you're about to try the Ferber method, the hardest question at bedtime is simple: how long do I wait before I go in? | *[Title card: "The Ferber chart, night by night"]* |
-| 02 | I'm a parent. I built a sleep-training timer after doing this with our own baby, and this chart is the thing I wished someone had walked me through. | *[Moon icon, "Made by a parent"]* |
+| 02 | I'm a parent. After sleep training our own baby, I built a timer app for it called Check In. But first, the chart, because it's the thing I wished someone had walked me through. | *[Moon icon, "Made by a parent"; small "Check In" tag appears in the corner and stays for the rest of the video]* |
 | 03 | Here's the idea in one sentence. You put your baby down awake, you leave, and if they cry, you wait a set number of minutes before a short check-in. The waits get a little longer each time, and each night. | *[Three icons: bed, door, clock]* |
 | 04 | This is the chart most families use. Each row is one night. Each number is how many minutes to wait before a check-in. | *[Full chart appears]* |
 | 05 | Night one. Wait three minutes before the first check-in. Then five minutes. Then ten minutes, and keep repeating ten until they're asleep. | *[Row 1 highlights: 3, 5, 10]* |
@@ -54,7 +54,7 @@ Made by a parent who built Check In. The numbers match the app's chart
 ```
 If you're about to try the Ferber method, the hardest question at bedtime is simple: how long do I wait before I go in?
 <break time="1.2s" />
-I'm a parent. I built a sleep-training timer after doing this with our own baby, and this chart is the thing I wished someone had walked me through.
+I'm a parent. After sleep training our own baby, I built a timer app for it called Check In. But first, the chart, because it's the thing I wished someone had walked me through.
 <break time="1.2s" />
 Here's the idea in one sentence. You put your baby down awake, you leave, and if they cry, you wait a set number of minutes before a short check-in. The waits get a little longer each time, and each night.
 <break time="1.2s" />
@@ -90,12 +90,12 @@ Good luck tonight. You've got this.
 **Description:**
 
 ```
+Check In, the Ferber timer app I built: [App Store link]
+
 How long do you wait before each check-in with the Ferber method? Here's the chart most families use, night by night, plus the two rules that make it work.
 
 Free printable chart: https://ferbertimer.com/chart.html
 Free web timer: https://ferbertimer.com/timer.html
-Check In: Baby Sleep Timer (iPhone): [App Store link]
-
 0:00 The question at bedtime
 0:25 How the method works
 0:40 The chart, night by night
@@ -120,7 +120,7 @@ Made by a parent who built Check In after sleep training our own baby. Sleep tra
 | # | Voiceover | On screen |
 |---|---|---|
 | 01 | It's two in the morning. Bedtime went okay, and now your baby is crying again. What do you do? | *[Dim night scene, clock at 2:00]* |
-| 02 | I'm a parent who sleep trained our baby with the Ferber method, and this was the moment that tested us most. Here's the plan we followed. | *[“Made by a parent”]* |
+| 02 | I'm a parent who sleep trained our baby with the Ferber method, and I built a timer app for it called Check In. Night wakings were the moment that tested us most. Here's the plan we followed. | *[“Made by a parent”; small "Check In" corner tag stays for the rest of the video]* |
 | 03 | The short answer: treat a night waking just like bedtime, using the same night's chart. | *[“Same plan as bedtime”]* |
 | 04 | That means you start again from the first wait for that night. Not where you left off at bedtime. The first wait. | *[Chart row highlights its first number]* |
 | 05 | So on night two, a two a.m. waking starts at five minutes. Then ten. Then twelve, repeating until they're asleep. | *[Night 2 row: 5, 10, 12]* |
@@ -140,7 +140,7 @@ Made by a parent who built Check In after sleep training our own baby. Sleep tra
 ```
 It's two in the morning. Bedtime went okay, and now your baby is crying again. What do you do?
 <break time="1.2s" />
-I'm a parent who sleep trained our baby with the Ferber method, and this was the moment that tested us most. Here's the plan we followed.
+I'm a parent who sleep trained our baby with the Ferber method, and I built a timer app for it called Check In. Night wakings were the moment that tested us most. Here's the plan we followed.
 <break time="1.2s" />
 The short answer: treat a night waking just like bedtime, using the same night's chart.
 <break time="1.2s" />
@@ -172,11 +172,12 @@ Hang in there. The nights do get shorter.
 **Description:**
 
 ```
+Check In, the Ferber timer app I built: [App Store link]
+
 Your baby wakes at 2am during Ferber sleep training. Here's what to do: start again from the first wait for that night, keep check-ins short, and decide the plan in daylight.
 
 Free web timer: https://ferbertimer.com/timer.html
 Free printable chart: https://ferbertimer.com/chart.html
-Check In: Baby Sleep Timer (iPhone): [App Store link]
 
 Made by a parent who built Check In after sleep training our own baby. Check with your pediatrician about night feeds before you start.
 ```
@@ -260,8 +261,18 @@ Made by a parent who built it while sleep training our own baby.
 
 ---
 
+## Where the app is mentioned
+
+So people who leave early still hear about it, without turning the video into an ad:
+
+- **Spoken early, once:** line 02 of videos 1 and 2 names the app in passing, then gets straight to the useful part.
+- **On screen the whole time:** a small "Check In" tag in a corner from line 02 on.
+- **Top of the description:** the App Store link is the first line, which shows above "...more".
+- **Pinned comment:** the App Store link and the free chart.
+- **Spoken at the end:** the fuller mention, for people who watched it all.
+
 ## After uploading
 
 - Add each video to the matching page on ferbertimer.com (I'll embed them).
-- Pin a comment with the chart link.
+- Pin a comment with the App Store link and the free chart link.
 - In YouTube Studio, set the audience to "No, it's not made for kids" (it's for parents).
