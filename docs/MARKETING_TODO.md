@@ -37,6 +37,7 @@ The running list. The reasons and evidence are in `reports/Check In app launch s
 - [ ] Reply to every App Store review
 - [ ] Email authors of "best sleep training apps" articles about Check In
 - [ ] Optional: video 3 with real screen recordings of the app (I'll rebuild it)
+- [ ] Optional: App Store preview video (15–30 s, real screen recording, must work without sound). Same recording can replace the drawn screens in YouTube video 3
 - [ ] One new guide page on ferbertimer.com every week or two (I'll write them)
 
 ## Every month
