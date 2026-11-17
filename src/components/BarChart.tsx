@@ -3,11 +3,17 @@
  * rounded top, square at the baseline; recessive gridlines; values only on
  * the first, latest and tapped column. Tap a column to read its value.
  */
-import React, { useState } from 'react';
-import { LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
-import Svg, { Line, Path, Text as SvgText } from 'react-native-svg';
+import React, { useState } from "react";
+import {
+  LayoutChangeEvent,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import Svg, { Line, Path, Text as SvgText } from "react-native-svg";
 
-import { makeStyles, useTheme } from '../theme';
+import { makeStyles, useTheme } from "../theme";
 
 export interface Bar {
   key: string;
@@ -30,16 +36,25 @@ function niceMax(v: number): number {
 
 function columnPath(x: number, w: number, y: number, base: number): string {
   const r = Math.min(4, w / 2, base - y);
-  if (base - y <= 0) return '';
+  if (base - y <= 0) return "";
   return `M${x},${base} L${x},${y + r} Q${x},${y} ${x + r},${y} L${x + w - r},${y} Q${x + w},${y} ${x + w},${y + r} L${x + w},${base} Z`;
 }
 
-export function BarChart({ bars, unit, accessibilityLabel }: { bars: Bar[]; unit: string; accessibilityLabel: string }) {
+export function BarChart({
+  bars,
+  unit,
+  accessibilityLabel,
+}: {
+  bars: Bar[];
+  unit: string;
+  accessibilityLabel: string;
+}) {
   const styles = stylesHook();
   const { colors, fonts } = useTheme();
   const [width, setWidth] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
-  const onLayout = (e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width);
+  const onLayout = (e: LayoutChangeEvent) =>
+    setWidth(e.nativeEvent.layout.width);
 
   const max = niceMax(Math.max(1, ...bars.map((b) => b.value)));
   const plotW = Math.max(0, width - LEFT);
@@ -53,8 +68,16 @@ export function BarChart({ bars, unit, accessibilityLabel }: { bars: Bar[]; unit
 
   return (
     <View>
-      <Text style={styles.readout}>{sel ? `Night ${sel.label}: ${sel.value} ${unit}` : 'Tap a bar to see its value'}</Text>
-      <View onLayout={onLayout} accessibilityLabel={accessibilityLabel} style={{ height: H }}>
+      <Text style={styles.readout}>
+        {sel
+          ? `Night ${sel.label}: ${sel.value} ${unit}`
+          : "Tap a bar to see its value"}
+      </Text>
+      <View
+        onLayout={onLayout}
+        accessibilityLabel={accessibilityLabel}
+        style={{ height: H }}
+      >
         {width > 0 && (
           <Svg width={width} height={H}>
             {ticks.map((t) => {
@@ -85,11 +108,16 @@ export function BarChart({ bars, unit, accessibilityLabel }: { bars: Bar[]; unit
             {bars.map((b, i) => {
               const x = LEFT + i * slot + (slot - barW) / 2;
               const y = base - (b.value / max) * plotH;
-              const showValue = i === 0 || i === bars.length - 1 || b.key === selected;
+              const showValue =
+                i === 0 || i === bars.length - 1 || b.key === selected;
               const dim = selected != null && b.key !== selected;
               return (
                 <React.Fragment key={b.key}>
-                  <Path d={columnPath(x, barW, y, base)} fill={colors.primary} opacity={dim ? 0.45 : 1} />
+                  <Path
+                    d={columnPath(x, barW, y, base)}
+                    fill={colors.primary}
+                    opacity={dim ? 0.45 : 1}
+                  />
                   {showValue && (
                     <SvgText
                       x={x + barW / 2}
@@ -120,7 +148,12 @@ export function BarChart({ bars, unit, accessibilityLabel }: { bars: Bar[]; unit
           </Svg>
         )}
         {/* Hit targets: the whole column slot, wider and taller than the bar. */}
-        <View style={[StyleSheet.absoluteFill, { left: LEFT, flexDirection: 'row' }]}>
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            { left: LEFT, flexDirection: "row" },
+          ]}
+        >
           {bars.map((b) => (
             <Pressable
               key={b.key}
@@ -139,12 +172,18 @@ export function BarChart({ bars, unit, accessibilityLabel }: { bars: Bar[]; unit
 
 const stylesHook = makeStyles(({ colors, fonts, type }) =>
   StyleSheet.create({
-    readout: { color: colors.textDim, fontFamily: fonts.semibold, fontSize: 14, marginBottom: 8, minHeight: 20 },
+    readout: {
+      color: colors.textDim,
+      fontFamily: fonts.semibold,
+      fontSize: 14,
+      marginBottom: 8,
+      minHeight: 20,
+    },
     axis: {
       color: colors.textFaint,
       fontFamily: fonts.regular,
       fontSize: 12,
-      textAlign: 'center',
+      textAlign: "center",
       marginTop: 2,
       marginLeft: LEFT,
     },

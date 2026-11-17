@@ -96,6 +96,7 @@ export default function OnboardingScreen() {
           )}
           <View
             style={styles.dots}
+            accessible
             accessibilityLabel={`Step ${step + 1} of ${STEPS}`}
           >
             {Array.from({ length: STEPS }, (_, i) => (
@@ -111,7 +112,9 @@ export default function OnboardingScreen() {
           {isIntro && (
             <>
               <MoonIcon size={56} color={colors.primary} />
-              <Text style={styles.title}>{INTRO[step].title}</Text>
+              <Text style={styles.title} accessibilityRole="header">
+                {INTRO[step].title}
+              </Text>
               <Text style={styles.text}>{INTRO[step].body}</Text>
               {INTRO[step].note && (
                 <View style={styles.noteBox}>
@@ -123,7 +126,9 @@ export default function OnboardingScreen() {
 
           {isPartner && (
             <>
-              <Text style={styles.title}>Sharing with a partner?</Text>
+              <Text style={styles.title} accessibilityRole="header">
+                Sharing with a partner?
+              </Text>
               <Text style={styles.text}>
                 Both phones see every tap, and whoever is on duty gets the
                 alert. You can also set this up later in Settings.
@@ -142,7 +147,9 @@ export default function OnboardingScreen() {
 
           {isBaby && (
             <>
-              <Text style={styles.title}>Who are we helping sleep?</Text>
+              <Text style={styles.title} accessibilityRole="header">
+                Who are we helping sleep?
+              </Text>
               <Text style={styles.fieldLabel}>Baby&apos;s name</Text>
               <TextInput
                 value={name}
@@ -186,7 +193,9 @@ export default function OnboardingScreen() {
           {step === STEPS - 1 && (
             <>
               <BellIcon />
-              <Text style={styles.title}>Alerts on the lock screen</Text>
+              <Text style={styles.title} accessibilityRole="header">
+                Alerts on the lock screen
+              </Text>
               <Text style={styles.text}>
                 The check-in alert is the most important part of this app. It
                 needs notification permission to reach you with your phone

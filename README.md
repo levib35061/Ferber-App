@@ -72,6 +72,8 @@ npm run lint
 - [x] Free trial (2 nights) and unlock screen (`src/app/unlock.tsx`, rules in `src/lib/trial.ts`); dev toggle in Settings → Testing
 - [ ] RevenueCat one-time unlock ($4.99), restore purchases, Family Sharing (wire the unlock screen's buttons)
 - [x] In-app "Delete my account and data" (Settings → Help & about; needs `supabase/migrations/004_delete_account.sql`)
+- [x] App Store listing text, review notes and privacy questionnaire answers (`docs/APP_STORE.md`)
+- [x] Accessibility: VoiceOver labels and announcements on the Night screen, large-text limits on fixed-size parts, Reduce Motion
 - [ ] Shared unlock: one partner pays, the whole family is unlocked (design in `docs/SPEC.md` → Monetization)
 
 ### Testing Milestone 2 without waiting a week

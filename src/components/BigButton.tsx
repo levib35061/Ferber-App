@@ -1,18 +1,24 @@
-import React from 'react';
-import { Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
+import React from "react";
+import { Pressable, StyleSheet, Text, ViewStyle } from "react-native";
 
-import { makeStyles } from '../theme';
+import { makeStyles } from "../theme";
 
 interface Props {
   label: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'alert' | 'link';
+  variant?: "primary" | "secondary" | "alert" | "link";
   style?: ViewStyle;
   disabled?: boolean;
 }
 
 /** Large, thumb-sized pill button. Haptics are handled by the store on each tap. */
-export function BigButton({ label, onPress, variant = 'primary', style, disabled }: Props) {
+export function BigButton({
+  label,
+  onPress,
+  variant = "primary",
+  style,
+  disabled,
+}: Props) {
   const styles = stylesHook();
   const labelStyles = labelStylesHook();
   return (
@@ -21,9 +27,20 @@ export function BigButton({ label, onPress, variant = 'primary', style, disabled
       accessibilityLabel={label}
       onPress={onPress}
       disabled={disabled}
-      style={({ pressed }) => [styles.base, styles[variant], pressed && { opacity: 0.7 }, disabled && { opacity: 0.3 }, style]}
+      style={({ pressed }) => [
+        styles.base,
+        styles[variant],
+        pressed && { opacity: 0.7 },
+        disabled && { opacity: 0.3 },
+        style,
+      ]}
     >
-      <Text style={[styles.label, labelStyles[variant]]} numberOfLines={1} adjustsFontSizeToFit>
+      <Text
+        style={[styles.label, labelStyles[variant]]}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        maxFontSizeMultiplier={1.5}
+      >
         {label}
       </Text>
     </Pressable>
@@ -34,8 +51,8 @@ const stylesHook = makeStyles(({ colors, fonts, type }) =>
   StyleSheet.create({
     base: {
       borderRadius: 999,
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
       paddingHorizontal: 20,
     },
     primary: { minHeight: 92, backgroundColor: colors.primary },
@@ -51,6 +68,10 @@ const labelStylesHook = makeStyles(({ colors, fonts, type }) =>
     primary: { color: colors.onPrimary },
     secondary: { color: colors.text, fontFamily: fonts.bold, fontSize: 22 },
     alert: { color: colors.onAccent, fontSize: 28 },
-    link: { color: colors.textDim, fontFamily: fonts.bold, fontSize: type.body },
+    link: {
+      color: colors.textDim,
+      fontFamily: fonts.bold,
+      fontSize: type.body,
+    },
   }),
 );
