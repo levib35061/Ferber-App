@@ -1,19 +1,20 @@
 /**
- * "Moonlight" night theme: deep navy, soft lavender-blue text, rounded pill
+ * "Moonlight" night theme, in its warmer, dimmer "Dusk" colours (less blue light
+ * in a dark nursery): deep indigo, soft mauve text, rounded pill
  * buttons, warm peach for "check-in due". No white anywhere, so nothing
  * flashes bright in a dark nursery.
  */
 export const colors = {
-  bg: '#070B1C',
-  surface: '#111733',
-  border: '#2A3150',
-  text: '#D4DBFA', // main text, countdown digits
-  textDim: '#8E99CC', // labels
-  textFaint: '#6E7AAE', // small print (still 4.5:1 on bg)
-  primary: '#9AA8E8', // lavender: progress ring, main button
-  onPrimary: '#070B1C',
-  buttonBg: '#1A2142', // secondary button + ring track
-  dotEmpty: '#4A557F',
+  bg: '#0A0918',
+  surface: '#16122A',
+  border: '#302848',
+  text: '#D2C6DE', // main text, countdown digits
+  textDim: '#9486AE', // labels
+  textFaint: '#8377A0', // small print (still 4.5:1 on bg)
+  primary: '#A38DC2', // mauve: progress ring, main button
+  onPrimary: '#0A0918',
+  buttonBg: '#1F1A36', // secondary button + ring track
+  dotEmpty: '#4F4470',
   accent: '#F2A98B', // peach: check-in due
   accentText: '#F7C9B6',
   accentDim: '#C99583',

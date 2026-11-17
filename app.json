@@ -20,7 +20,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#070B1C",
+          "backgroundColor": "#0A0918",
           "image": "./assets/splash-icon.png",
           "imageWidth": 150
         }
@@ -36,7 +36,7 @@
       "expo-secure-store"
     ],
     "scheme": "checkin",
-    "backgroundColor": "#070B1C",
+    "backgroundColor": "#0A0918",
     "experiments": {
       "typedRoutes": true
     }
