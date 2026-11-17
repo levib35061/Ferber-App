@@ -27,6 +27,10 @@ Full guide: https://ferbertimer.com/
 
 After the last listed wait, keep repeating it. Verify against the current edition of Ferber's book; gentler (shorter) waits are fine.
 
+## More guides
+
+- Ferber method night by night (nights 1 to 7, what is normal, when a night goes backwards): https://ferbertimer.com/ferber-method-night-by-night.html
+
 ## Free tools
 
 - Free Ferber method timer (runs in the browser, no download or sign-up): https://ferbertimer.com/timer.html
