@@ -55,12 +55,21 @@ export default function NightDetailScreen() {
   const eps = episodes(events);
   const inEpisode = new Set(eps.flatMap((ep) => ep.events.map((e) => e.id)));
   const strays = events.filter((e) => !inEpisode.has(e.id));
-  const date = new Date(`${night.nightKey}T12:00:00`).toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+  const date = new Date(`${night.nightKey}T12:00:00`).toLocaleDateString([], {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <View style={styles.topBar}>
-        <Pressable onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back to History">
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Back to History"
+        >
           <Text style={styles.back}>‹ History</Text>
         </Pressable>
       </View>
@@ -206,7 +215,13 @@ const stylesHook = makeStyles(({ colors, fonts, type }) =>
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colors.border,
     },
-    eventTime: { width: 92, color: colors.text, fontFamily: fonts.semibold, fontSize: type.body, fontVariant: ['tabular-nums'] },
+    eventTime: {
+      width: 92,
+      color: colors.text,
+      fontFamily: fonts.semibold,
+      fontSize: type.body,
+      fontVariant: ['tabular-nums'],
+    },
     eventLabel: { flex: 1, color: colors.text, fontFamily: fonts.regular, fontSize: type.body },
     chevron: { color: colors.textFaint, fontFamily: fonts.regular, fontSize: 22 },
     addBtn: {

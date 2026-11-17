@@ -93,7 +93,9 @@ export default function AboutSettings() {
           {deleting ? (
             <ActivityIndicator color={colors.accentText} />
           ) : (
-            <Text style={{ color: colors.accentText, fontFamily: fonts.bold, fontSize: 16 }}>Delete my account and data</Text>
+            <Text style={{ color: colors.accentText, fontFamily: fonts.bold, fontSize: 16 }}>
+              Delete my account and data
+            </Text>
           )}
         </Pressable>
         {error && <Text style={[s.hint, { color: colors.accentText }]}>{error}</Text>}

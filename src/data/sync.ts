@@ -147,7 +147,9 @@ export class SyncEngine {
     await ensureUserId({ create: true });
     const { data, error } = await supabase.rpc('join_family', { code });
     if (error)
-      throw new Error(error.message.includes('not found') ? "That code wasn't found. Check it and try again." : error.message);
+      throw new Error(
+        error.message.includes('not found') ? "That code wasn't found. Check it and try again." : error.message,
+      );
     const familyId = data as string;
     const { data: fam } = await supabase.from('families').select('invite_code').eq('id', familyId).single();
     const { count } = await supabase.from('babies').select('*', { count: 'exact', head: true }).eq('family_id', familyId);

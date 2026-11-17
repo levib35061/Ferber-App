@@ -193,7 +193,11 @@ export async function nightIdFor(babyId: string, key: string): Promise<string> {
 }
 
 export async function getNightForKey(db: SQLiteDatabase, babyId: string, key: string): Promise<Night | null> {
-  return db.getFirstAsync<Night>('SELECT * FROM night WHERE babyId = ? AND nightKey = ? ORDER BY startedAt LIMIT 1', babyId, key);
+  return db.getFirstAsync<Night>(
+    'SELECT * FROM night WHERE babyId = ? AND nightKey = ? ORDER BY startedAt LIMIT 1',
+    babyId,
+    key,
+  );
 }
 
 export async function getNight(db: SQLiteDatabase, nightId: string): Promise<Night | null> {
@@ -294,7 +298,12 @@ export function clearDutyChanges(ids: string[]): void {
 }
 
 export async function setNightChartNight(db: SQLiteDatabase, nightId: string, chartNight: number): Promise<void> {
-  await db.runAsync('UPDATE night SET chartNight = ?, updatedAt = ?, dirty = 1 WHERE id = ?', chartNight, Date.now(), nightId);
+  await db.runAsync(
+    'UPDATE night SET chartNight = ?, updatedAt = ?, dirty = 1 WHERE id = ?',
+    chartNight,
+    Date.now(),
+    nightId,
+  );
   wrote();
 }
 
@@ -348,7 +357,13 @@ export interface Settings {
   devUnlocked: boolean;
 }
 
-export const DEFAULT_SETTINGS: Settings = { sound: true, haptics: true, keepAwake: true, onboarded: false, devUnlocked: false };
+export const DEFAULT_SETTINGS: Settings = {
+  sound: true,
+  haptics: true,
+  keepAwake: true,
+  onboarded: false,
+  devUnlocked: false,
+};
 
 export async function getSettings(db: SQLiteDatabase): Promise<Settings> {
   const rows = await db.getAllAsync<{ key: string; value: string }>('SELECT key, value FROM setting');
@@ -404,7 +419,9 @@ export async function listNightsWithEvents(
 
 /** Nights with at least one logged tap, ever (for the free trial). */
 export async function countNightsUsed(db: SQLiteDatabase): Promise<number> {
-  const row = await db.getFirstAsync<{ n: number }>('SELECT COUNT(DISTINCT nightId) AS n FROM event WHERE deletedAt IS NULL');
+  const row = await db.getFirstAsync<{ n: number }>(
+    'SELECT COUNT(DISTINCT nightId) AS n FROM event WHERE deletedAt IS NULL',
+  );
   return row?.n ?? 0;
 }
 

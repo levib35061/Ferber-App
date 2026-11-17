@@ -39,7 +39,8 @@ export function morningHeadline(name: string, events: NightEvent[]): string {
           : `and woke ${wakings} times`;
   if (!bed || !bed.end) return `${who} woke ${wakings === 1 ? 'once' : plural(wakings, 'time')} in the night.`;
   const cry = Math.round(episodeCryingMs(bed) / MIN);
-  const first = cry === 0 ? `${who} fell asleep without crying` : `${who} fell asleep after ${plural(cry, 'minute')} of crying`;
+  const first =
+    cry === 0 ? `${who} fell asleep without crying` : `${who} fell asleep after ${plural(cry, 'minute')} of crying`;
   return `${first}, ${wakePart}.`;
 }
 
@@ -69,6 +70,7 @@ export function timeline(events: NightEvent[], end: number): Segment[] {
       case 'cry':
       case 'check_in_start':
       case 'check_in_end':
+      case 'wait_more':
         return 'crying';
       case 'feed_start':
         return 'feeding';
@@ -88,6 +90,7 @@ export function timeline(events: NightEvent[], end: number): Segment[] {
     // "Stopped crying" only matters while crying; "cry" only while settling.
     if (e.type === 'quiet' && kind !== 'crying') continue;
     if (e.type === 'cry' && kind !== 'settling' && kind !== null) continue;
+    if (e.type === 'wait_more') continue; // still crying, nothing changes on the timeline
     if ((e.type === 'check_in_start' || e.type === 'check_in_end') && kind === 'crying') continue;
     push(kind, since, e.at);
     kind = k;
@@ -156,7 +159,28 @@ export function formatHours(ms: number): string {
 }
 
 /** "9 less than night 2", "4 more than night 2", "Same as night 2", or null for the first night. */
-export function compareCrying(minutes: number, previous: { nightNumber: number; cryingMinutes: number } | null): string | null {
+/**
+ * One kind, honest line under the numbers, or null. `crying` is minutes per
+ * finished night, oldest first, ending with last night.
+ */
+export function morningNote(crying: number[]): string | null {
+  const n = crying.length;
+  if (!n) return null;
+  const last = crying[n - 1];
+  const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+  // Ferber: usually a few days, two weeks at the most. No real change by then is worth a conversation.
+  if (n >= 14 && avg(crying.slice(-3)) >= 10 && avg(crying.slice(-3)) >= avg(crying.slice(0, 3)) * 0.8) {
+    return "Two weeks in without much change? That happens, and it isn't your fault. It's worth asking your pediatrician what to adjust.";
+  }
+  if (n === 1) return 'Night 1 is done. Nights 2 and 3 are often harder before it gets easier.';
+  if (last > crying[n - 2]) return 'A harder night is normal. Progress is rarely a straight line.';
+  return null;
+}
+
+export function compareCrying(
+  minutes: number,
+  previous: { nightNumber: number; cryingMinutes: number } | null,
+): string | null {
   if (!previous) return null;
   const d = previous.cryingMinutes - minutes;
   if (d === 0) return `Same as night ${previous.nightNumber}`;

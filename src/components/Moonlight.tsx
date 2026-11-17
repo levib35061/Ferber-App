@@ -1,9 +1,9 @@
 /** Moonlight-look building blocks: progress ring, check-in dots, moon icon. */
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
-import Svg, { Circle, Path } from "react-native-svg";
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import Svg, { Circle, Path } from 'react-native-svg';
 
-import { colors, fonts, type } from "../theme/night";
+import { colors, fonts, type } from '../theme/night';
 
 const SIZE = 290;
 const STROKE = 10;
@@ -31,17 +31,10 @@ export function ProgressRing({
       style={styles.ring}
       accessible={!!accessibilityLabel}
       accessibilityLabel={accessibilityLabel}
-      accessibilityRole={accessibilityLabel ? "timer" : undefined}
+      accessibilityRole={accessibilityLabel ? 'timer' : undefined}
     >
       <Svg width={SIZE} height={SIZE} style={StyleSheet.absoluteFill}>
-        <Circle
-          cx={SIZE / 2}
-          cy={SIZE / 2}
-          r={R}
-          stroke={track}
-          strokeWidth={STROKE}
-          fill="none"
-        />
+        <Circle cx={SIZE / 2} cy={SIZE / 2} r={R} stroke={track} strokeWidth={STROKE} fill="none" />
         {p > 0 && (
           <Circle
             cx={SIZE / 2}
@@ -66,33 +59,19 @@ export function ProgressRing({
  * One dot per check-in this episode: done ones filled, the next one outlined
  * (or peach when it is due).
  */
-export function CheckInDots({
-  done,
-  due,
-  label,
-}: {
-  done: number;
-  due?: boolean;
-  label?: string;
-}) {
+export function CheckInDots({ done, due, label }: { done: number; due?: boolean; label?: string }) {
   const dots = Array.from({ length: done + 1 }, (_, i) => i);
   return (
     <View
       style={styles.dotsRow}
       accessible
-      accessibilityLabel={`${done} check-in${done === 1 ? "" : "s"} done${label ? `, ${label}` : ""}`}
+      accessibilityLabel={`${done} check-in${done === 1 ? '' : 's'} done${label ? `, ${label}` : ''}`}
     >
       {dots.map((i) =>
         i < done ? (
-          <View
-            key={i}
-            style={[styles.dot, { backgroundColor: colors.primary }]}
-          />
+          <View key={i} style={[styles.dot, { backgroundColor: colors.primary }]} />
         ) : due ? (
-          <View
-            key={i}
-            style={[styles.dot, { backgroundColor: colors.accent }]}
-          />
+          <View key={i} style={[styles.dot, { backgroundColor: colors.accent }]} />
         ) : (
           <View key={i} style={[styles.dot, styles.dotEmpty]} />
         ),
@@ -106,13 +85,7 @@ export function CheckInDots({
   );
 }
 
-export function MoonIcon({
-  size = 16,
-  color = colors.textDim,
-}: {
-  size?: number;
-  color?: string;
-}) {
+export function MoonIcon({ size = 16, color = colors.textDim }: { size?: number; color?: string }) {
   return (
     <Svg
       width={size}
@@ -133,20 +106,20 @@ const styles = StyleSheet.create({
   ring: {
     width: SIZE,
     height: SIZE,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   ringInner: {
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 30,
   },
   dotsRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 10,
-    flexWrap: "wrap",
-    justifyContent: "center",
+    flexWrap: 'wrap',
+    justifyContent: 'center',
   },
   dot: { width: 10, height: 10, borderRadius: 5 },
   dotEmpty: { borderWidth: 2, borderColor: colors.dotEmpty },

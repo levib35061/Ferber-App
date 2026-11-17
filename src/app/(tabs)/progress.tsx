@@ -32,7 +32,12 @@ export default function ProgressScreen() {
         const pts = round
           .map((r) => {
             const s = summarizeNight(r.events);
-            return { id: r.night.id, nightNumber: r.night.nightNumber, cryingMinutes: s.cryingMinutes, checkIns: s.checkIns };
+            return {
+              id: r.night.id,
+              nightNumber: r.night.nightNumber,
+              cryingMinutes: s.cryingMinutes,
+              checkIns: s.checkIns,
+            };
           })
           .sort((a, b) => a.nightNumber - b.nightNumber)
           .slice(-MAX_NIGHTS);
@@ -83,7 +88,8 @@ export default function ProgressScreen() {
           />
         )}
         <Text style={styles.footnote}>
-          Crying time runs from Down (or Woke up) to Asleep, including time spent on check-ins. Every night is listed in History.
+          Crying time runs from Down (or Woke up) to Asleep, including time spent on check-ins. Every night is listed in
+          History.
         </Text>
       </ScrollView>
     </SafeAreaView>

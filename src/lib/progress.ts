@@ -15,7 +15,9 @@ export function trendLine(points: NightPoint[]): string {
   const last = nights[nights.length - 1];
   const since = `since night ${first.nightNumber}`;
   if (first.cryingMinutes === 0) {
-    return last.cryingMinutes === 0 ? 'No crying logged yet. Nice.' : `Night ${first.nightNumber} had no crying logged, so there's no trend to compare.`;
+    return last.cryingMinutes === 0
+      ? 'No crying logged yet. Nice.'
+      : `Night ${first.nightNumber} had no crying logged, so there's no trend to compare.`;
   }
   const change = (last.cryingMinutes - first.cryingMinutes) / first.cryingMinutes;
   const pct = Math.round(Math.abs(change) * 100);

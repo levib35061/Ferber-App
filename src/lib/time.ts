@@ -20,8 +20,8 @@ export function nightKey(atMs: number): string {
 
 export function localDateString(d: Date): string {
   const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
 }
 
@@ -38,13 +38,9 @@ export function spokenDuration(ms: number): string {
   const h = Math.floor(total / 3600);
   const m = Math.floor((total % 3600) / 60);
   const s = total % 60;
-  const part = (n: number, unit: string) => `${n} ${unit}${n === 1 ? "" : "s"}`;
-  const parts = [
-    h && part(h, "hour"),
-    m && part(m, "minute"),
-    (s || (!h && !m)) && part(s, "second"),
-  ].filter(Boolean);
-  return parts.join(" ");
+  const part = (n: number, unit: string) => `${n} ${unit}${n === 1 ? '' : 's'}`;
+  const parts = [h && part(h, 'hour'), m && part(m, 'minute'), (s || (!h && !m)) && part(s, 'second')].filter(Boolean);
+  return parts.join(' ');
 }
 
 export function formatDuration(ms: number): string {
@@ -52,15 +48,15 @@ export function formatDuration(ms: number): string {
   const h = Math.floor(total / 3600);
   const m = Math.floor((total % 3600) / 60);
   const s = total % 60;
-  const ss = String(s).padStart(2, "0");
-  if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${ss}`;
+  const ss = String(s).padStart(2, '0');
+  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${ss}`;
   return `${m}:${ss}`;
 }
 
 export function formatClock(atMs: number): string {
   return new Date(atMs).toLocaleTimeString([], {
-    hour: "numeric",
-    minute: "2-digit",
+    hour: 'numeric',
+    minute: '2-digit',
   });
 }
 
@@ -69,22 +65,15 @@ export function formatClock(atMs: number): string {
  * A night "YYYY-MM-DD" runs from 11am that day to 11am the next, so
  * 9:30pm lands on that date and 2:15am lands on the following date.
  */
-export function atTimeInNight(
-  key: string,
-  hour: number,
-  minute: number,
-): number {
-  const [y, m, d] = key.split("-").map(Number);
+export function atTimeInNight(key: string, hour: number, minute: number): number {
+  const [y, m, d] = key.split('-').map(Number);
   const dayOffset = hour < NIGHT_ENDS_HOUR ? 1 : 0;
   return new Date(y, m - 1, d + dayOffset, hour, minute, 0, 0).getTime();
 }
 
 /** Whole months between a "YYYY-MM-DD" birth date and `now` (local time). */
-export function ageInMonths(
-  birthDate: string,
-  now: number = Date.now(),
-): number {
-  const [y, m, d] = birthDate.split("-").map(Number);
+export function ageInMonths(birthDate: string, now: number = Date.now()): number {
+  const [y, m, d] = birthDate.split('-').map(Number);
   const n = new Date(now);
   let months = (n.getFullYear() - y) * 12 + (n.getMonth() - (m - 1));
   if (n.getDate() < d) months -= 1;

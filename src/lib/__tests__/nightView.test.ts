@@ -36,14 +36,18 @@ describe('chooseView', () => {
   });
 
   it('shows Today right after "Up for the day", even before 7am', () => {
-    expect(chooseView({ now: at(6, 15), stateKind: 'up', bedtimeEarly: false, lastNightKey: LAST_NIGHT }).view).toBe('today');
+    expect(chooseView({ now: at(6, 15), stateKind: 'up', bedtimeEarly: false, lastNightKey: LAST_NIGHT }).view).toBe(
+      'today',
+    );
   });
 });
 
 describe('tonight vs last night', () => {
   const TONIGHT = '2026-11-17';
   it('a bedtime started this afternoon stays on the night screen, even once asleep', () => {
-    expect(chooseView({ now: at(16, 30), stateKind: 'asleep', bedtimeEarly: false, lastNightKey: LAST_NIGHT }).view).toBe('night');
+    expect(chooseView({ now: at(16, 30), stateKind: 'asleep', bedtimeEarly: false, lastNightKey: LAST_NIGHT }).view).toBe(
+      'night',
+    );
   });
   it('asleep in the morning still shows Today', () => {
     const now = new Date(2026, 10, 17, 7, 30).getTime();

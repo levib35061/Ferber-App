@@ -48,6 +48,8 @@ The product spec is `docs/SPEC.md`. Read it before changing behavior.
 - Routes live in `src/app/`. Pure logic lives in `src/lib/` (no React Native imports) and has Jest tests in `src/lib/__tests__/`.
 - `src/lib/ferber.ts` — interval chart + `nextWaitMinutes(chart, nightNumber, checkInsSoFarThisEpisode)`.
 - `src/lib/session.ts` — derives the Night-screen state from the event log. Events are the source of truth; never store derived values.
+- `wait_more` event ("Wait a little longer", only when a check-in is due): skips the check-in; the next, longer wait starts from the tap and it isn't counted as a check-in. New event types need a Supabase migration for `events_type_check`.
+- `src/lib/encourage.ts` + `morningNote` in `src/lib/morning.ts`: the short reassurance lines. Plain and true, never cheerful, never judgmental; grounded in Ferber's wording (a check-in reassures, it isn't meant to stop the crying). No streaks, no red for bad nights.
 - `src/lib/summary.ts` — crying minutes, check-ins, wakings. Crying time excludes quiet stretches: events `cry`/`quiet` mark crying start/stop; after `down` no wait runs until `cry` (see `walk()` in session.ts).
 - App name: "Check In: Baby Sleep Timer" (display name "Check In"). Don't use "Ferber" in the app name.
 - `src/data/db.ts` — SQLite schema (baby, night, event, setting). UUID ids, UTC epoch-ms times, soft deletes (`deletedAt`).

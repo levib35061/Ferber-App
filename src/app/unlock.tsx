@@ -28,7 +28,9 @@ export default function UnlockScreen() {
   const close = () => (router.canGoBack() ? router.back() : router.replace('/'));
 
   const purchase = () => {
-    const buttons: { text: string; style?: 'cancel' | 'destructive'; onPress?: () => void }[] = [{ text: 'OK', style: 'cancel' }];
+    const buttons: { text: string; style?: 'cancel' | 'destructive'; onPress?: () => void }[] = [
+      { text: 'OK', style: 'cancel' },
+    ];
     if (__DEV__) {
       buttons.push({
         text: 'Test unlock (dev)',
@@ -50,7 +52,13 @@ export default function UnlockScreen() {
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Pressable onPress={close} accessibilityRole="button" accessibilityLabel="Close" hitSlop={12} style={styles.closeBtn}>
+        <Pressable
+          onPress={close}
+          accessibilityRole="button"
+          accessibilityLabel="Close"
+          hitSlop={12}
+          style={styles.closeBtn}
+        >
           <Text style={styles.closeText}>Not now</Text>
         </Pressable>
 
@@ -118,7 +126,14 @@ const useStyles = makeStyles(({ colors, fonts, type }) =>
     closeBtn: { alignSelf: 'flex-end', paddingVertical: 12 },
     closeText: { color: colors.textDim, fontFamily: fonts.bold, fontSize: type.body },
     icon: { width: 96, height: 96, borderRadius: 22, marginTop: 8 },
-    title: { color: colors.text, fontFamily: fonts.extrabold, fontSize: 28, lineHeight: 34, textAlign: 'center', marginTop: 20 },
+    title: {
+      color: colors.text,
+      fontFamily: fonts.extrabold,
+      fontSize: 28,
+      lineHeight: 34,
+      textAlign: 'center',
+      marginTop: 20,
+    },
     sub: {
       color: colors.textDim,
       fontFamily: fonts.regular,

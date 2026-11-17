@@ -62,9 +62,7 @@ export function isValidChart(chart: unknown): chart is Chart {
     chart.length > 0 &&
     chart.every(
       (row) =>
-        Array.isArray(row) &&
-        row.length > 0 &&
-        row.every((m) => typeof m === 'number' && Number.isFinite(m) && m > 0),
+        Array.isArray(row) && row.length > 0 && row.every((m) => typeof m === 'number' && Number.isFinite(m) && m > 0),
     )
   );
 }
@@ -81,11 +79,7 @@ function cell(row: number[], c: number): number {
  * @param nightNumber  1-based night; nights past the chart use the last row
  * @param checkInsSoFarThisEpisode  check-ins already done in this episode (0 = first wait)
  */
-export function nextWaitMinutes(
-  chart: Chart,
-  nightNumber: number,
-  checkInsSoFarThisEpisode: number,
-): number {
+export function nextWaitMinutes(chart: Chart, nightNumber: number, checkInsSoFarThisEpisode: number): number {
   if (!isValidChart(chart)) throw new Error('Invalid interval chart');
   const n = Math.max(1, Math.floor(nightNumber));
   const k = Math.max(0, Math.floor(checkInsSoFarThisEpisode));

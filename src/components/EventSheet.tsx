@@ -2,43 +2,44 @@
  * Bottom sheet for fixing a logged tap (change its time or delete it) or
  * adding one that was missed. Daytime screen, so a confirm on delete is fine.
  */
-import DateTimePicker from "@react-native-community/datetimepicker";
-import React, { useState } from "react";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import DateTimePicker from '@react-native-community/datetimepicker';
+import React, { useState } from 'react';
+import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { EventType } from "../lib/session";
-import { atTimeInNight } from "../lib/time";
-import { makeStyles, useTheme } from "../theme";
+import { EventType } from '../lib/session';
+import { atTimeInNight } from '../lib/time';
+import { makeStyles, useTheme } from '../theme';
 
 export const EVENT_LABEL: Record<EventType, string> = {
-  down: "Down for the night",
-  cry: "Started crying",
-  quiet: "Stopped crying",
-  feed_start: "Started night feed",
-  feed_end: "Done feeding",
-  up: "Up for the day",
-  woke: "Woke up",
-  check_in_start: "Went in",
-  check_in_end: "Came out",
-  asleep: "Asleep",
+  down: 'Down for the night',
+  cry: 'Started crying',
+  quiet: 'Stopped crying',
+  feed_start: 'Started night feed',
+  feed_end: 'Done feeding',
+  up: 'Up for the day',
+  woke: 'Woke up',
+  check_in_start: 'Went in',
+  check_in_end: 'Came out',
+  wait_more: 'Waited longer',
+  asleep: 'Asleep',
 };
 
 const ADD_ORDER: EventType[] = [
-  "down",
-  "cry",
-  "quiet",
-  "check_in_start",
-  "check_in_end",
-  "feed_start",
-  "feed_end",
-  "asleep",
-  "woke",
-  "up",
+  'down',
+  'cry',
+  'quiet',
+  'check_in_start',
+  'check_in_end',
+  'feed_start',
+  'feed_end',
+  'asleep',
+  'woke',
+  'up',
 ];
 
 interface Props {
   visible: boolean;
-  mode: "edit" | "add";
+  mode: 'edit' | 'add';
   nightKey: string;
   initialType: EventType;
   initialAt: number;
@@ -54,30 +55,15 @@ export function EventSheet(props: Props) {
   const [time, setTime] = useState(() => new Date(props.initialAt));
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const save = () =>
-    props.onSave(
-      kind,
-      atTimeInNight(props.nightKey, time.getHours(), time.getMinutes()),
-    );
+  const save = () => props.onSave(kind, atTimeInNight(props.nightKey, time.getHours(), time.getMinutes()));
 
   return (
-    <Modal
-      visible={props.visible}
-      transparent
-      animationType="slide"
-      onRequestClose={props.onClose}
-    >
-      <Pressable
-        style={styles.backdrop}
-        onPress={props.onClose}
-        accessibilityLabel="Close"
-      />
+    <Modal visible={props.visible} transparent animationType="slide" onRequestClose={props.onClose}>
+      <Pressable style={styles.backdrop} onPress={props.onClose} accessibilityLabel="Close" />
       <View style={styles.sheet}>
-        <Text style={styles.title}>
-          {props.mode === "add" ? "Add a missed tap" : EVENT_LABEL[kind]}
-        </Text>
+        <Text style={styles.title}>{props.mode === 'add' ? 'Add a missed tap' : EVENT_LABEL[kind]}</Text>
 
-        {props.mode === "add" && (
+        {props.mode === 'add' && (
           <View style={styles.chips}>
             {ADD_ORDER.map((t) => (
               <Pressable
@@ -87,11 +73,7 @@ export function EventSheet(props: Props) {
                 accessibilityState={{ selected: kind === t }}
                 style={[styles.chip, kind === t && styles.chipOn]}
               >
-                <Text
-                  style={[styles.chipText, kind === t && styles.chipTextOn]}
-                >
-                  {EVENT_LABEL[t]}
-                </Text>
+                <Text style={[styles.chipText, kind === t && styles.chipTextOn]}>{EVENT_LABEL[t]}</Text>
               </Pressable>
             ))}
           </View>
@@ -105,37 +87,25 @@ export function EventSheet(props: Props) {
           textColor={colors.text}
           minuteInterval={1}
           onChange={(_, d) => d && setTime(d)}
-          style={{ alignSelf: "stretch" }}
+          style={{ alignSelf: 'stretch' }}
         />
 
         <View style={styles.row}>
-          <Pressable
-            onPress={props.onClose}
-            style={[styles.btn, styles.btnSecondary]}
-            accessibilityRole="button"
-          >
+          <Pressable onPress={props.onClose} style={[styles.btn, styles.btnSecondary]} accessibilityRole="button">
             <Text style={styles.btnSecondaryText}>Cancel</Text>
           </Pressable>
-          <Pressable
-            onPress={save}
-            style={[styles.btn, styles.btnPrimary]}
-            accessibilityRole="button"
-          >
+          <Pressable onPress={save} style={[styles.btn, styles.btnPrimary]} accessibilityRole="button">
             <Text style={styles.btnPrimaryText}>Save</Text>
           </Pressable>
         </View>
 
         {props.onDelete && (
           <Pressable
-            onPress={() =>
-              confirmDelete ? props.onDelete?.() : setConfirmDelete(true)
-            }
+            onPress={() => (confirmDelete ? props.onDelete?.() : setConfirmDelete(true))}
             style={styles.delete}
             accessibilityRole="button"
           >
-            <Text style={styles.deleteText}>
-              {confirmDelete ? "Tap again to delete" : "Delete this tap"}
-            </Text>
+            <Text style={styles.deleteText}>{confirmDelete ? 'Tap again to delete' : 'Delete this tap'}</Text>
           </Pressable>
         )}
       </View>
@@ -145,7 +115,7 @@ export function EventSheet(props: Props) {
 
 const stylesHook = makeStyles(({ colors, fonts, type }) =>
   StyleSheet.create({
-    backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)" },
+    backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
     sheet: {
       backgroundColor: colors.surface,
       borderTopLeftRadius: 28,
@@ -158,13 +128,13 @@ const stylesHook = makeStyles(({ colors, fonts, type }) =>
       color: colors.text,
       fontFamily: fonts.bold,
       fontSize: type.big,
-      textAlign: "center",
+      textAlign: 'center',
     },
     chips: {
-      flexDirection: "row",
-      flexWrap: "wrap",
+      flexDirection: 'row',
+      flexWrap: 'wrap',
       gap: 8,
-      justifyContent: "center",
+      justifyContent: 'center',
     },
     chip: {
       paddingHorizontal: 14,
@@ -175,13 +145,13 @@ const stylesHook = makeStyles(({ colors, fonts, type }) =>
     chipOn: { backgroundColor: colors.primary },
     chipText: { color: colors.text, fontFamily: fonts.semibold, fontSize: 15 },
     chipTextOn: { color: colors.onPrimary },
-    row: { flexDirection: "row", gap: 12 },
+    row: { flexDirection: 'row', gap: 12 },
     btn: {
       flex: 1,
       height: 56,
       borderRadius: 999,
-      alignItems: "center",
-      justifyContent: "center",
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     btnPrimary: { backgroundColor: colors.primary },
     btnSecondary: { backgroundColor: colors.buttonBg },
@@ -195,7 +165,7 @@ const stylesHook = makeStyles(({ colors, fonts, type }) =>
       fontFamily: fonts.bold,
       fontSize: 18,
     },
-    delete: { alignSelf: "center", padding: 12 },
+    delete: { alignSelf: 'center', padding: 12 },
     deleteText: {
       color: colors.accent,
       fontFamily: fonts.bold,

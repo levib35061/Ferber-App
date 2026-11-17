@@ -14,6 +14,9 @@
  * start again from the first interval, like a new waking. A feed started
  * while asleep begins a new episode (counted as a waking).
  *
+ * "Wait a little longer" (`wait_more`): when a check-in is due, the parent can
+ * skip it. The next, longer wait starts from that tap. It isn't a check-in.
+ *
  * "Up for the day" (`up`) ends the night: it closes any open episode (crying
  * stops counting) and the state becomes `up` until the next night.
  */
@@ -25,6 +28,7 @@ export type EventType =
   | 'quiet'
   | 'check_in_start'
   | 'check_in_end'
+  | 'wait_more'
   | 'feed_start'
   | 'feed_end'
   | 'asleep'
@@ -59,6 +63,8 @@ export type NightState =
       /** 1-based number of the check-in that would come next */
       checkInNumber: number;
       episodeStartAt: number;
+      /** True for a night waking (the episode didn't start with "Down") */
+      waking: boolean;
       cryingMs: number;
     }
   | {
@@ -69,10 +75,11 @@ export type NightState =
       nextCheckInAt: number;
       /** 1-based number of the check-in being waited for */
       checkInNumber: number;
+      waking: boolean;
       cryingMs: number;
     }
-  | { kind: 'in_room'; since: number; checkInNumber: number; episodeStartAt: number; cryingMs: number }
-  | { kind: 'feeding'; since: number; episodeStartAt: number; cryingMs: number }
+  | { kind: 'in_room'; since: number; checkInNumber: number; episodeStartAt: number; waking: boolean; cryingMs: number }
+  | { kind: 'feeding'; since: number; episodeStartAt: number; waking: boolean; cryingMs: number }
   | { kind: 'asleep'; since: number; episode: Episode }
   /** Up for the day: tonight's tracking is over */
   | { kind: 'up'; since: number };
@@ -117,8 +124,10 @@ interface Walk {
   /** For 'crying': when the current wait started (crying began, or Back out) */
   waitStartedAt: number;
   checkIns: number;
-  /** Check-ins since the episode started or the last feed: picks the next wait */
+  /** Waits finished (by a check-in or "wait longer") since the episode started or the last feed: picks the next wait */
   waitIndex: number;
+  /** How many of those waits ended with "wait longer" instead of a check-in */
+  skips: number;
   /** Crying + in-the-room time, up to the end of the episode (or `now`) */
   cryingMs: number;
 }
@@ -134,6 +143,7 @@ function walk(ep: Episode, now: number): Walk {
   let waitStartedAt = ep.start.at;
   let checkIns = 0;
   let waitIndex = 0;
+  let skips = 0;
   let cryingMs = 0;
   const close = (at: number) => {
     if (phase === 'crying' || phase === 'in_room') cryingMs += Math.max(0, at - phaseSince);
@@ -170,6 +180,14 @@ function walk(ep: Episode, now: number): Walk {
           waitStartedAt = e.at;
         }
         break;
+      case 'wait_more':
+        // Skip this check-in: still crying, the next (longer) wait starts now.
+        if (phase === 'crying') {
+          waitIndex += 1;
+          skips += 1;
+          waitStartedAt = e.at;
+        }
+        break;
       case 'feed_start':
         if (phase !== 'feeding') {
           close(e.at);
@@ -182,6 +200,7 @@ function walk(ep: Episode, now: number): Walk {
           phase = 'quiet';
           phaseSince = e.at;
           waitIndex = 0;
+          skips = 0;
         }
         break;
       case 'asleep':
@@ -193,7 +212,7 @@ function walk(ep: Episode, now: number): Walk {
     }
   }
   if (phase !== 'asleep') close(now);
-  return { phase, phaseSince, waitStartedAt, checkIns, waitIndex, cryingMs };
+  return { phase, phaseSince, waitStartedAt, checkIns, waitIndex, skips, cryingMs };
 }
 
 /** Crying time for an episode (open episodes count up to `now`, or not at all without it). */
@@ -215,9 +234,11 @@ export function deriveNightState(events: NightEvent[], chart: Chart, chartNight:
   if (ep.end) return { kind: 'asleep', since: ep.end.at, episode: ep };
 
   const w = walk(ep, now);
-  const base = { episodeStartAt: ep.start.at, cryingMs: w.cryingMs };
-  if (w.phase === 'quiet') return { kind: 'quiet', since: w.phaseSince, checkInNumber: w.waitIndex + 1, ...base };
-  if (w.phase === 'in_room') return { kind: 'in_room', since: w.phaseSince, checkInNumber: w.waitIndex, ...base };
+  const base = { episodeStartAt: ep.start.at, waking: ep.start.type !== 'down', cryingMs: w.cryingMs };
+  // The number shown counts real check-ins; skipped ones only lengthen the wait.
+  const done = w.waitIndex - w.skips;
+  if (w.phase === 'quiet') return { kind: 'quiet', since: w.phaseSince, checkInNumber: done + 1, ...base };
+  if (w.phase === 'in_room') return { kind: 'in_room', since: w.phaseSince, checkInNumber: done, ...base };
   if (w.phase === 'feeding') return { kind: 'feeding', since: w.phaseSince, ...base };
 
   // Crying: a wait is running from the crying start or the last Back out.
@@ -228,7 +249,7 @@ export function deriveNightState(events: NightEvent[], chart: Chart, chartNight:
     waitStartedAt: w.waitStartedAt,
     waitMinutes,
     nextCheckInAt,
-    checkInNumber: w.waitIndex + 1,
+    checkInNumber: done + 1,
     ...base,
   };
 }
@@ -241,8 +262,9 @@ export function allowedActions(state: NightState): Action[] {
     case 'quiet':
       return ['cry', 'asleep', 'feed_start', 'up'];
     case 'waiting':
-    case 'due':
       return ['check_in_start', 'quiet', 'asleep', 'feed_start', 'up'];
+    case 'due':
+      return ['check_in_start', 'wait_more', 'quiet', 'asleep', 'feed_start', 'up'];
     case 'in_room':
       return ['check_in_end', 'asleep', 'up'];
     case 'feeding':

@@ -3,22 +3,13 @@
  * a page frame with a back link, section labels, cards, switch rows,
  * buttons, topic rows and line icons. Moonlight theme.
  */
-import { router } from "expo-router";
-import React from "react";
-import {
-  KeyboardAvoidingView,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  View,
-  ViewStyle,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import Svg, { Circle, Path } from "react-native-svg";
+import { router } from 'expo-router';
+import React from 'react';
+import { KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Switch, Text, View, ViewStyle } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Circle, Path } from 'react-native-svg';
 
-import { makeStyles, useTheme } from "../theme";
+import { makeStyles, useTheme } from '../theme';
 
 /** A Settings page: optional "‹ Settings" back link, big title, scrolling body. */
 export function SettingsPage({
@@ -32,12 +23,9 @@ export function SettingsPage({
 }) {
   const styles = stylesHook();
   return (
-    <SafeAreaView style={styles.root} edges={["top"]}>
+    <SafeAreaView style={styles.root} edges={['top']}>
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          keyboardShouldPersistTaps="handled"
-        >
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           {back && (
             <Pressable
               onPress={() => router.back()}
@@ -49,9 +37,7 @@ export function SettingsPage({
               <Text style={styles.backText}>‹ Settings</Text>
             </Pressable>
           )}
-          {title && (
-            <Text style={[styles.title, back && styles.titleSub]}>{title}</Text>
-          )}
+          {title && <Text style={[styles.title, back && styles.titleSub]}>{title}</Text>}
           {children}
         </ScrollView>
       </KeyboardAvoidingView>
@@ -64,13 +50,7 @@ export function SectionLabel({ children }: { children: string }) {
   return <Text style={styles.sectionLabel}>{children.toUpperCase()}</Text>;
 }
 
-export function Card({
-  children,
-  style,
-}: {
-  children: React.ReactNode;
-  style?: ViewStyle;
-}) {
+export function Card({ children, style }: { children: React.ReactNode; style?: ViewStyle }) {
   const styles = stylesHook();
   return <View style={[styles.card, style]}>{children}</View>;
 }
@@ -80,12 +60,7 @@ export function Divider() {
   return <View style={styles.divider} />;
 }
 
-export function SwitchRow(props: {
-  label: string;
-  hint?: string;
-  value: boolean;
-  onChange: (v: boolean) => void;
-}) {
+export function SwitchRow(props: { label: string; hint?: string; value: boolean; onChange: (v: boolean) => void }) {
   const styles = stylesHook();
   const { colors } = useTheme();
   return (
@@ -105,12 +80,7 @@ export function SwitchRow(props: {
   );
 }
 
-export function SettingsButton(props: {
-  label: string;
-  onPress: () => void;
-  primary?: boolean;
-  disabled?: boolean;
-}) {
+export function SettingsButton(props: { label: string; onPress: () => void; primary?: boolean; disabled?: boolean }) {
   const styles = stylesHook();
   return (
     <Pressable
@@ -123,11 +93,7 @@ export function SettingsButton(props: {
         (pressed || props.disabled) && { opacity: 0.6 },
       ]}
     >
-      <Text
-        style={[styles.buttonText, props.primary && styles.buttonPrimaryText]}
-      >
-        {props.label}
-      </Text>
+      <Text style={[styles.buttonText, props.primary && styles.buttonPrimaryText]}>{props.label}</Text>
     </Pressable>
   );
 }
@@ -149,11 +115,7 @@ export function Segmented<T extends string>(props: {
           accessibilityState={{ selected: props.value === o.key }}
           style={[styles.segBtn, props.value === o.key && styles.segBtnOn]}
         >
-          <Text
-            style={[styles.segText, props.value === o.key && styles.segTextOn]}
-          >
-            {o.label}
-          </Text>
+          <Text style={[styles.segText, props.value === o.key && styles.segTextOn]}>{o.label}</Text>
         </Pressable>
       ))}
     </View>
@@ -161,12 +123,7 @@ export function Segmented<T extends string>(props: {
 }
 
 /** A tappable topic on the main Settings screen: icon, title, one-line description, chevron. */
-export function TopicRow(props: {
-  icon: IconName;
-  title: string;
-  description: string;
-  onPress: () => void;
-}) {
+export function TopicRow(props: { icon: IconName; title: string; description: string; onPress: () => void }) {
   const styles = stylesHook();
   return (
     <Pressable
@@ -186,15 +143,7 @@ export function TopicRow(props: {
 }
 
 /** A plain tappable row inside a Card (e.g. a link). */
-export function LinkRow({
-  label,
-  detail,
-  onPress,
-}: {
-  label: string;
-  detail?: string;
-  onPress: () => void;
-}) {
+export function LinkRow({ label, detail, onPress }: { label: string; detail?: string; onPress: () => void }) {
   const styles = stylesHook();
   return (
     <Pressable
@@ -209,51 +158,34 @@ export function LinkRow({
   );
 }
 
-export type IconName =
-  | "moon"
-  | "clock"
-  | "bell"
-  | "people"
-  | "star"
-  | "info"
-  | "flask";
+export type IconName = 'moon' | 'clock' | 'bell' | 'people' | 'star' | 'info' | 'flask';
 
-export function Icon({
-  name,
-  size = 24,
-  color: colorProp,
-}: {
-  name: IconName;
-  size?: number;
-  color?: string;
-}) {
+export function Icon({ name, size = 24, color: colorProp }: { name: IconName; size?: number; color?: string }) {
   const { colors } = useTheme();
   const color = colorProp ?? colors.primary;
   const p = {
-    fill: "none",
+    fill: 'none',
     stroke: color,
     strokeWidth: 2,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
   };
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
-      {name === "moon" && (
-        <Path {...p} d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
-      )}
-      {name === "clock" && (
+      {name === 'moon' && <Path {...p} d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />}
+      {name === 'clock' && (
         <>
           <Circle {...p} cx={12} cy={12} r={9} />
           <Path {...p} d="M12 7v5l3 2" />
         </>
       )}
-      {name === "bell" && (
+      {name === 'bell' && (
         <>
           <Path {...p} d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
           <Path {...p} d="M13.7 21a2 2 0 0 1-3.4 0" />
         </>
       )}
-      {name === "people" && (
+      {name === 'people' && (
         <>
           <Circle {...p} cx={9} cy={8} r={3.5} />
           <Circle {...p} cx={17} cy={9} r={2.5} />
@@ -261,26 +193,18 @@ export function Icon({
           <Path {...p} d="M15.5 14.5a5 5 0 0 1 6 5.5" />
         </>
       )}
-      {name === "star" && (
-        <Path
-          {...p}
-          d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"
-        />
-      )}
-      {name === "info" && (
+      {name === 'star' && <Path {...p} d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z" />}
+      {name === 'info' && (
         <>
           <Circle {...p} cx={12} cy={12} r={9} />
           <Path {...p} d="M12 11v6" />
           <Path {...p} d="M12 7.5v.5" />
         </>
       )}
-      {name === "flask" && (
+      {name === 'flask' && (
         <>
           <Path {...p} d="M9 3h6" />
-          <Path
-            {...p}
-            d="M10 3v6L4.5 19a1.5 1.5 0 0 0 1.3 2h12.4a1.5 1.5 0 0 0 1.3-2L14 9V3"
-          />
+          <Path {...p} d="M10 3v6L4.5 19a1.5 1.5 0 0 0 1.3 2h12.4a1.5 1.5 0 0 0 1.3-2L14 9V3" />
         </>
       )}
     </Svg>
@@ -325,7 +249,7 @@ const stylesHook = makeStyles(({ colors, fonts, type }) =>
   StyleSheet.create({
     root: { flex: 1, backgroundColor: colors.bg },
     scroll: { paddingHorizontal: 20, paddingBottom: 60 },
-    back: { paddingTop: 10, paddingBottom: 4, alignSelf: "flex-start" },
+    back: { paddingTop: 10, paddingBottom: 4, alignSelf: 'flex-start' },
     backText: {
       color: colors.primary,
       fontFamily: fonts.bold,
@@ -356,8 +280,8 @@ const stylesHook = makeStyles(({ colors, fonts, type }) =>
       marginVertical: 4,
     },
     switchRow: {
-      flexDirection: "row",
-      alignItems: "center",
+      flexDirection: 'row',
+      alignItems: 'center',
       gap: 12,
       paddingVertical: 8,
     },
@@ -377,8 +301,8 @@ const stylesHook = makeStyles(({ colors, fonts, type }) =>
       minHeight: 50,
       borderRadius: 999,
       backgroundColor: colors.buttonBg,
-      alignItems: "center",
-      justifyContent: "center",
+      alignItems: 'center',
+      justifyContent: 'center',
       paddingHorizontal: 16,
     },
     buttonPrimary: { backgroundColor: colors.primary },
@@ -389,7 +313,7 @@ const stylesHook = makeStyles(({ colors, fonts, type }) =>
     },
     buttonPrimaryText: { color: colors.onPrimary, fontFamily: fonts.extrabold },
     segment: {
-      flexDirection: "row",
+      flexDirection: 'row',
       backgroundColor: colors.surface,
       borderRadius: 999,
       padding: 4,
@@ -398,8 +322,8 @@ const stylesHook = makeStyles(({ colors, fonts, type }) =>
       flex: 1,
       height: 42,
       borderRadius: 999,
-      alignItems: "center",
-      justifyContent: "center",
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     segBtnOn: { backgroundColor: colors.buttonBg },
     segText: {
@@ -409,8 +333,8 @@ const stylesHook = makeStyles(({ colors, fonts, type }) =>
     },
     segTextOn: { color: colors.text, fontFamily: fonts.bold },
     topic: {
-      flexDirection: "row",
-      alignItems: "center",
+      flexDirection: 'row',
+      alignItems: 'center',
       gap: 14,
       backgroundColor: colors.surface,
       borderRadius: 20,
@@ -434,8 +358,8 @@ const stylesHook = makeStyles(({ colors, fonts, type }) =>
       fontSize: 22,
     },
     linkRow: {
-      flexDirection: "row",
-      alignItems: "center",
+      flexDirection: 'row',
+      alignItems: 'center',
       gap: 10,
       paddingVertical: 12,
     },

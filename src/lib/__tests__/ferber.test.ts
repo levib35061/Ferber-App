@@ -5,10 +5,21 @@ describe('nextWaitMinutes (Ferber default chart)', () => {
 
   it.each([
     // night, checkInsSoFar, expected
-    [1, 0, 3], [1, 1, 5], [1, 2, 10], [1, 9, 10],
-    [2, 0, 5], [2, 1, 10], [2, 2, 12],
-    [3, 0, 10], [4, 1, 15], [5, 2, 20], [6, 0, 17],
-    [7, 0, 20], [7, 1, 25], [7, 2, 30], [7, 50, 30],
+    [1, 0, 3],
+    [1, 1, 5],
+    [1, 2, 10],
+    [1, 9, 10],
+    [2, 0, 5],
+    [2, 1, 10],
+    [2, 2, 12],
+    [3, 0, 10],
+    [4, 1, 15],
+    [5, 2, 20],
+    [6, 0, 17],
+    [7, 0, 20],
+    [7, 1, 25],
+    [7, 2, 30],
+    [7, 50, 30],
   ])('night %i after %i check-ins waits %i min', (night, k, expected) => {
     expect(nextWaitMinutes(c, night, k)).toBe(expected);
   });
@@ -59,7 +70,10 @@ describe('setChartCell', () => {
   it('changes one cell without mutating the original, padding rows to 3 columns', () => {
     const c = [[3, 5, 10], [4]];
     const out = setChartCell(c, 1, 2, 9);
-    expect(out).toEqual([[3, 5, 10], [4, 4, 9]]);
+    expect(out).toEqual([
+      [3, 5, 10],
+      [4, 4, 9],
+    ]);
     expect(c).toEqual([[3, 5, 10], [4]]);
   });
   it('clamps to 1..120 whole minutes', () => {

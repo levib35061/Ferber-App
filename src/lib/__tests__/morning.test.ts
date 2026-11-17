@@ -9,8 +9,13 @@ const fmt = (at: number) => `+${Math.round((at - T0) / MIN)}`;
 
 // Night 3 from the mockup: settle 4 min, cry 32 (one 2-min check-in), wake at +450 for 14 min.
 const night = [
-  ev('down', 0), ev('cry', 4), ev('check_in_start', 14), ev('check_in_end', 16), ev('asleep', 36),
-  ev('woke', 450), ev('asleep', 464),
+  ev('down', 0),
+  ev('cry', 4),
+  ev('check_in_start', 14),
+  ev('check_in_end', 16),
+  ev('asleep', 36),
+  ev('woke', 450),
+  ev('asleep', 464),
 ];
 
 describe('morningHeadline', () => {
@@ -18,10 +23,21 @@ describe('morningHeadline', () => {
     expect(morningHeadline('Ava', night)).toBe('Ava fell asleep after 32 minutes of crying, and woke once.');
   });
   it('handles no crying and sleeping through', () => {
-    expect(morningHeadline('', [ev('down', 0), ev('asleep', 10)])).toBe('Your baby fell asleep without crying, and slept through.');
+    expect(morningHeadline('', [ev('down', 0), ev('asleep', 10)])).toBe(
+      'Your baby fell asleep without crying, and slept through.',
+    );
   });
   it('counts several wakings', () => {
-    const evs = [ev('down', 0), ev('asleep', 5), ev('woke', 100), ev('asleep', 110), ev('woke', 200), ev('asleep', 210), ev('woke', 300), ev('asleep', 305)];
+    const evs = [
+      ev('down', 0),
+      ev('asleep', 5),
+      ev('woke', 100),
+      ev('asleep', 110),
+      ev('woke', 200),
+      ev('asleep', 210),
+      ev('woke', 300),
+      ev('asleep', 305),
+    ];
     expect(morningHeadline('Ava', evs)).toMatch(/woke 3 times\.$/);
   });
   it('has a fallback with nothing logged', () => {
@@ -57,7 +73,16 @@ describe('moments', () => {
     ]);
   });
   it('mentions feeds and check-ins in a waking', () => {
-    const evs = [ev('down', 0), ev('asleep', 5), ev('woke', 100), ev('check_in_start', 105), ev('check_in_end', 106), ev('feed_start', 110), ev('feed_end', 125), ev('asleep', 130)];
+    const evs = [
+      ev('down', 0),
+      ev('asleep', 5),
+      ev('woke', 100),
+      ev('check_in_start', 105),
+      ev('check_in_end', 106),
+      ev('feed_start', 110),
+      ev('feed_end', 125),
+      ev('asleep', 130),
+    ];
     expect(moments(evs, fmt).pop()?.text).toBe('Woke up (fed, 1 check-in), asleep by +130');
   });
 });
@@ -90,6 +115,10 @@ describe('up for the day', () => {
 
   it('an early waking ended by "up" reads as one line plus the up line', () => {
     const evs = [ev('down', 0), ev('asleep', 5), ev('woke', 600), ev('up', 615)];
-    expect(moments(evs, fmt).slice(-2).map((m) => m.text)).toEqual(['Woke up', 'Up for the day']);
+    expect(
+      moments(evs, fmt)
+        .slice(-2)
+        .map((m) => m.text),
+    ).toEqual(['Woke up', 'Up for the day']);
   });
 });
