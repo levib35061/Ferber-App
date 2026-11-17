@@ -11,7 +11,6 @@ The running list. The reasons and evidence are in `reports/Check In app launch s
 - [x] Rating prompt after a good morning, shareable progress card (in the app)
 - [x] YouTube channel set up: name, picture, banner, description
 - [x] Videos 1 and 2 posted, with captions and thumbnails, and embedded on ferbertimer.com (tap-to-play, nothing loads from YouTube before)
-- [ ] Video 3 (app walkthrough): post at App Store launch, then embed it in the site's app section
 
 ## Waiting on something
 
@@ -26,6 +25,7 @@ The running list. The reasons and evidence are in `reports/Check In app launch s
 - [ ] Featuring nomination in App Store Connect, at least 2 weeks before launch
 - [ ] Spanish (Mexico) and English (UK/Australia) keyword fields (`docs/APP_STORE.md`)
 - [ ] Screenshots: the first three carry the message
+- [ ] Video 3 (app walkthrough): post at App Store launch, then embed it in the site's app section
 - [ ] Add the App Store link to: the three YouTube descriptions and pinned comments, the YouTube channel links, ferbertimer.com (I'll do the site)
 - [ ] Apple Ads: spend the free $100 credit on exact-match keywords, as keyword research; stop when it's used up
 - [ ] Campaign links (App Store Connect) on the website's download buttons, so you can see which page sends downloads
@@ -40,7 +40,6 @@ The running list. The reasons and evidence are in `reports/Check In app launch s
 - [ ] Optional: video 3 with real screen recordings of the app (I'll rebuild it)
 - [ ] Optional: App Store preview video (15–30 s, real screen recording, must work without sound). Same recording can replace the drawn screens in YouTube video 3
 - [x] Eight guide pages on ferbertimer.com
-- [ ] Keep the apps-compared page current (check rival prices every few months)
   - [x] 1. Ferber method night by night (nights 1 to 7)
   - [x] 2. Ferber method not working: things to check
   - [x] 3. Night wakings and night feeds
@@ -49,6 +48,7 @@ The running list. The reasons and evidence are in `reports/Check In app launch s
   - [x] 6. Ferber vs cry it out vs the chair method
   - [x] 7. Check-ins and two parents, one plan
   - [x] 8. Ferber timer apps compared (honest, says we make one)
+- [ ] Keep the apps-compared page current (check rival prices every few months)
 
 ## Every month
 
