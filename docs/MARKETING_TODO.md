@@ -42,7 +42,7 @@ The running list. The reasons and evidence are in `reports/Check In app launch s
 - [ ] One new guide page on ferbertimer.com every week or two (I'll write them)
   - [x] 1. Ferber method night by night (nights 1 to 7)
   - [x] 2. Ferber method not working: things to check
-  - [ ] 3. Night wakings and night feeds
+  - [x] 3. Night wakings and night feeds
   - [ ] 4. Ferber for naps
   - [ ] 5. What age to start
   - [ ] 6. Ferber vs cry it out vs the chair method

@@ -32,6 +32,7 @@ After the last listed wait, keep repeating it. Verify against the current editio
 - Ferber method night by night (nights 1 to 7, what is normal, when a night goes backwards): https://ferbertimer.com/ferber-method-night-by-night.html
 
 - Ferber method not working: 10 things to check, and when to talk to a pediatrician: https://ferbertimer.com/ferber-method-not-working.html
+- Night wakings and night feeds during Ferber (restart at the first wait for that night, planned feeds, gradual weaning, early-morning wakings): https://ferbertimer.com/ferber-method-night-wakings-and-feeds.html
 
 ## Free tools
 

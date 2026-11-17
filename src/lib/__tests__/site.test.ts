@@ -24,3 +24,16 @@ describe('site/index.html', () => {
     }
   });
 });
+
+describe('site guide pages', () => {
+  it('night-by-night page lists the app chart', () => {
+    const html = site('ferber-method-night-by-night.html');
+    for (const [a, b, c] of FERBER_DEFAULT_CHART) expect(html).toContain(`Waits: ${a}, then ${b}, then ${c} minutes`);
+  });
+  it('night wakings page table matches the app chart', () => {
+    const html = site('ferber-method-night-wakings-and-feeds.html');
+    for (const row of FERBER_DEFAULT_CHART) {
+      expect(html).toContain(row.map((m) => `<td class="num">${m} min</td>`).join(''));
+    }
+  });
+});
