@@ -28,7 +28,7 @@ The running list. The reasons and evidence are in `reports/Check In app launch s
 - [ ] Add the App Store link to: the three YouTube descriptions and pinned comments, the YouTube channel links, ferbertimer.com (I'll do the site)
 - [ ] Apple Ads: spend the free $100 credit on exact-match keywords, as keyword research; stop when it's used up
 - [ ] Campaign links (App Store Connect) on the website's download buttons, so you can see which page sends downloads
-- [ ] Launch listings (no Reddit): Product Hunt, AlternativeTo, Indie Hackers product page; optional Show HN
+- [ ] Launch listings: Product Hunt and AlternativeTo
 - [ ] Email about 20 Ferber-friendly sleep consultants with a free unlock code for their clients
 - [ ] Ask the r/sleeptrain moderators and Facebook group admins for permission before posting anything (accept a no)
 
