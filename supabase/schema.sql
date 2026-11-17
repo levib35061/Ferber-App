@@ -36,6 +36,9 @@ language sql stable security definer set search_path = public as $$
   select exists (select 1 from public.family_members where family_id = fid and user_id = auth.uid());
 $$;
 
+revoke execute on function public.is_family_member(uuid) from public, anon;
+grant execute on function public.is_family_member(uuid) to authenticated;
+
 -- ---------- synced data ----------
 
 create table public.babies (
@@ -84,7 +87,7 @@ create index events_family_sync on public.events (family_id, server_updated_at);
 -- Last write wins: ignore an update older than what's stored, and stamp
 -- server_updated_at so clients can pull "everything changed since X".
 create function public.lww_stamp() returns trigger
-language plpgsql as $$
+language plpgsql set search_path = '' as $$
 begin
   if tg_op = 'UPDATE' and new.updated_at < old.updated_at then
     return null; -- keep the newer row

@@ -82,3 +82,10 @@ sign-ups). The app asks Apple for no name or email.
   add a revoke step to account deletion then.
 
 Login sessions are stored in the iOS Keychain (`src/data/supabase.ts`).
+
+## Security Advisor: expected warnings
+
+After migration 006, these warnings remain on purpose:
+
+- **Signed-In Users Can Execute SECURITY DEFINER Function** for `create_family`, `join_family`, `delete_my_account`, `my_unlock_status`, `register_push_token` and `is_family_member`. The app calls these on purpose. Each one checks `auth.uid()` and only touches the caller's own data or family.
+- **Leaked Password Protection Disabled**: the app has no passwords (Sign in with Apple only).
