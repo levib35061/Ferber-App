@@ -28,15 +28,19 @@ import {
 } from '../lib/morning';
 import { NightEvent } from '../lib/session';
 import { shouldAskForReview } from '../lib/review';
+import { RoundNight, currentRound } from '../lib/shareCard';
 import { summarizeNight } from '../lib/summary';
 import { formatClock } from '../lib/time';
 import { day, dayFonts } from '../theme/day';
+import { ShareProgressButton } from './ShareProgress';
 
 export interface LastNights {
   last: { night: Night; events: NightEvent[] } | null;
   previous: { night: Night; events: NightEvent[] } | null;
   /** Crying minutes for every finished night, oldest first */
   crying: number[];
+  /** The current training round's finished nights, oldest first (for the share card) */
+  round: RoundNight[];
 }
 
 /** Last night (the most recent logged night up to now) and the one before it. */
@@ -57,6 +61,11 @@ export function useLastNights(): LastNights | null {
           last: past[0] ?? null,
           previous: past[1] ?? null,
           crying: past.map((r) => summarizeNight(r.events).cryingMinutes).reverse(),
+          round: currentRound(
+            past
+              .map((r) => ({ nightNumber: r.night.nightNumber, cryingMinutes: summarizeNight(r.events).cryingMinutes }))
+              .reverse(),
+          ),
         });
       });
       // `events` changes whenever tonight's log (or a partner's sync) changes.
@@ -222,6 +231,8 @@ export function TodaySummary({ data, onStartTonight }: { data: LastNights; onSta
         </View>
 
         {note && <Text style={styles.note}>{note}</Text>}
+
+        <ShareProgressButton round={data.round} name={name} />
 
         <Pressable onPress={onStartTonight} accessibilityRole="button" style={styles.startBtn}>
           <Text style={styles.startText}>Starting bedtime early? Open the night screen</Text>
