@@ -6,15 +6,20 @@ Made by a parent who built Check In. The numbers match the app's chart
 
 ## How to record the voiceover (ElevenLabs)
 
+- **One audio file per video.** Copy that video's "Paste into ElevenLabs" block
+  below as-is and generate it in one go. Name the files `video1.mp3`,
+  `video2.mp3`, `video3.mp3`.
+- The `<break time="1.2s" />` tags between lines add a short pause. I use those
+  pauses to line the pictures up with the voice, so leave them in. (They work
+  with ElevenLabs' standard voices. If your chosen model reads them out loud or
+  ignores them, delete them and put each line on its own paragraph instead.)
 - Use the **same voice for all three videos**: calm, warm, unhurried.
-- Generate **one audio file per numbered line** and name it by video and line:
-  `v1-01.mp3`, `v1-02.mp3`, and so on. Short files make it easy to fix one
-  line without redoing the video, and the video is timed to them.
-- If a line sounds rushed, add a comma or split it in two and regenerate.
-- Check that "Ferber" sounds like **FUR-ber**. If it doesn't, try spelling it
-  "Ferr-ber" in that line only.
-- Lines in *[brackets]* are what's on screen. They're notes for me; don't
-  record them.
+- Check that "Ferber" sounds like **FUR-ber**. If it doesn't, spell it
+  "Ferr-ber" in the pasted text.
+- If one sentence comes out wrong, regenerate the whole file. That's simpler
+  than patching.
+- The tables are the full script with notes of what's on screen; the
+  *[bracketed]* parts are for me.
 
 ---
 
@@ -43,6 +48,44 @@ Made by a parent who built Check In. The numbers match the app's chart
 | 15 | I put a free printable version of this chart on ferbertimer.com, with space to write down each night. It's one page, and it lives on our fridge. | *[Printable chart page, ferbertimer.com]* |
 | 16 | And if you'd rather not do the math at two in the morning, my app, Check In, times every wait and alerts you on your lock screen when it's time to go in. | *[App countdown screen, App Store badge]* |
 | 17 | Good luck tonight. You've got this. | *[End card: ferbertimer.com, "Check In: Baby Sleep Timer"]* |
+
+**Paste into ElevenLabs:**
+
+```
+If you're about to try the Ferber method, the hardest question at bedtime is simple: how long do I wait before I go in?
+<break time="1.2s" />
+I'm a parent. I built a sleep-training timer after doing this with our own baby, and this chart is the thing I wished someone had walked me through.
+<break time="1.2s" />
+Here's the idea in one sentence. You put your baby down awake, you leave, and if they cry, you wait a set number of minutes before a short check-in. The waits get a little longer each time, and each night.
+<break time="1.2s" />
+This is the chart most families use. Each row is one night. Each number is how many minutes to wait before a check-in.
+<break time="1.2s" />
+Night one. Wait three minutes before the first check-in. Then five minutes. Then ten minutes, and keep repeating ten until they're asleep.
+<break time="1.2s" />
+Night two moves up. Five minutes, then ten, then twelve.
+<break time="1.2s" />
+Night three. Ten, then twelve, then fifteen.
+<break time="1.2s" />
+And it keeps building, a little each night, until night seven: twenty, twenty-five, then thirty. After night seven, you just keep using that last row.
+<break time="1.2s" />
+Two rules make the chart work. First, only count while your baby is actually crying. If the crying stops, the wait stops. If it starts again, start that same wait over.
+<break time="1.2s" />
+Second, check-ins are short. One or two minutes. A pat, a few calm words, and then you leave, even if they're still crying.
+<break time="1.2s" />
+That part surprised me. You're not going in to stop the crying. You're going in to reassure them that you're close, and then you step out.
+<break time="1.2s" />
+What should you expect? Night one is often the longest. Nights two and three are often harder before they get easier. That's normal, and it's the point where a lot of parents give up.
+<break time="1.2s" />
+In one survey of more than six hundred parents, crying averaged about forty minutes on the first night, and about nine minutes a week later.
+<break time="1.2s" />
+And the numbers are a guide, not a rule. If shorter waits feel right for your family, use them. What matters most is that the waits grow slowly and you stay consistent.
+<break time="1.2s" />
+I put a free printable version of this chart on ferbertimer.com, with space to write down each night. It's one page, and it lives on our fridge.
+<break time="1.2s" />
+And if you'd rather not do the math at two in the morning, my app, Check In, times every wait and alerts you on your lock screen when it's time to go in.
+<break time="1.2s" />
+Good luck tonight. You've got this.
+```
 
 **Description:**
 
@@ -92,6 +135,40 @@ Made by a parent who built Check In after sleep training our own baby. Sleep tra
 | 14 | At two a.m., nobody wants to do math. There's a free web timer on ferbertimer.com, and my app, Check In, restarts the waits for a night waking automatically and alerts you on your lock screen. | *[Web timer, then app's "Woke up" screen]* |
 | 15 | Hang in there. The nights do get shorter. | *[End card: ferbertimer.com, "Check In: Baby Sleep Timer"]* |
 
+**Paste into ElevenLabs:**
+
+```
+It's two in the morning. Bedtime went okay, and now your baby is crying again. What do you do?
+<break time="1.2s" />
+I'm a parent who sleep trained our baby with the Ferber method, and this was the moment that tested us most. Here's the plan we followed.
+<break time="1.2s" />
+The short answer: treat a night waking just like bedtime, using the same night's chart.
+<break time="1.2s" />
+That means you start again from the first wait for that night. Not where you left off at bedtime. The first wait.
+<break time="1.2s" />
+So on night two, a two a.m. waking starts at five minutes. Then ten. Then twelve, repeating until they're asleep.
+<break time="1.2s" />
+Before you start the timer, give it a moment. Lots of babies stir, fuss briefly, and settle on their own. Only start counting once it's real crying.
+<break time="1.2s" />
+The check-ins are the same as bedtime. One or two minutes, low light, calm voice, a pat. Then out, even if they're still crying.
+<break time="1.2s" />
+The hardest part at two a.m. is doubt. Are they hungry? Is something wrong?
+<break time="1.2s" />
+If your pediatrician has said your baby still needs a night feed, feed them. Then put them back down awake, and if they cry, the waits start again from the first one.
+<break time="1.2s" />
+If they seem sick or something feels off, go in and comfort them. You can pick the plan back up when they're well.
+<break time="1.2s" />
+Otherwise, the most helpful thing you can do is decide this in daylight. Agree with your partner on the plan, and on whose turn it is tonight, before bedtime.
+<break time="1.2s" />
+And remember, crying after a check-in doesn't mean it isn't working. You went in to reassure, not to make it stop.
+<break time="1.2s" />
+Most families see night wakings ease within the first week. Some nights in the middle are harder. That's normal too.
+<break time="1.2s" />
+At two a.m., nobody wants to do math. There's a free web timer on ferbertimer.com, and my app, Check In, restarts the waits for a night waking automatically and alerts you on your lock screen.
+<break time="1.2s" />
+Hang in there. The nights do get shorter.
+```
+
 **Description:**
 
 ```
@@ -137,6 +214,34 @@ Made by a parent who built Check In after sleep training our own baby. Check wit
 | 10 | In the morning, you get a short summary of the night, and a chart of crying time, so you can see it working. | *[Recordings 6 and 7]* |
 | 11 | It's free for your first two nights, then four ninety-nine once. One purchase covers both parents. No subscription, no ads, no tracking. | *[Price card]* |
 | 12 | It's called Check In: Baby Sleep Timer, on the App Store. I hope it makes your nights a little easier. | *[End card: App Store badge, ferbertimer.com]* |
+
+**Paste into ElevenLabs:**
+
+```
+When we sleep trained our baby with the Ferber method, I kept losing track of time at two in the morning. So I built the timer I wanted.
+<break time="1.2s" />
+It's called Check In. Here's a night with it.
+<break time="1.2s" />
+You put your baby down and tap Down for the night. Nothing starts yet, because a lot of babies settle without crying.
+<break time="1.2s" />
+If they cry, tap Crying. Now it counts down to your first check-in, using the Ferber chart for tonight.
+<break time="1.2s" />
+The screen stays dark and dim, with big buttons you can hit half-asleep.
+<break time="1.2s" />
+When it's time, it alerts you, even with your phone locked, with a soft sound or just a vibration.
+<break time="1.2s" />
+Tap Going in, then Back out when you leave. The next wait starts, a little longer.
+<break time="1.2s" />
+If they stop crying, the timer pauses. If they wake at two a.m., it starts again from the first wait, just like the method says.
+<break time="1.2s" />
+It works on both of your phones. Pick who's on duty tonight, and only that phone gets the alerts.
+<break time="1.2s" />
+In the morning, you get a short summary of the night, and a chart of crying time, so you can see it working.
+<break time="1.2s" />
+It's free for your first two nights, then four ninety-nine once. One purchase covers both parents. No subscription, no ads, no tracking.
+<break time="1.2s" />
+It's called Check In: Baby Sleep Timer, on the App Store. I hope it makes your nights a little easier.
+```
 
 **Description:**
 
