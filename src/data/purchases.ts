@@ -8,8 +8,10 @@
  * - This phone's own entitlement comes from RevenueCat's verified customer
  *   info, cached by its SDK, so the buyer stays unlocked offline.
  * - With no API key in config.ts, purchases are simply "not open yet".
- * - In Expo Go the library runs in its preview mode: nothing can be bought.
+ * - In Expo Go nothing can be bought, so purchases stay closed there (the
+ *   unlock screen keeps its development test unlock).
  */
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import Purchases, { PURCHASES_ERROR_CODE, PurchasesPackage } from 'react-native-purchases';
 
 import { REVENUECAT_API_KEY } from '../config';
@@ -18,7 +20,10 @@ import { ensureUserId, supabase } from './supabase';
 /** The entitlement configured in RevenueCat (same name as in the webhook). */
 export const ENTITLEMENT = 'unlock';
 
-export const purchasesOpen = REVENUECAT_API_KEY.length > 0;
+/** Expo Go can't make purchases (the library only pretends there), so they stay closed in it. */
+const inExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+
+export const purchasesOpen = REVENUECAT_API_KEY.length > 0 && !inExpoGo;
 
 type Listener = (owned: boolean) => void;
 const listeners = new Set<Listener>();

@@ -13,6 +13,6 @@ export const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_OIrvxAzhhUstkuhlSEtLGg_t
  * - IOS: the App Store key (starts with `appl_`), added after Apple approval.
  * Empty means purchases aren't open yet.
  */
-const REVENUECAT_TEST_KEY = '';
+const REVENUECAT_TEST_KEY = 'test_KZsSLpbqdfkbWUpuGEsgbuhRxAf';
 const REVENUECAT_IOS_KEY = '';
 export const REVENUECAT_API_KEY = __DEV__ ? REVENUECAT_TEST_KEY || REVENUECAT_IOS_KEY : REVENUECAT_IOS_KEY;
