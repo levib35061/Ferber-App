@@ -51,6 +51,24 @@ Put it in **both** places:
 
 `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are provided to functions automatically.
 
+## RevenueCat in the app
+
+The purchase code is in `src/data/purchases.ts` and the unlock screen uses it as soon
+as a key is set in `src/config.ts`:
+
+- `REVENUECAT_TEST_KEY`: the **Test Store** key (RevenueCat → Apps & providers). Used in
+  development builds only; lets you buy the unlock with no App Store setup.
+- `REVENUECAT_IOS_KEY`: the App Store key (`appl_…`), after Apple approval.
+
+Both are public SDK keys. Never put a secret (`sk_…`) key in the app.
+
+In RevenueCat: entitlement **`unlock`**; product **`checkin_unlock`** attached to it; an
+offering (the "current" one) with one package for that product. The app buys the first
+package of the current offering.
+
+Expo Go can't make purchases (the library runs in a preview mode there); test buying in
+the development build.
+
 ## RevenueCat (after Apple approval)
 
 - Non-consumable product, e.g. `checkin_unlock`, $4.99, Family Sharing on (App Store Connect).

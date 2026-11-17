@@ -1,16 +1,18 @@
 /**
  * The one-time unlock ($4.99). Shown when starting a night after the free
- * nights, or from Settings → Unlock. Purchases are wired to RevenueCat after
- * Apple approval; until then the buttons explain that (and, in development,
+ * nights, or from Settings → Unlock. Buying and restoring go through
+ * RevenueCat (src/data/purchases.ts). Until an API key is set in config.ts,
+ * the buttons explain that purchases aren't open yet (and, in development,
  * offer a test unlock).
  */
 import { router } from 'expo-router';
-import React from 'react';
-import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
 import { useNightStore } from '../data/NightStore';
+import { buyUnlock, purchasesOpen, restoreUnlock, unlockPrice } from '../data/purchases';
 import { FREE_NIGHTS, UNLOCK_PRICE } from '../lib/trial';
 import { makeStyles, useTheme } from '../theme';
 
@@ -24,10 +26,30 @@ const PERKS = [
 export default function UnlockScreen() {
   const styles = useStyles();
   const { colors } = useTheme();
-  const { unlocked, freeNightsLeft, updateSetting } = useNightStore();
+  const { unlocked, freeNightsLeft, updateSetting, sync } = useNightStore();
+  const [busy, setBusy] = useState(false);
+  // The store's own price text (right currency for the country); falls back to $4.99.
+  const [price, setPrice] = useState(UNLOCK_PRICE);
+  useEffect(() => {
+    unlockPrice().then((p) => p && setPrice(p));
+  }, []);
   const close = () => (router.canGoBack() ? router.back() : router.replace('/'));
 
-  const purchase = () => {
+  const purchase = async () => {
+    if (purchasesOpen) {
+      setBusy(true);
+      try {
+        if ((await buyUnlock()) === 'bought') {
+          sync.checkUnlock().catch(() => {});
+          close();
+        }
+      } catch (e) {
+        Alert.alert("That didn't go through", e instanceof Error ? e.message : String(e));
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
     const buttons: { text: string; style?: 'cancel' | 'destructive'; onPress?: () => void }[] = [
       { text: 'OK', style: 'cancel' },
     ];
@@ -43,11 +65,31 @@ export default function UnlockScreen() {
     Alert.alert('Purchases open soon', 'Buying the unlock will be available once the app is in the App Store.', buttons);
   };
 
-  const restore = () =>
-    Alert.alert(
-      'Restore purchases',
-      "Purchases aren't live yet, so there's nothing to restore. This will work once the app is in the App Store.",
-    );
+  const restore = async () => {
+    if (!purchasesOpen) {
+      Alert.alert(
+        'Restore purchases',
+        "Purchases aren't live yet, so there's nothing to restore. This will work once the app is in the App Store.",
+      );
+      return;
+    }
+    setBusy(true);
+    try {
+      const owned = await restoreUnlock();
+      await sync.checkUnlock().catch(() => {});
+      if (owned) close();
+      else {
+        Alert.alert(
+          'Nothing to restore',
+          "We couldn't find a purchase for this Apple ID. If your partner bought the unlock, join their family in Settings → Partner sharing.",
+        );
+      }
+    } catch (e) {
+      Alert.alert("Couldn't restore", e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
@@ -97,16 +139,21 @@ export default function UnlockScreen() {
 
         {!unlocked && (
           <>
-            <Text style={styles.price}>{UNLOCK_PRICE} once</Text>
+            <Text style={styles.price}>{price} once</Text>
             <Text style={styles.priceSub}>No subscription, no ads. One purchase covers both parents.</Text>
             <Pressable
               onPress={purchase}
+              disabled={busy}
               accessibilityRole="button"
               style={({ pressed }) => [styles.buy, pressed && { opacity: 0.8 }]}
             >
-              <Text style={styles.buyText}>Unlock for {UNLOCK_PRICE}</Text>
+              {busy ? (
+                <ActivityIndicator color={colors.onPrimary} />
+              ) : (
+                <Text style={styles.buyText}>Unlock for {price}</Text>
+              )}
             </Pressable>
-            <Pressable onPress={restore} accessibilityRole="button" style={styles.restore} hitSlop={8}>
+            <Pressable onPress={restore} disabled={busy} accessibilityRole="button" style={styles.restore} hitSlop={8}>
               <Text style={styles.restoreText}>Restore purchases</Text>
             </Pressable>
             <Text style={styles.footnote}>

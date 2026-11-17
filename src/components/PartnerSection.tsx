@@ -9,6 +9,7 @@ import { ActivityIndicator, Alert, Pressable, Share, StyleSheet, Text, TextInput
 
 import { appleSignInAvailable, signInWithApple } from '../data/appleAuth';
 import { useNightStore } from '../data/NightStore';
+import { syncPurchaseAccount } from '../data/purchases';
 import { accountKind } from '../data/supabase';
 import { makeStyles, useTheme } from '../theme';
 
@@ -71,6 +72,8 @@ export function PartnerSection({ setup = false, onJoined }: { setup?: boolean; o
     setError(null);
     try {
       await fn();
+      // Sharing or signing in may have created or changed the account: keep purchases on it.
+      syncPurchaseAccount();
       await reload();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));

@@ -40,6 +40,7 @@ import {
   reconcileCheckInAlert,
   requestNotificationPermission,
 } from './notifications';
+import { onUnlockChange, ownsUnlock, startPurchases } from './purchases';
 import { SyncEngine, SyncStatus } from './sync';
 import { useNow } from '../components/useNow';
 import { useClockMode } from '../theme';
@@ -115,9 +116,15 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
   const busy = useRef(false);
   const [sync] = useState(() => new SyncEngine(db));
   const [syncStatus, setSyncStatus] = useState<SyncStatus>(() => sync.getStatus());
-  // Unlocked when the server says someone in the family bought it (written only by the
-  // RevenueCat webhook), or in development via the Testing toggle.
-  const unlocked = settings.devUnlocked || syncStatus.unlocked === true;
+  // Unlocked when this phone bought it (RevenueCat's verified customer info), when the
+  // server says someone in the family did (written only by the RevenueCat webhook), or
+  // in development via the Testing toggle.
+  const [purchased, setPurchased] = useState(ownsUnlock);
+  useEffect(() => {
+    startPurchases();
+    return onUnlockChange(setPurchased);
+  }, []);
+  const unlocked = settings.devUnlocked || purchased || syncStatus.unlocked === true;
 
   const chart = useMemo(() => chartForPreset(baby?.chartPreset ?? 'ferber', baby?.customChart), [baby]);
   const planned = plannedNumbers(prevNight, repeatLastNight);
