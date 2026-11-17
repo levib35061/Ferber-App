@@ -2,4 +2,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://levib35061.github.io/Ferber-App/sitemap.xml
+Sitemap: https://ferbertimer.com/sitemap.xml

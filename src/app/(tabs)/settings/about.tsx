@@ -16,7 +16,7 @@ import {
 import { useNightStore } from '../../../data/NightStore';
 import { useTheme } from '../../../theme';
 
-const SITE = 'https://levib35061.github.io/Ferber-App/';
+const SITE = 'https://ferbertimer.com/';
 const CONTACT = 'askcheckin@gmail.com';
 
 export default function AboutSettings() {

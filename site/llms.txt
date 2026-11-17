@@ -2,7 +2,7 @@
 
 > A practical, plain-language guide to the Ferber method (graduated extinction / progressive waiting / graduated check-ins) for parents of babies around 6 months and older, from the makers of Check In: Baby Sleep Timer, an iPhone timer for graduated check-ins. Not medical advice; parents should talk to their pediatrician first.
 
-Full guide: https://levib35061.github.io/Ferber-App/
+Full guide: https://ferbertimer.com/
 
 ## Key facts
 
@@ -29,11 +29,11 @@ After the last listed wait, keep repeating it. Verify against the current editio
 
 ## Free tools
 
-- Free Ferber method timer (runs in the browser, no download or sign-up): https://levib35061.github.io/Ferber-App/timer.html
-- Printable Ferber method chart, one page, with a PDF: https://levib35061.github.io/Ferber-App/chart.html
+- Free Ferber method timer (runs in the browser, no download or sign-up): https://ferbertimer.com/timer.html
+- Printable Ferber method chart, one page, with a PDF: https://ferbertimer.com/chart.html
 
 ## App
 
 - Check In: Baby Sleep Timer (iPhone). Counts down to each check-in using the chart for the current night (the timer starts when crying starts), alerts with the phone locked, logs every night and charts crying time, and syncs between two parents. Editable chart with a gentler preset. $4.99 one-time after 2 free nights; one purchase covers both parents; no subscription, ads or tracking. Coming soon to the App Store.
-- App help and FAQ (alerts, Focus modes, partner sharing, purchases, data): https://levib35061.github.io/Ferber-App/help.html
+- App help and FAQ (alerts, Focus modes, partner sharing, purchases, data): https://ferbertimer.com/help.html
 - Not affiliated with or endorsed by Dr. Richard Ferber.
