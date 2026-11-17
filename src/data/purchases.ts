@@ -19,6 +19,8 @@ import { ensureUserId, supabase } from './supabase';
 
 /** The entitlement configured in RevenueCat (same name as in the webhook). */
 export const ENTITLEMENT = 'unlock';
+/** The one-time unlock product (same id in the Test Store and the App Store). */
+export const PRODUCT_ID = 'checkin_unlock';
 
 /** Expo Go can't make purchases (the library only pretends there), so they stay closed in it. */
 const inExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
@@ -79,7 +81,10 @@ export async function syncPurchaseAccount(): Promise<void> {
 
 async function unlockPackage(): Promise<PurchasesPackage | null> {
   const offerings = await Purchases.getOfferings();
-  return offerings.current?.availablePackages[0] ?? null;
+  // Only ever our product: RevenueCat's sample products (e.g. a $99.99 "lifetime") must never be sold.
+  const all = Object.values(offerings.all).flatMap((o) => o.availablePackages);
+  const packages = [...(offerings.current?.availablePackages ?? []), ...all];
+  return packages.find((p) => p.product.identifier === PRODUCT_ID) ?? null;
 }
 
 /** The store's own price text (e.g. "$4.99", or the local currency), or null if it can't be loaded. */
