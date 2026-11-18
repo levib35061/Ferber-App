@@ -265,11 +265,26 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
   const kindNow = stateNow.kind;
 
   // Lock-screen Live Activity: follows the night state (see lib/liveActivity).
-  const activity = activityFor(stateNow);
+  // Only on the phone that gets the alerts (off duty: none), and only once loaded,
+  // so a cold start never ends the card that's already running.
+  const activityHere = alertsOnThisPhone(
+    dutyFor(night?.onDuty, syncStatus.userId, syncStatus.familyId != null && syncStatus.memberCount > 1),
+  );
+  const activity = ready && activityHere ? activityFor(stateNow) : null;
   const activityKey = JSON.stringify(activity);
   useEffect(() => {
+    if (!ready) return;
     reconcileLiveActivity(activity);
-  }, [activityKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [ready, activityKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // A new night starts at 11am (and the morning's night ends): re-read when the key changes.
+  const keyNow = nightKey(tick);
+  const firstKey = useRef(keyNow);
+  useEffect(() => {
+    if (keyNow === firstKey.current) return;
+    firstKey.current = keyNow;
+    reload();
+  }, [keyNow, reload]);
 
   const nightActive = activeKinds.includes(kindNow);
   // After "Up for the day" the night is over, even if it's before 7am.

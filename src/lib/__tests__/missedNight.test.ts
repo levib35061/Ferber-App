@@ -4,6 +4,7 @@ import { summarizeNight } from '../summary';
 import { totalSleepMs } from '../morning';
 
 const KEY = '2026-11-17';
+const NOW = new Date(2026, 10, 18, 12).getTime();
 const toEvents = (planned: { type: NightEvent['type']; at: number }[]): NightEvent[] =>
   planned.map((p, i) => ({ id: `e${String(i).padStart(3, '0')}`, nightId: 'n', type: p.type, at: p.at }));
 
@@ -11,6 +12,7 @@ describe('missedNightEvents', () => {
   it('builds a night that summarizes to what was entered', () => {
     const r = missedNightEvents({
       nightKey: KEY,
+      now: NOW,
       bedtime: { at: { h: 19, m: 30 }, cryingMin: 25, checkIns: 2 },
       wakings: [
         { at: { h: 2, m: 10 }, cryingMin: 9, checkIns: 1 },
@@ -29,6 +31,7 @@ describe('missedNightEvents', () => {
   it('handles a bedtime with no crying and no up time', () => {
     const r = missedNightEvents({
       nightKey: KEY,
+      now: NOW,
       bedtime: { at: { h: 20, m: 0 }, cryingMin: 0, checkIns: 3 },
       wakings: [],
       up: null,
@@ -41,6 +44,7 @@ describe('missedNightEvents', () => {
     expect(
       missedNightEvents({
         nightKey: KEY,
+        now: NOW,
         bedtime: { at: { h: 19, m: 30 }, cryingMin: 40, checkIns: 0 },
         wakings: [{ at: { h: 19, m: 50 }, cryingMin: 5, checkIns: 0 }],
         up: null,
@@ -49,6 +53,7 @@ describe('missedNightEvents', () => {
     expect(
       missedNightEvents({
         nightKey: KEY,
+        now: NOW,
         bedtime: { at: { h: 19, m: 30 }, cryingMin: 5, checkIns: 0 },
         wakings: [],
         up: { h: 19, m: 31 },
@@ -59,12 +64,37 @@ describe('missedNightEvents', () => {
     expect(maxCheckIns(5)).toBe(2);
     const r = missedNightEvents({
       nightKey: KEY,
+      now: NOW,
       bedtime: { at: { h: 19, m: 0 }, cryingMin: 4, checkIns: 9 },
       wakings: [],
       up: null,
     });
     if ('error' in r) throw new Error(r.error);
     expect(summarizeNight(toEvents(r.events)).checkIns).toBe(2);
+  });
+});
+
+describe('missed night: guards', () => {
+  it("rejects times that haven't happened yet (a night still going on)", () => {
+    const r = missedNightEvents({
+      nightKey: KEY,
+      now: new Date(2026, 10, 18, 3).getTime(),
+      bedtime: { at: { h: 19, m: 30 }, cryingMin: 10, checkIns: 0 },
+      wakings: [],
+      up: { h: 6, m: 30 },
+    });
+    expect(r).toHaveProperty('error');
+  });
+  it('accepts a waking in the same minute the baby fell asleep', () => {
+    const r = missedNightEvents({
+      nightKey: KEY,
+      now: NOW,
+      bedtime: { at: { h: 19, m: 30 }, cryingMin: 10, checkIns: 0 },
+      wakings: [{ at: { h: 19, m: 40 }, cryingMin: 5, checkIns: 0 }],
+      up: null,
+    });
+    if ('error' in r) throw new Error(r.error);
+    expect(summarizeNight(toEvents(r.events))).toMatchObject({ wakings: 1, cryingMinutes: 15 });
   });
 });
 

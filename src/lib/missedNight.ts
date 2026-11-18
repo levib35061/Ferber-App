@@ -24,6 +24,8 @@ export interface MissedStretch {
 
 export interface MissedNightInput {
   nightKey: string;
+  /** Times after this are rejected (the night may still be going on) */
+  now: number;
   bedtime: MissedStretch;
   wakings: MissedStretch[];
   /** Up for the day (optional) */
@@ -79,8 +81,9 @@ export function missedNightEvents(input: MissedNightInput): MissedNightResult {
   const wakings = [...input.wakings].sort((x, y) => at(x.at) - at(y.at));
   for (const w of wakings) {
     if (w.cryingMin < 0 || w.cryingMin > MAX_CRYING_MIN) return { error: 'Crying at a waking should be 0 to 240 minutes.' };
-    const woke = at(w.at);
-    if (woke <= asleep) return { error: 'Each waking should be after the baby was asleep again.' };
+    // A waking in the same minute the baby fell asleep is fine: place it just after.
+    if (at(w.at) < asleep - MIN + SEC) return { error: 'Each waking should be after the baby was asleep again.' };
+    const woke = Math.max(at(w.at), asleep + SEC);
     events.push({ type: 'woke', at: woke });
     if (w.cryingMin === 0) {
       // Settled straight away: no crying time.
@@ -97,6 +100,11 @@ export function missedNightEvents(input: MissedNightInput): MissedNightResult {
     const up = at(input.up);
     if (up <= asleep) return { error: 'Up for the day should be after the last time the baby fell asleep.' };
     events.push({ type: 'up', at: up });
+  }
+  if (events.some((e) => e.at > input.now)) {
+    return {
+      error: "Some of those times haven't happened yet. If tonight is still going on, log it from the Night tab instead.",
+    };
   }
   return { events };
 }

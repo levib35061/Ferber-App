@@ -10,6 +10,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useNow } from '../../components/useNow';
 import { createNight, insertEvent, listNightsWithEvents } from '../../data/db';
 import { useNightStore } from '../../data/NightStore';
 import {
@@ -38,6 +39,7 @@ export default function AddMissedNight() {
   const [up, setUp] = useState<ClockTime | null>({ h: 6, m: 30 });
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const now = useNow(30_000);
 
   useEffect(() => {
     if (!baby) return;
@@ -49,8 +51,8 @@ export default function AddMissedNight() {
   }, [db, baby]);
 
   const result = useMemo(
-    () => (key ? missedNightEvents({ nightKey: key, bedtime, wakings, up }) : null),
-    [key, bedtime, wakings, up],
+    () => (key ? missedNightEvents({ nightKey: key, now, bedtime, wakings, up }) : null),
+    [key, now, bedtime, wakings, up],
   );
 
   const save = async () => {

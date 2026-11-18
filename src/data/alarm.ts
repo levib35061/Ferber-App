@@ -3,6 +3,8 @@
  * screens aren't running (a silent push woke it in the background). The
  * on-screen store does the same in its reload().
  */
+import { activityFor } from '../lib/liveActivity';
+import { reconcileLiveActivity } from './liveActivity';
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import { chartForPreset } from '../lib/ferber';
@@ -24,4 +26,6 @@ export async function reconcileAlarmFromDb(
   const here = alertsOnThisPhone(dutyFor(night?.onDuty, who.userId, who.familyId != null && who.memberCount > 1));
   const state: NightState = night && here ? deriveNightState(events, chart, night.chartNight, Date.now()) : { kind: 'idle' };
   await reconcileCheckInAlert(state, night?.nightNumber ?? 1, { sound: settings.sound });
+  // The lock-screen card too (a partner's tap while this app is closed). Updating and ending work in the background.
+  await reconcileLiveActivity(activityFor(state));
 }

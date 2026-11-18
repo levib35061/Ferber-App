@@ -29,7 +29,7 @@ import {
   spokenDuration,
   spokenMinutes,
 } from '../../lib/time';
-import { ThemeProvider } from '../../theme';
+import { ThemeProvider, useTheme } from '../../theme';
 import { day, dayFonts } from '../../theme/day';
 import { colors, fonts, type } from '../../theme/night';
 
@@ -145,10 +145,14 @@ export default function NightScreen() {
 
   // Today is light, the night screen dark: set the status bar on the parent stack screen too.
   const nightScreen = store.ready && !showToday;
+  // The app-wide theme (this screen draws its own night theme below).
+  const { scheme: appScheme } = useTheme();
   useEffect(() => {
     // Other tabs follow the app theme (statusBarStyle in the root Stack's screenOptions).
-    navigation.getParent()?.setOptions({ statusBarStyle: focused ? (nightScreen ? 'light' : 'dark') : undefined });
-  }, [navigation, focused, nightScreen]);
+    navigation.getParent()?.setOptions({
+      statusBarStyle: focused ? (nightScreen ? 'light' : 'dark') : appScheme === 'dark' ? 'light' : 'dark',
+    });
+  }, [navigation, focused, nightScreen, appScheme]);
 
   if (!store.ready) return <View style={styles.root} />;
 
