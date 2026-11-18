@@ -83,6 +83,9 @@ create table public.events (
 create index babies_family_sync on public.babies (family_id, server_updated_at);
 create index nights_family_sync on public.nights (family_id, server_updated_at);
 create index events_family_sync on public.events (family_id, server_updated_at);
+create index events_night_id on public.events (night_id);
+create index families_created_by on public.families (created_by);
+create index nights_baby_id on public.nights (baby_id);
 
 -- Last write wins: ignore an update older than what's stored, and stamp
 -- server_updated_at so clients can pull "everything changed since X".
@@ -116,7 +119,7 @@ create policy "members read their family's members" on public.family_members
   for select to authenticated using (public.is_family_member(family_id));
 
 create policy "members leave a family" on public.family_members
-  for delete to authenticated using (user_id = auth.uid());
+  for delete to authenticated using (user_id = (select auth.uid()));
 
 create policy "members read babies" on public.babies for select to authenticated using (public.is_family_member(family_id));
 create policy "members add babies" on public.babies for insert to authenticated with check (public.is_family_member(family_id));
@@ -264,7 +267,7 @@ alter table public.push_tokens enable row level security;
 
 drop policy if exists "own push tokens" on public.push_tokens;
 create policy "own push tokens" on public.push_tokens
-  for all to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+  for all to authenticated using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
 
 -- Register this phone's push token for the signed-in user. A token moves to
 -- the new user if the phone signed in again (e.g. after a reinstall).
