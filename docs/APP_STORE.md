@@ -204,7 +204,7 @@ Still to do after Apple approval (`npm run preflight` checks the first two):
 
 - [ ] RevenueCat App Store key (`appl_…`) in `src/config.ts`. Without it the unlock says "Purchases open soon", which Apple rejects as incomplete
 - [ ] `npx eas-cli@latest init` (EAS project id, needed for push)
-- [ ] Revoke the Apple sign-in token when an account is deleted (Apple requires it for Sign in with Apple; needs the Apple key, see `docs/SERVER.md`)
+- [ ] Revoking the Apple sign-in on account deletion is built and deployed; set the Apple key secrets (`docs/SERVER.md` → "After Apple approval") so it actually runs
 - [ ] Submit the `checkin_unlock` in-app purchase together with the first app version (Apple reviews them together)
 - [ ] Review notes (above) pasted into App Store Connect
 - [ ] If Apple emails about missing privacy-manifest reasons after the first upload, add them under `ios.privacyManifests` in `app.json`

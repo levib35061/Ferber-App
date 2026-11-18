@@ -176,8 +176,14 @@ export class SyncEngine {
   async deleteAccount(): Promise<void> {
     const { data } = await supabase.auth.getSession();
     if (data.session) {
-      const { error } = await supabase.rpc('delete_my_account');
-      if (error) throw new Error(error.message);
+      // The server revokes any Sign in with Apple token with Apple, then deletes
+      // the account and its data (supabase/functions/delete-account).
+      const { data: res, error } = await supabase.functions.invoke('delete-account', { method: 'POST' });
+      if (error || !(res as { ok?: boolean } | null)?.ok) {
+        throw new Error(
+          (res as { error?: string } | null)?.error ?? "Couldn't reach the server to delete your account. Please try again.",
+        );
+      }
       await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
     }
     this.unsubscribe();

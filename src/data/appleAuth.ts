@@ -5,6 +5,10 @@
  * An older anonymous account is upgraded in place (linkIdentity), so its
  * family, nights and any unlock stay attached to the same user id.
  *
+ * After signing in, Apple's one-time authorization code goes to the server
+ * (supabase/functions/apple-token), which keeps a token so the sign-in can be
+ * revoked with Apple if the account is ever deleted (Apple's requirement).
+ *
  * Supabase setup: Authentication → Sign In / Providers → Apple → enabled, with
  * Client IDs "com.levibrown.checkin,host.exp.Exponent" (the second is Expo Go).
  */
@@ -39,10 +43,20 @@ export async function signInWithApple(): Promise<string | null> {
   if (current.session?.user.is_anonymous) {
     // Upgrade the existing anonymous account, keeping its id.
     const { data, error } = await supabase.auth.linkIdentity({ provider: 'apple', token, nonce: rawNonce });
-    if (!error && data.user) return data.user.id;
+    if (!error && data.user) {
+      saveAppleToken(credential.authorizationCode);
+      return data.user.id;
+    }
     // That Apple ID already belongs to another account: sign in to that one instead.
   }
   const { data, error } = await supabase.auth.signInWithIdToken({ provider: 'apple', token, nonce: rawNonce });
   if (error || !data.user) throw new Error(error?.message ?? 'Sign in with Apple failed.');
+  saveAppleToken(credential.authorizationCode);
   return data.user.id;
+}
+
+/** Best effort and in the background: sign-in never waits on it. */
+function saveAppleToken(code: string | null) {
+  if (!code) return;
+  supabase.functions.invoke('apple-token', { body: { code } }).catch(() => {});
 }

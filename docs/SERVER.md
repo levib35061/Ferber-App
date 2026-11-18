@@ -17,6 +17,8 @@ A brand-new project runs `supabase/schema.sql` instead (it includes all migratio
 | Function | What it does | Verify JWT |
 | --- | --- | --- |
 | `revenuecat-webhook` | RevenueCat calls it on purchase / restore (transfer) / refund; it's the only writer of `unlocks`. If anyone in a family has an active unlock, the whole family is unlocked. | **Off** (RevenueCat can't send a Supabase login; it sends our shared secret instead) |
+| `delete-account` | "Delete my account and data": revokes the Apple sign-in with Apple (if any), then deletes the account via `delete_user_account()` (server-only). | **On** |
+| `apple-token` | After Sign in with Apple, swaps Apple's one-time code for a refresh token kept in `apple_tokens`, so deletion can revoke it. | **On** |
 | `partner-push` | The app calls it after uploading taps or a duty hand-off; it sends the partner's phones a silent push (so a closed app re-syncs and fixes its alert) and, for "asleep", "up for the day" and "you're on duty", a quiet visible line. | **On** |
 
 Logic is in each function's `logic.ts` (tested in `supabase/functions/__tests__/`);
@@ -95,9 +97,22 @@ nights) so it survives a reinstall or a new phone. The app asks Apple for no nam
   for testing). No secret key is needed for the native sign-in.
 - Supabase → Authentication → Sign In / Providers → "Allow anonymous sign-ins" must be
   **on**. Supabase limits anonymous sign-ups per IP address (Authentication → Rate Limits).
-- **Before App Store submission:** Apple requires revoking the Apple token when an
-  account is deleted. That needs an Apple "Sign in with Apple" key (after approval);
-  add a revoke step to account deletion then.
+- **Revoking Apple sign-ins on account deletion** (Apple's requirement) is built and
+  deployed: the app sends Apple's one-time code to `apple-token` after signing in, which
+  stores a refresh token in `apple_tokens` (server-only); `delete-account` revokes it with
+  Apple, then deletes the account. Until the key below is set, both skip the Apple step.
+
+### After Apple approval: the Sign in with Apple key
+
+1. Apple Developer → Certificates, Identifiers & Profiles → **Keys** → **+** → name it
+   "Check In sign-in", tick **Sign in with Apple**, Configure → primary App ID
+   `com.levibrown.checkin` → Save → Continue → Register → **Download** the `.p8` file
+   (Apple lets you download it only once). Note the **Key ID**, and your **Team ID**
+   (top right of the developer site).
+2. Set the secrets (Claude can do this with the Supabase connector, or in Terminal):
+   `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` (the whole `.p8` file, including
+   the BEGIN/END lines). `APPLE_CLIENT_ID` defaults to `com.levibrown.checkin`.
+3. Sign in with Apple once on the development build; `apple_tokens` should get a row.
 
 Login sessions are stored in the iOS Keychain (`src/data/supabase.ts`).
 

@@ -66,7 +66,7 @@ npm run lint
 - [x] Partner sharing: invite code, join, two-way sync, realtime, offline catch-up (Sign in with Apple optional)
 - [x] Sign in with Apple for partner sharing (Supabase Apple provider must be enabled; see `docs/SERVER.md`)
 - [x] Login session stored in the iOS Keychain
-- [ ] Revoke the Apple token on account deletion (Apple requirement; needs the Apple key after approval)
+- [x] Revoke the Apple sign-in on account deletion: built and deployed (`apple-token`, `delete-account`, migration 009); needs the Apple key secrets after approval
 - [x] Server code written and tested: `revenuecat-webhook`, `partner-push` (see `docs/SERVER.md`)
 - [x] Migration 005 run; both Edge Functions deployed; RevenueCat webhook connected with its shared secret (Nov 18)
 - [x] EAS project linked (`eas init`)
