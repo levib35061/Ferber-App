@@ -71,7 +71,7 @@ npm run lint
 - [x] Migration 005 run; both Edge Functions deployed; RevenueCat webhook connected with its shared secret (Nov 18)
 - [x] EAS project linked (`eas init`)
 - [ ] Push setup and App Store RevenueCat key (after Apple approval)
-- [ ] Live Activity (lock screen + Dynamic Island countdown) with `expo-widgets`, after the development build; confirm the countdown can tick while the app is closed. Partner-driven updates would need ActivityKit pushes from the server
+- [ ] Live Activity (lock screen + Dynamic Island countdown) with `expo-widgets`, after the development build. Design: option C (big timer + Going in / Asleep buttons, peach 'I'm going in / Wait longer' when due) if Live Activity buttons are supported, otherwise option B (ring + check-in dots, matching the night screen); confirm the countdown can tick while the app is closed. Partner-driven updates would need ActivityKit pushes from the server
 - [x] Free trial (2 nights) and unlock screen (`src/app/unlock.tsx`, rules in `src/lib/trial.ts`); dev toggle in Settings → Testing
 - [x] RevenueCat purchase and restore code wired into the unlock screen (`src/data/purchases.ts`)
 - [ ] RevenueCat keys in `src/config.ts`, product + entitlement set up, tested in a development build
