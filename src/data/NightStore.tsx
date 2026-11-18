@@ -42,6 +42,7 @@ import {
   requestNotificationPermission,
 } from './notifications';
 import { onUnlockChange, ownsUnlock, startPurchases } from './purchases';
+import { DEMO_TOOLS } from '../config';
 import { SyncEngine, SyncStatus } from './sync';
 import { reconcileLiveActivity } from './liveActivity';
 import { useNow } from '../components/useNow';
@@ -126,7 +127,8 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
     startPurchases();
     return onUnlockChange(setPurchased);
   }, []);
-  const unlocked = settings.devUnlocked || purchased || syncStatus.unlocked === true;
+  // The test toggle only counts where it can be seen (development and screenshot builds).
+  const unlocked = ((__DEV__ || DEMO_TOOLS) && settings.devUnlocked) || purchased || syncStatus.unlocked === true;
 
   const chart = useMemo(() => chartForPreset(baby?.chartPreset ?? 'ferber', baby?.customChart), [baby]);
   const planned = plannedNumbers(prevNight, repeatLastNight);
