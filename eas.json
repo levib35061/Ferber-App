@@ -7,13 +7,24 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "ios": { "resourceClass": "default" }
+      "ios": {
+        "resourceClass": "default"
+      }
     },
     "preview": {
       "distribution": "internal"
     },
     "production": {
       "autoIncrement": true
+    },
+    "screenshots": {
+      "distribution": "internal",
+      "ios": {
+        "simulator": true
+      },
+      "env": {
+        "EXPO_PUBLIC_DEMO_TOOLS": "1"
+      }
     }
   },
   "submit": {

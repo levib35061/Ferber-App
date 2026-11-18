@@ -14,6 +14,9 @@ if (/['"]sb_secret_/.test(config)) problems.push('A Supabase secret key is in sr
 if (!app.extra?.eas?.projectId) problems.push('No EAS project id in app.json (run `npx eas-cli@latest init`); push notifications need it.');
 if (app.ios?.infoPlist?.ITSAppUsesNonExemptEncryption !== false) problems.push('ITSAppUsesNonExemptEncryption should be false in app.json.');
 
+const eas = JSON.parse(fs.readFileSync(path.join(root, 'eas.json'), 'utf8'));
+if (eas.build?.production?.env?.EXPO_PUBLIC_DEMO_TOOLS) problems.push('The production build profile turns on demo tools. Remove EXPO_PUBLIC_DEMO_TOOLS from it.');
+
 if (problems.length) {
   console.error('Not ready for the App Store:\n- ' + problems.join('\n- '));
   process.exit(1);

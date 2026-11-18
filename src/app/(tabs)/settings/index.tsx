@@ -7,6 +7,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Icon, SettingsPage, TopicRow } from '../../../components/SettingsUI';
+import { DEMO_TOOLS } from '../../../config';
 import { useNightStore } from '../../../data/NightStore';
 import { ageInMonths } from '../../../lib/time';
 import { makeStyles, useTheme } from '../../../theme';
@@ -90,7 +91,7 @@ export default function SettingsHome() {
         description="How it works, privacy, contact"
         onPress={() => router.push('/settings/about')}
       />
-      {__DEV__ && (
+      {(__DEV__ || DEMO_TOOLS) && (
         <TopicRow
           icon="flask"
           title="Testing"

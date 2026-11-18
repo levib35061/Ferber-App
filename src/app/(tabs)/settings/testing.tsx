@@ -6,6 +6,7 @@ import { Alert, Text, View } from 'react-native';
 import { Card, SettingsButton, SettingsPage, SwitchRow, useSettingsStyles } from '../../../components/SettingsUI';
 import { eraseAllNights, loadSampleNights } from '../../../data/db';
 import { useNightStore } from '../../../data/NightStore';
+import { DEMO_TOOLS } from '../../../config';
 import { buildSampleWeek } from '../../../lib/sampleWeek';
 import { localDateString, nightKey } from '../../../lib/time';
 import { useTheme } from '../../../theme';
@@ -15,7 +16,7 @@ export default function TestingSettings() {
   const { colors } = useTheme();
   const db = useSQLiteContext();
   const { baby, saveBaby, reload, settings, updateSetting, nightsUsed } = useNightStore();
-  if (!__DEV__ || !baby) return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
+  if (!(__DEV__ || DEMO_TOOLS) || !baby) return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
 
   return (
     <SettingsPage title="Testing">

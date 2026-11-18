@@ -13,6 +13,13 @@ export const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_OIrvxAzhhUstkuhlSEtLGg_t
  * - IOS: the App Store key (starts with `appl_`), added after Apple approval.
  * Empty means purchases aren't open yet.
  */
+/**
+ * Screenshot builds only (the "screenshots" profile in eas.json): shows the
+ * Testing page so a sample week can be loaded on a simulator. Never set in
+ * App Store builds.
+ */
+export const DEMO_TOOLS = process.env.EXPO_PUBLIC_DEMO_TOOLS === '1';
+
 const REVENUECAT_TEST_KEY = 'test_KZsSLpbqdfkbWUpuGEsgbuhRxAf';
 const REVENUECAT_IOS_KEY = '';
 export const REVENUECAT_API_KEY = __DEV__ ? REVENUECAT_TEST_KEY || REVENUECAT_IOS_KEY : REVENUECAT_IOS_KEY;
