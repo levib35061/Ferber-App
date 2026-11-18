@@ -12,21 +12,20 @@
  * while the app is asleep, the system marks the activity stale (staleDate =
  * due time) and it switches to "Time to check in" by itself.
  *
- * Button taps reach the app through addUserInteractionListener (target = the
- * event type to log); the app writes the event and updates this activity.
+ * The buttons are links: tapping one opens the app (after Face ID if locked)
+ * and logs that step (src/app/la.tsx). Interactive no-unlock buttons were
+ * tried, but iOS suspends the app before the tap can be saved.
  */
-import { Button, HStack, Image, Spacer, Text, VStack } from '@expo/ui/swift-ui';
+import { HStack, Image, Link, Spacer, Text, VStack } from '@expo/ui/swift-ui';
 import {
   activityBackgroundTint,
-  buttonBorderShape,
-  buttonStyle,
-  controlSize,
+  background,
   font,
   foregroundStyle,
   frame,
   monospacedDigit,
   padding,
-  tint,
+  shapes,
 } from '@expo/ui/swift-ui/modifiers';
 import { createLiveActivity, type LiveActivityEnvironment } from 'expo-widgets';
 
@@ -79,19 +78,21 @@ const NightActivity = (props: NightActivityProps, environment: LiveActivityEnvir
       modifiers={[font({ size, weight: 'light', design: 'rounded' }), monospacedDigit(), foregroundStyle(TEXT)]}
     />
   );
+  // Each button opens the app at checkin://la?action=<event>, which logs it
+  // (src/app/la.tsx). iOS asks for Face ID first when the phone is locked.
   const button = (b: { label: string; target: string }, filled: boolean) => (
-    <Button
-      label={b.label}
-      target={b.target}
-      modifiers={[
-        buttonStyle('borderedProminent'),
-        buttonBorderShape('capsule'),
-        controlSize('large'),
-        tint(filled ? accent : BUTTON),
-        foregroundStyle(filled ? '#0A0918' : TEXT),
-        frame({ maxWidth: 150 }),
-      ]}
-    />
+    <Link destination={`checkin://la?action=${b.target}`}>
+      <Text
+        modifiers={[
+          font({ size: 16, weight: 'semibold', design: 'rounded' }),
+          foregroundStyle(filled ? '#0A0918' : TEXT),
+          frame({ width: 132, height: 40 }),
+          background(filled ? accent : BUTTON, shapes.capsule()),
+        ]}
+      >
+        {b.label}
+      </Text>
+    </Link>
   );
 
   return {

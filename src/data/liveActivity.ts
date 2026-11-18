@@ -1,6 +1,6 @@
 /**
  * Starts, updates and ends the lock-screen Live Activity (src/widgets/NightActivity.tsx)
- * so it always matches the night state, and turns its button taps into events.
+ * so it always matches the night state. Its buttons open the app (src/app/la.tsx).
  *
  * Best effort: Live Activities can be turned off by the user, need iOS 16.2+,
  * and don't exist in Expo Go. The scheduled check-in notification stays the
@@ -58,14 +58,4 @@ async function apply(plan: ActivityPlan | null) {
   if (sameActivity(shown, plan.props)) return;
   await running[0].update(plan.props, stale);
   shown = plan.props;
-}
-
-/** Lock-screen button taps (target = event type). Returns an unsubscribe function. */
-export function onLiveActivityTap(handler: (target: string) => void): () => void {
-  const m = load();
-  if (!m) return () => {};
-  const sub = m.widgets.addUserInteractionListener((e) => {
-    if (e.source === 'NightActivity' && e.target) handler(e.target);
-  });
-  return () => sub.remove();
 }
