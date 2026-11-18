@@ -79,7 +79,14 @@ function ShellFrame() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.bg },
+          // The app is always in iOS dark mode (app.json), so each screen sets its bar style.
+          statusBarStyle: scheme === 'dark' ? 'light' : 'dark',
+        }}
+      >
         <Stack.Screen name="unlock" options={{ presentation: 'modal' }} />
       </Stack>
     </View>

@@ -13,7 +13,8 @@ export function trendLine(points: NightPoint[]): string {
   if (nights.length < 2) return 'Log a couple of nights to see a trend.';
   const first = nights[0];
   const last = nights[nights.length - 1];
-  const since = `since night ${first.nightNumber}`;
+  // No-break space: "night" and its number never split across lines.
+  const since = `since night\u00A0${first.nightNumber}`;
   if (first.cryingMinutes === 0) {
     return last.cryingMinutes === 0
       ? 'No crying logged yet. Nice.'

@@ -33,6 +33,6 @@ describe('sample week', () => {
 
   it('gives the expected trend line', () => {
     const pts = SAMPLE_WEEK.map((s, i) => ({ nightNumber: i + 1, ...s.expected }));
-    expect(trendLine(pts)).toBe('Crying time is down 93% since night 1.');
+    expect(trendLine(pts)).toBe('Crying time is down 93% since night\u00A01.');
   });
 });

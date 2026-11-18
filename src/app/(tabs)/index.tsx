@@ -143,6 +143,13 @@ export default function NightScreen() {
     });
   }, [navigation, showToday]);
 
+  // Today is light, the night screen dark: set the status bar on the parent stack screen too.
+  const nightScreen = store.ready && !showToday;
+  useEffect(() => {
+    // Other tabs follow the app theme (statusBarStyle in the root Stack's screenOptions).
+    navigation.getParent()?.setOptions({ statusBarStyle: focused ? (nightScreen ? 'light' : 'dark') : undefined });
+  }, [navigation, focused, nightScreen]);
+
   if (!store.ready) return <View style={styles.root} />;
 
   if (showToday && lastNights) {

@@ -8,10 +8,10 @@ describe('trendLine', () => {
     expect(trendLine([p(1, 40)])).toMatch(/couple of nights/);
   });
   it('reports a drop since night 1, using the latest night', () => {
-    expect(trendLine([p(3, 16), p(1, 40), p(2, 30)])).toBe('Crying time is down 60% since night 1.');
+    expect(trendLine([p(3, 16), p(1, 40), p(2, 30)])).toBe('Crying time is down 60% since night\u00A01.');
   });
   it('reports a rise gently', () => {
-    expect(trendLine([p(1, 20), p(2, 30)])).toMatch(/^Crying time is up 50% since night 1\./);
+    expect(trendLine([p(1, 20), p(2, 30)])).toMatch(/^Crying time is up 50% since night\u00A01\./);
   });
   it('calls small changes the same', () => {
     expect(trendLine([p(1, 40), p(2, 38)])).toBe('Crying time is about the same as night 1.');
