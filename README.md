@@ -68,7 +68,9 @@ npm run lint
 - [x] Login session stored in the iOS Keychain
 - [ ] Revoke the Apple token on account deletion (Apple requirement; needs the Apple key after approval)
 - [x] Server code written and tested: `revenuecat-webhook`, `partner-push` (see `docs/SERVER.md`)
-- [ ] Turn on: run migration 005, deploy the two functions, RevenueCat + push setup (after Apple approval)
+- [x] Migration 005 run; both Edge Functions deployed; RevenueCat webhook connected with its shared secret (Nov 18)
+- [x] EAS project linked (`eas init`)
+- [ ] Push setup and App Store RevenueCat key (after Apple approval)
 - [x] Free trial (2 nights) and unlock screen (`src/app/unlock.tsx`, rules in `src/lib/trial.ts`); dev toggle in Settings → Testing
 - [x] RevenueCat purchase and restore code wired into the unlock screen (`src/data/purchases.ts`)
 - [ ] RevenueCat keys in `src/config.ts`, product + entitlement set up, tested in a development build
