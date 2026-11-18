@@ -43,3 +43,7 @@ tools/video/*.mp3
 tools/video/*.mp4
 tools/video/*.png
 tools/video/*.words.json
+
+# Supabase CLI local state
+supabase/.temp/
+supabase/.branches/
