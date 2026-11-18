@@ -51,7 +51,7 @@ The stack is Expo (React Native + TypeScript), built in Claude Code on the web, 
 
 The wait before each check-in comes from the night number and how many check-ins have already happened in this episode. After the last listed interval, every further wait repeats it.
 
-**Default chart (minutes)**, the widely cited progressive-waiting chart from Ferber's *Solve Your Child's Sleep Problems* (from memory, approximate; verify against the book before launch):
+**Default chart (minutes)**, the widely cited progressive-waiting chart from Ferber's *Solve Your Child's Sleep Problems* (checked against the book, Nov 2026):
 
 | Night | 1st wait | 2nd wait | 3rd and later |
 | --- | --- | --- | --- |

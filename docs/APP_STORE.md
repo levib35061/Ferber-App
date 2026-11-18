@@ -182,3 +182,29 @@ results, so they carry the message on their own:
 In App Store Connect, submit a Featuring Nomination at least two weeks before launch.
 Lead with: a parent built it during their own sleep training; a calm, dim night design
 with VoiceOver and large-text support; pay once, no ads, no tracking.
+
+## App Review check (Nov 18, 2026)
+
+Fixed or already in place:
+
+- [x] Restore purchases: on the unlock screen, reachable any time from Settings → Unlock
+- [x] Account deletion in the app: Settings → Help & about → Delete my account and data
+- [x] Sign in with Apple is optional and the only sign-in, with Apple's own button
+- [x] No account needed to use the app
+- [x] Privacy policy, help and contact links in Settings → Help & about
+- [x] Medical caution: pediatrician note in setup, under-6-months warning, "not medical advice"
+- [x] Developer-only settings (Testing, test unlock) are hidden in App Store builds
+- [x] iPhone only (`supportsTablet: false`)
+- [x] Privacy manifest reasons in `app.json` (`ios.privacyManifests`, copied from the libraries' own manifests)
+- [x] "Save Image" from the share card: photo-library permission text added (without it the app would crash)
+- [x] Export compliance: `ITSAppUsesNonExemptEncryption: false` (only standard HTTPS), so no question on each upload
+- [x] Rating prompt uses Apple's own prompt, only after a good morning
+
+Still to do after Apple approval (`npm run preflight` checks the first two):
+
+- [ ] RevenueCat App Store key (`appl_…`) in `src/config.ts`. Without it the unlock says "Purchases open soon", which Apple rejects as incomplete
+- [ ] `npx eas-cli@latest init` (EAS project id, needed for push)
+- [ ] Revoke the Apple sign-in token when an account is deleted (Apple requires it for Sign in with Apple; needs the Apple key, see `docs/SERVER.md`)
+- [ ] Submit the `checkin_unlock` in-app purchase together with the first app version (Apple reviews them together)
+- [ ] Review notes (above) pasted into App Store Connect
+- [ ] If Apple emails about missing privacy-manifest reasons after the first upload, add them under `ios.privacyManifests` in `app.json`

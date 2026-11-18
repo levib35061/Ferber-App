@@ -48,7 +48,8 @@
     "test": "jest",
     "typecheck": "tsc --noEmit",
     "lint": "expo lint",
-    "test:sync": "SYNC_E2E=1 jest -c jest.e2e.config.js"
+    "test:sync": "SYNC_E2E=1 jest -c jest.e2e.config.js",
+    "preflight": "node scripts/preflight.js"
   },
   "private": true,
   "jest": {

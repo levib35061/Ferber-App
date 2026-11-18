@@ -10,7 +10,7 @@ export type ChartPreset = 'ferber' | 'gentle' | 'custom';
 
 /**
  * Default progressive-waiting chart (minutes).
- * From memory, approximate — VERIFY AGAINST THE BOOK BEFORE LAUNCH.
+ * Checked against Ferber's book (Nov 2026). The site's tools and pages embed it too (site.test.ts).
  * Row index 0 = night 1. The last row applies to every night past it.
  */
 export const FERBER_DEFAULT_CHART: Chart = [
