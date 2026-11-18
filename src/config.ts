@@ -21,5 +21,5 @@ export const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_OIrvxAzhhUstkuhlSEtLGg_t
 export const DEMO_TOOLS = process.env.EXPO_PUBLIC_DEMO_TOOLS === '1';
 
 const REVENUECAT_TEST_KEY = 'test_KZsSLpbqdfkbWUpuGEsgbuhRxAf';
-const REVENUECAT_IOS_KEY = '';
+const REVENUECAT_IOS_KEY = 'appl_WcuhoJeZUvOKjeCKqHQgctnoVck';
 export const REVENUECAT_API_KEY = __DEV__ ? REVENUECAT_TEST_KEY || REVENUECAT_IOS_KEY : REVENUECAT_IOS_KEY;
