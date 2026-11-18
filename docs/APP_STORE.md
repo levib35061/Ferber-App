@@ -212,7 +212,9 @@ Done after Apple approval (Nov 18):
 
 Before submitting version 1.0:
 
-- [ ] Version page: build selected (the latest TestFlight build), "What's New", copyright
-- [ ] App Review information: no sign-in required, contact details, review notes (above)
-- [ ] In-App Purchases section on the version page: add `checkin_unlock` so it's reviewed with the app
+- [x] Version page: build 4 selected, text, URLs, copyright, manual release
+- [x] App Review information: no sign-in required, contact details, review notes (with the Live Activity line)
+- [x] `checkin_unlock` added to the draft submission (reviewed with the app)
+- [ ] After friends' testing: pick the newest build, **Add for Review**, then **Submit for Review**
+- [ ] Optional: header image (3840 × 1646) for the product page
 - [ ] If Apple emails about missing privacy-manifest reasons after an upload, add them under `ios.privacyManifests` in `app.json`
