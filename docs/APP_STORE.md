@@ -200,11 +200,19 @@ Fixed or already in place:
 - [x] Export compliance: `ITSAppUsesNonExemptEncryption: false` (only standard HTTPS), so no question on each upload
 - [x] Rating prompt uses Apple's own prompt, only after a good morning
 
-Still to do after Apple approval (`npm run preflight` checks the first two):
+Done after Apple approval (Nov 18):
 
-- [ ] RevenueCat App Store key (`appl_…`) in `src/config.ts`. Without it the unlock says "Purchases open soon", which Apple rejects as incomplete
-- [ ] `npx eas-cli@latest init` (EAS project id, needed for push)
-- [ ] Revoking the Apple sign-in on account deletion is built and deployed; set the Apple key secrets (`docs/SERVER.md` → "After Apple approval") so it actually runs
-- [ ] Submit the `checkin_unlock` in-app purchase together with the first app version (Apple reviews them together)
-- [ ] Review notes (above) pasted into App Store Connect
-- [ ] If Apple emails about missing privacy-manifest reasons after the first upload, add them under `ios.privacyManifests` in `app.json`
+- [x] RevenueCat App Store key in `src/config.ts`; App Store app, In-App Purchase key and `checkin_unlock` product in RevenueCat; test purchase reached `unlocks` through the webhook
+- [x] EAS project, push key, development build, Live Activity (widget extension + app group)
+- [x] Sign in with Apple key secrets set; `apple_tokens` gets a row after sign-in
+- [x] App created in App Store Connect; `checkin_unlock` created ($4.99, Family Sharing on, review screenshot uploaded)
+- [x] Paid Apps agreement, Small Business Program, App Privacy, App Information, pricing (free)
+- [x] Screenshots uploaded (`docs/app-store-screenshots/1206x2622/`)
+- [x] TestFlight: build 3 in beta review for the "Friends & Family" group
+
+Before submitting version 1.0:
+
+- [ ] Version page: build selected (the latest TestFlight build), "What's New", copyright
+- [ ] App Review information: no sign-in required, contact details, review notes (above)
+- [ ] In-App Purchases section on the version page: add `checkin_unlock` so it's reviewed with the app
+- [ ] If Apple emails about missing privacy-manifest reasons after an upload, add them under `ios.privacyManifests` in `app.json`
