@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
 import { useNightStore } from '../data/NightStore';
-import { buyUnlock, purchasesOpen, restoreUnlock, unlockPrice } from '../data/purchases';
+import { buyUnlock, purchasesOpen, redeemCode, restoreUnlock, unlockPrice } from '../data/purchases';
 import { FREE_NIGHTS, UNLOCK_PRICE } from '../lib/trial';
 import { makeStyles, useTheme } from '../theme';
 
@@ -156,6 +156,21 @@ export default function UnlockScreen() {
             <Pressable onPress={restore} disabled={busy} accessibilityRole="button" style={styles.restore} hitSlop={8}>
               <Text style={styles.restoreText}>Restore purchases</Text>
             </Pressable>
+            {purchasesOpen && (
+              <Pressable
+                onPress={() =>
+                  redeemCode().catch((e) =>
+                    Alert.alert("Couldn't open the code sheet", e instanceof Error ? e.message : String(e)),
+                  )
+                }
+                disabled={busy}
+                accessibilityRole="button"
+                style={styles.restore}
+                hitSlop={8}
+              >
+                <Text style={styles.restoreText}>Have a code?</Text>
+              </Pressable>
+            )}
             <Text style={styles.footnote}>
               Your history, Today and Progress stay viewable either way. Family Sharing is supported.
             </Text>

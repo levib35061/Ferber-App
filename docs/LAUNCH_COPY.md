@@ -132,25 +132,25 @@ codes for one-time purchases taking 48 to 72 hours to start working.
 ```
 Hi [first name],
 
-I'm [your name], a parent who built Check In, an iPhone app for families doing the Ferber method (graduated check-ins). I came across your work on [their website / Instagram] and saw that you use check-ins with families.
+I'm Levi Brown, a parent who built Check In, an iPhone app for families doing the Ferber method (graduated check-ins). I came across your work on [their website / Instagram] and saw that you use check-ins with families.
 
 Check In does the counting at 2am: it times each wait (only while the baby is crying), restarts the waits at night wakings, alerts the parent on the lock screen, and keeps both parents' phones in sync, with one parent "on duty" each night. The waits are fully editable, so it can follow your plan rather than a standard chart.
 
-I'd like to offer your clients the full app for free. They can enter the code [CODE] in the App Store (it unlocks everything; no subscription, no ads, no tracking).
+I'd like to offer your clients the full app for free. They can open the app, tap Unlock, then "Have a code?" and enter [CODE] (it unlocks everything; no subscription, no ads, no tracking).
 
 Here's the app: [App Store link]
 And a 2-minute walkthrough: [YouTube video 3 link]
 
 If it's not a fit for how you work, no problem at all, and thanks for reading.
 
-[Your name]
+Levi Brown
 Check In · ferbertimer.com
 ```
 
 **Follow-up**, once only, a week later if there's no reply:
 
 ```
-Hi [first name], just bumping this in case it got buried. Happy to set up a code just for your clients, or to change anything about the app that would make it fit your plans better. [Your name]
+Hi [first name], just bumping this in case it got buried. Happy to set up a code just for your clients, or to change anything about the app that would make it fit your plans better. Levi Brown
 ```
 
 ---
@@ -195,5 +195,41 @@ Website: https://ferbertimer.com
 I'm happy to send a free code so you can try the full app, and to answer any questions.
 
 Thanks,
-[Your name]
+Levi Brown
 ```
+
+---
+
+## Free unlocks
+
+### Beta testers (TestFlight): nothing to set up
+
+Purchases inside a TestFlight build are Apple test purchases: the tester taps
+**Unlock for $4.99**, confirms, and is **never charged**. So friends in the beta can unlock
+everything for free with no codes.
+
+- Invite them as **external testers** (App Store Connect → TestFlight). You can send each
+  an email invite, or make one public link to text around. Up to 10,000 testers.
+- Apple briefly reviews the first beta build before outside testers can install it
+  (usually about a day).
+- Testers install Apple's **TestFlight** app, then Check In from it.
+- Their unlock is stored on our server, so when they later switch to the App Store
+  version on the same phone, they **stay unlocked**: a thank-you for testing. (If you'd
+  rather not, the webhook can ignore test purchases; say so before the beta.)
+
+### After launch: free codes
+
+For sleep consultants' clients, press, giveaways and friends who missed the beta:
+
+1. App Store Connect → your app → **In-App Purchases** → `checkin_unlock` → **Offer Codes**.
+2. Choose either:
+   - **one custom code** that many people can use, like `SLEEPCOACH`, with a limit on how
+     many times it can be redeemed, or
+   - **a batch of single-use codes**, one per person, so a code can't be passed around.
+3. Make them **free**, and create them **at least 3 days** before you hand them out.
+   Developers have reported free codes for one-time purchases taking 48 to 72 hours to
+   start working.
+
+**How someone uses a code:** open Check In → **Unlock** → **Have a code?** → enter it. Or in
+the App Store app: tap their profile picture → **Redeem Gift Card or Code**. Either way
+the app unlocks, and so does their partner's phone if they share.

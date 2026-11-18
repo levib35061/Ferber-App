@@ -117,6 +117,18 @@ export async function buyUnlock(): Promise<BuyResult> {
   }
 }
 
+/**
+ * Apple's "redeem a code" sheet, for free unlock codes (offer codes) given to
+ * friends, sleep consultants' clients and press. A redeemed code arrives as a
+ * normal purchase, so the listener above unlocks the app and the webhook
+ * unlocks the family.
+ */
+export async function redeemCode(): Promise<void> {
+  await startPurchases();
+  await identify();
+  await Purchases.presentCodeRedemptionSheet();
+}
+
 /** Restore a past purchase. Returns whether the unlock is owned afterwards. */
 export async function restoreUnlock(): Promise<boolean> {
   await startPurchases();
