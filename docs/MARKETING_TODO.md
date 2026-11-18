@@ -18,6 +18,12 @@ The running list. The reasons and evidence are in `reports/Check In app launch s
   - add the website link to all three video descriptions and the channel's Links section
   - pin a comment on each video with the website link (and the App Store link after launch)
 
+## Beta (once TestFlight's beta review approves build 3)
+
+- [ ] TestFlight → Friends & Family → turn on **Public Link** and copy it
+- [ ] Website: I run `python3 tools/site/app_links.py beta <link>` (every page's app box becomes "Try the free beta")
+- [ ] Add the beta link to the YouTube descriptions (when external links are approved)
+
 ## At App Store launch (after Apple approval)
 
 All the wording is ready in `docs/LAUNCH_COPY.md`.
@@ -28,7 +34,8 @@ All the wording is ready in `docs/LAUNCH_COPY.md`.
 - [ ] Spanish (Mexico) and English (UK/Australia) keyword fields (`docs/APP_STORE.md`)
 - [ ] Screenshots: the first three carry the message
 - [ ] Video 3 (app walkthrough): post at App Store launch, then embed it in the site's app section
-- [ ] Add the App Store link to: the three YouTube descriptions and pinned comments, the YouTube channel links, ferbertimer.com (I'll do the site)
+- [ ] Add the App Store link to: the three YouTube descriptions and pinned comments, the YouTube channel links, ferbertimer.com (I run `python3 tools/site/app_links.py live`: App Store button on every page, Safari's app banner, and the link in the home page's structured data)
+- [ ] App Store header image is ready: `docs/app-store-screenshots/header-3840x1646.png`
 - [ ] Apple Ads: spend the free $100 credit on exact-match keywords, as keyword research; stop when it's used up
 - [ ] Campaign links (App Store Connect) on the website's download buttons, so you can see which page sends downloads
 - [ ] Launch listings: Product Hunt and AlternativeTo
