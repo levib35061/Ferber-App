@@ -29,7 +29,12 @@ export default function HistoryScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <Text style={styles.title}>History</Text>
+      <View style={styles.titleRow}>
+        <Text style={styles.title}>History</Text>
+        <Pressable onPress={() => router.push('/night/add')} hitSlop={10} accessibilityRole="button">
+          <Text style={styles.add}>+ Missed night</Text>
+        </Pressable>
+      </View>
       <FlatList
         data={rows}
         keyExtractor={(r) => r.night.id}
@@ -73,6 +78,8 @@ const stylesHook = makeStyles(({ colors, fonts, type }) =>
   StyleSheet.create({
     root: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20 },
     title: { color: colors.text, fontSize: type.huge, fontFamily: fonts.bold, marginVertical: 16 },
+    titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    add: { color: colors.primary, fontSize: type.body, fontFamily: fonts.bold },
     empty: { color: colors.textDim, fontFamily: fonts.regular, fontSize: type.body },
     row: {
       flexDirection: 'row',
