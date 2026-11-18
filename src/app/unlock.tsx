@@ -101,7 +101,7 @@ export default function UnlockScreen() {
           hitSlop={12}
           style={styles.closeBtn}
         >
-          <Text style={styles.closeText}>Not now</Text>
+          <Text style={styles.closeText}>{unlocked ? 'Done' : 'Not now'}</Text>
         </Pressable>
 
         <Image source={require('../../assets/icon.png')} style={styles.icon} accessibilityIgnoresInvertColors />
