@@ -264,3 +264,30 @@ export function stretchLines(events: NightEvent[], fmt: (at: number) => string):
     return { label: ep.start.type === 'down' ? 'Bedtime' : fmt(ep.start.at), text: parts.join(' · ') };
   });
 }
+
+/**
+ * Recap lines for a night entered afterwards ("Add a missed night"): totals only,
+ * no clock times for wakings (they weren't recorded).
+ */
+export function addedLaterLines(events: NightEvent[]): StretchLine[] {
+  const eps = episodes(events);
+  const bed = eps.find((ep) => ep.start.type === 'down');
+  const wakes = eps.filter((ep) => ep.start.type !== 'down');
+  const out: StretchLine[] = [];
+  if (bed) {
+    const cry = Math.round(episodeCryingMs(bed) / MIN);
+    const parts = [cry ? `${formatMinutes(cry)} crying` : 'no crying'];
+    if (bed.checkIns) parts.push(plural(bed.checkIns, 'check-in'));
+    out.push({ label: 'Bedtime', text: parts.join(' · ') });
+  }
+  if (wakes.length) {
+    const cry = Math.round(wakes.reduce((sum, ep) => sum + episodeCryingMs(ep), 0) / MIN);
+    const checks = wakes.reduce((sum, ep) => sum + ep.checkIns, 0);
+    const parts = [plural(wakes.length, 'waking'), cry ? `${formatMinutes(cry)} crying` : 'no crying'];
+    if (checks) parts.push(plural(checks, 'check-in'));
+    out.push({ label: 'Night', text: parts.join(' · ') });
+  } else {
+    out.push({ label: 'Night', text: 'slept through' });
+  }
+  return out;
+}

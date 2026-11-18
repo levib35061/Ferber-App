@@ -5,6 +5,7 @@ import {
   morningHeadline,
   morningTiles,
   stretchLines,
+  addedLaterLines,
   timeline,
   totalSleepMs,
   upAt,
@@ -173,6 +174,28 @@ describe('recap tiles and stretch lines', () => {
       { label: 'Bedtime', text: '39\u00A0min crying · 1 check-in' },
       { label: '+400', text: 'Woke · 9\u00A0min crying · settled' },
       { label: '+600', text: 'Woke · 10\u00A0min crying · up for the day' },
+    ]);
+  });
+});
+
+describe('added-later recap lines', () => {
+  it('shows totals, no times', () => {
+    const evs = [
+      ev('down', 0),
+      ev('cry', 1),
+      ev('asleep', 21),
+      ev('woke', 200),
+      ev('asleep', 206),
+      ev('woke', 400),
+      ev('asleep', 404),
+    ];
+    expect(addedLaterLines(evs)).toEqual([
+      { label: 'Bedtime', text: '20\u00A0min crying' },
+      { label: 'Night', text: '2 wakings · 10\u00A0min crying' },
+    ]);
+    expect(addedLaterLines([ev('down', 0), ev('asleep', 1)])).toEqual([
+      { label: 'Bedtime', text: 'no crying' },
+      { label: 'Night', text: 'slept through' },
     ]);
   });
 });

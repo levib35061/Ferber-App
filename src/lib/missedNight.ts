@@ -1,8 +1,10 @@
 /**
  * "Add a missed night" (History): turns a short summary of a night that wasn't
- * logged live (bedtime, crying, check-ins, wakings, up time) into the usual
- * events, so summaries, the recap and the charts treat it like any other night.
- * Pure and tested.
+ * logged live (bedtime, crying, check-ins, number of wakings, up time) into the
+ * usual events, so summaries, the recap and the charts treat it like any other
+ * night. The wakings' times aren't known, so they're spread evenly through the
+ * night; the night is marked "added later" and screens show it as a summary,
+ * never with those made-up times. Pure and tested.
  *
  * Only nights after the latest logged night can be added (up to last night),
  * so the night numbers of later nights never need to change.
@@ -22,12 +24,32 @@ export interface MissedStretch {
   checkIns: number;
 }
 
+/** All night wakings together: how many, total minutes crying, total check-ins. */
+export interface MissedWakings {
+  count: number;
+  cryingMin: number;
+  checkIns: number;
+}
+
+export const MAX_WAKINGS = 10;
+
+/** Split a total into `n` near-equal whole parts (larger ones first). */
+function split(total: number, n: number): number[] {
+  return Array.from({ length: n }, (_, i) => Math.floor(total / n) + (i < total % n ? 1 : 0));
+}
+
+/** Most check-ins that fit across the wakings, given their total crying. */
+export function maxWakingCheckIns(w: Pick<MissedWakings, 'count' | 'cryingMin'>): number {
+  if (w.count <= 0) return 0;
+  return split(w.cryingMin, w.count).reduce((sum, c) => sum + maxCheckIns(c), 0);
+}
+
 export interface MissedNightInput {
   nightKey: string;
   /** Times after this are rejected (the night may still be going on) */
   now: number;
   bedtime: MissedStretch;
-  wakings: MissedStretch[];
+  wakings: MissedWakings;
   /** Up for the day (optional) */
   up: ClockTime | null;
 }
@@ -77,23 +99,41 @@ export function missedNightEvents(input: MissedNightInput): MissedNightResult {
   let asleep = down + SEC + Math.max(1, b.cryingMin) * MIN;
   events.push({ type: 'asleep', at: asleep });
 
-  // Each waking: woke (crying from then), check-ins, asleep again.
-  const wakings = [...input.wakings].sort((x, y) => at(x.at) - at(y.at));
-  for (const w of wakings) {
-    if (w.cryingMin < 0 || w.cryingMin > MAX_CRYING_MIN) return { error: 'Crying at a waking should be 0 to 240 minutes.' };
-    // A waking in the same minute the baby fell asleep is fine: place it just after.
-    if (at(w.at) < asleep - MIN + SEC) return { error: 'Each waking should be after the baby was asleep again.' };
-    const woke = Math.max(at(w.at), asleep + SEC);
-    events.push({ type: 'woke', at: woke });
-    if (w.cryingMin === 0) {
-      // Settled straight away: no crying time.
-      events.push({ type: 'quiet', at: woke + SEC });
-      asleep = woke + MIN;
-    } else {
-      events.push(...checkInEvents(woke, w.cryingMin, w.checkIns));
-      asleep = woke + w.cryingMin * MIN;
+  // Wakings: times unknown, so spread evenly between falling asleep and the morning.
+  const w = input.wakings;
+  if (w.count < 0 || w.count > MAX_WAKINGS) return { error: `Night wakings should be 0 to ${MAX_WAKINGS}.` };
+  if (w.cryingMin < 0 || w.cryingMin > MAX_CRYING_MIN)
+    return { error: 'Crying at night wakings should be 0 to 240 minutes.' };
+  if (w.count > 0) {
+    const end = input.up ? at(input.up) : atTimeInNight(input.nightKey, 6, 30);
+    const crying = split(w.cryingMin, w.count);
+    // Check-ins go to the wakings with room for them, in turn.
+    const checks = crying.map(() => 0);
+    let left = Math.min(w.checkIns, maxWakingCheckIns(w));
+    while (left > 0) {
+      for (let i = 0; i < w.count && left > 0; i++) {
+        if (checks[i] < maxCheckIns(crying[i])) {
+          checks[i] += 1;
+          left -= 1;
+        }
+      }
     }
-    events.push({ type: 'asleep', at: asleep });
+    const slot = (end - asleep) / (w.count + 1);
+    if (crying.some((c) => (Math.max(1, c) + 1) * MIN >= slot)) {
+      return { error: "That much crying at night wakings doesn't fit between bedtime and the morning." };
+    }
+    crying.forEach((c, i) => {
+      const woke = Math.round(asleep + slot * (i + 1));
+      events.push({ type: 'woke', at: woke });
+      if (c === 0) {
+        events.push({ type: 'quiet', at: woke + SEC });
+        events.push({ type: 'asleep', at: woke + MIN });
+      } else {
+        events.push(...checkInEvents(woke, c, checks[i]));
+        events.push({ type: 'asleep', at: woke + c * MIN });
+      }
+    });
+    asleep = events[events.length - 1].at;
   }
 
   if (input.up) {

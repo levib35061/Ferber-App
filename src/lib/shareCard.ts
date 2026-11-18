@@ -34,6 +34,8 @@ export interface ShareInput {
     summary: NightSummary;
     /** End of the timeline (Up for the day, or the morning) */
     end: number;
+    /** Entered afterwards: no timeline (its times aren't real) */
+    addedLater?: boolean;
   };
   /** The night before, for the change in crying */
   previous: { nightNumber: number; cryingMinutes: number } | null;
@@ -110,7 +112,7 @@ export function shareCard({ round, name = '', last, previous, fmt }: ShareInput)
   const celebrate = isGoodRun(round);
   const sleepMs = totalSleepMs(last.events);
   const asleep = episodes(last.events).find((e) => e.start.type === 'down' && e.end?.type === 'asleep')?.end?.at ?? null;
-  const segments = timeline(last.events, last.end);
+  const segments = last.addedLater ? [] : timeline(last.events, last.end);
   const up = upAt(last.events);
 
   const crying = s.cryingMinutes === 0 ? 'no crying' : `${formatMinutes(s.cryingMinutes)} of crying`;

@@ -17,7 +17,7 @@ import { EventType, NightEvent } from '../lib/session';
 import { nightKey } from '../lib/time';
 
 export const DB_NAME = 'ferber.db';
-const SCHEMA_VERSION = 3;
+const SCHEMA_VERSION = 4;
 
 export interface Baby {
   id: string;
@@ -43,7 +43,14 @@ export interface Night {
   note: string | null;
   /** User id of the parent on duty tonight (partner sharing). Null = not set. */
   onDuty?: string | null;
+  /**
+   * Entered afterwards ("Add a missed night"): 1/true. Its totals are real but the
+   * times of wakings and check-ins were spread out evenly, so screens don't show them.
+   */
+  addedLater?: number | boolean | null;
 }
+
+export const isAddedLater = (n: Pick<Night, 'addedLater'> | null | undefined): boolean => !!n?.addedLater;
 
 // ---------- change notification ----------
 
@@ -121,6 +128,12 @@ export async function migrate(db: SQLiteDatabase): Promise<void> {
   if (version < 3) {
     await db.execAsync('ALTER TABLE night ADD COLUMN onDuty TEXT;');
     version = 3;
+  }
+
+  if (version < 4) {
+    // 1 = entered afterwards with "Add a missed night": only totals are real, not the times in between.
+    await db.execAsync('ALTER TABLE night ADD COLUMN addedLater INTEGER NOT NULL DEFAULT 0;');
+    version = 4;
   }
 
   await db.execAsync(`PRAGMA user_version = ${SCHEMA_VERSION}`);
@@ -245,6 +258,12 @@ export function plannedNumbers(prev: Night | null, repeatLastNight: boolean): { 
   };
 }
 
+/** Marks a night as entered afterwards (see Night.addedLater). */
+export async function setNightAddedLater(db: SQLiteDatabase, nightId: string): Promise<void> {
+  await db.runAsync('UPDATE night SET addedLater = 1, updatedAt = ?, dirty = 1 WHERE id = ?', Date.now(), nightId);
+  wrote();
+}
+
 async function upsertNightRow(db: SQLiteDatabase, night: Night): Promise<void> {
   await db.runAsync(
     `INSERT INTO night (id, babyId, nightNumber, chartNight, nightKey, startedAt, note, onDuty, updatedAt, dirty)
@@ -342,6 +361,18 @@ export async function updateEventTime(db: SQLiteDatabase, eventId: string, at: n
 /** Soft delete, so a delete reaches the partner's phone. */
 export async function softDeleteEvent(db: SQLiteDatabase, eventId: string, at: number): Promise<void> {
   await db.runAsync('UPDATE event SET deletedAt = ?, updatedAt = ?, dirty = 1 WHERE id = ?', at, Date.now(), eventId);
+  wrote();
+}
+
+/** Removes a whole night (every tap, soft-deleted so it reaches the partner too). */
+export async function softDeleteNightEvents(db: SQLiteDatabase, nightId: string): Promise<void> {
+  const now = Date.now();
+  await db.runAsync(
+    'UPDATE event SET deletedAt = ?, updatedAt = ?, dirty = 1 WHERE nightId = ? AND deletedAt IS NULL',
+    now,
+    now,
+    nightId,
+  );
   wrote();
 }
 
@@ -483,10 +514,11 @@ export async function applyRemoteBaby(db: SQLiteDatabase, b: Baby & { updatedAt:
 
 export async function applyRemoteNight(db: SQLiteDatabase, n: Night & { updatedAt: number }): Promise<void> {
   await db.runAsync(
-    `INSERT INTO night (id, babyId, nightNumber, chartNight, nightKey, startedAt, note, onDuty, updatedAt, dirty)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+    `INSERT INTO night (id, babyId, nightNumber, chartNight, nightKey, startedAt, note, onDuty, addedLater, updatedAt, dirty)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
      ON CONFLICT(id) DO UPDATE SET nightNumber = excluded.nightNumber, chartNight = excluded.chartNight,
-       startedAt = excluded.startedAt, note = excluded.note, onDuty = excluded.onDuty, updatedAt = excluded.updatedAt, dirty = 0
+       startedAt = excluded.startedAt, note = excluded.note, onDuty = excluded.onDuty, addedLater = excluded.addedLater,
+       updatedAt = excluded.updatedAt, dirty = 0
      WHERE excluded.updatedAt >= night.updatedAt`,
     n.id,
     n.babyId,
@@ -496,6 +528,7 @@ export async function applyRemoteNight(db: SQLiteDatabase, n: Night & { updatedA
     n.startedAt,
     n.note,
     n.onDuty ?? null,
+    n.addedLater ? 1 : 0,
     n.updatedAt,
   );
 }

@@ -11,7 +11,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Night, listNightsWithEvents } from '../data/db';
+import { Night, isAddedLater, listNightsWithEvents } from '../data/db';
 import { useNightStore } from '../data/NightStore';
 import { nextWaitMinutes } from '../lib/ferber';
 import { isPastNight } from '../lib/nightView';
@@ -23,6 +23,7 @@ import {
   morningNote,
   morningTiles,
   stretchLines,
+  addedLaterLines,
   timeline,
   timelineEnd,
   totalSleepMs,
@@ -129,6 +130,7 @@ export function TodaySummary({ data, onStartTonight }: { data: LastNights; onSta
   const end = timelineEnd(last.night.nightKey, last.events);
   const upTime = upAt(last.events);
   const sleepMs = totalSleepMs(last.events);
+  const addedLater = isAddedLater(last.night);
   const segs = timeline(last.events, end);
   const start = segs[0]?.from ?? end;
   const span = Math.max(1, end - start);
@@ -195,30 +197,36 @@ export function TodaySummary({ data, onStartTonight }: { data: LastNights; onSta
         )}
 
         <View style={styles.card}>
-          <Text style={styles.small}>
-            {formatClock(start)} → {formatClock(end)}
-          </Text>
-          <View
-            style={styles.bar}
-            accessible
-            accessibilityRole="image"
-            accessibilityLabel={segs
-              .map((s) => `${KIND_LABEL[s.kind]} ${formatClock(s.from)} to ${formatClock(s.to)}`)
-              .join('; ')}
-          >
-            {segs.map((s: Segment, i) => (
+          {addedLater ? (
+            <Text style={styles.small}>Added afterwards · totals only</Text>
+          ) : (
+            <>
+              <Text style={styles.small}>
+                {formatClock(start)} → {formatClock(end)}
+              </Text>
               <View
-                key={i}
-                style={{
-                  flex: (s.to - s.from) / span,
-                  minWidth: 3,
-                  backgroundColor: KIND_COLOR[s.kind],
-                }}
-              />
-            ))}
-          </View>
+                style={styles.bar}
+                accessible
+                accessibilityRole="image"
+                accessibilityLabel={segs
+                  .map((s) => `${KIND_LABEL[s.kind]} ${formatClock(s.from)} to ${formatClock(s.to)}`)
+                  .join('; ')}
+              >
+                {segs.map((s: Segment, i) => (
+                  <View
+                    key={i}
+                    style={{
+                      flex: (s.to - s.from) / span,
+                      minWidth: 3,
+                      backgroundColor: KIND_COLOR[s.kind],
+                    }}
+                  />
+                ))}
+              </View>
+            </>
+          )}
           <View>
-            {stretchLines(last.events, formatClock).map((l, i) => (
+            {(addedLater ? addedLaterLines(last.events) : stretchLines(last.events, formatClock)).map((l, i) => (
               <View key={i} style={styles.moment}>
                 <Text style={styles.momentTime}>{l.label}</Text>
                 <Text style={styles.momentText}>{l.text}</Text>
@@ -248,6 +256,7 @@ export function TodaySummary({ data, onStartTonight }: { data: LastNights; onSta
             last: {
               nightNumber: last.night.nightNumber,
               nightKey: last.night.nightKey,
+              addedLater,
               events: last.events,
               summary,
               end,

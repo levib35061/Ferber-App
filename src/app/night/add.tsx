@@ -1,6 +1,6 @@
 /**
  * History → "Add a missed night": a night that wasn't logged live, entered as
- * a short summary (bedtime, crying, check-ins, wakings, up time). The events
+ * a short summary (bedtime, crying, check-ins, number of wakings, up time). The events
  * come from src/lib/missedNight.ts and are written like any other taps.
  */
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -11,12 +11,15 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useNow } from '../../components/useNow';
-import { createNight, insertEvent, listNightsWithEvents } from '../../data/db';
+import { createNight, insertEvent, listNightsWithEvents, setNightAddedLater } from '../../data/db';
 import { useNightStore } from '../../data/NightStore';
 import {
   ClockTime,
   MAX_CRYING_MIN,
+  MAX_WAKINGS,
   MissedStretch,
+  MissedWakings,
+  maxWakingCheckIns,
   addableNightKeys,
   maxCheckIns,
   missedNightEvents,
@@ -35,7 +38,7 @@ export default function AddMissedNight() {
   const [keys, setKeys] = useState<string[] | null>(null);
   const [key, setKey] = useState<string | null>(null);
   const [bedtime, setBedtime] = useState<MissedStretch>({ at: { h: 19, m: 30 }, cryingMin: 0, checkIns: 0 });
-  const [wakings, setWakings] = useState<MissedStretch[]>([]);
+  const [wakings, setWakings] = useState<MissedWakings>({ count: 0, cryingMin: 0, checkIns: 0 });
   const [up, setUp] = useState<ClockTime | null>({ h: 6, m: 30 });
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -63,6 +66,7 @@ export default function AddMissedNight() {
     try {
       const night = await createNight(db, baby.id, result.events[0].at, false, baby.trainingStartDate);
       for (const e of result.events) await insertEvent(db, night.id, e.type, e.at, sync.userId);
+      await setNightAddedLater(db, night.id);
       await reload();
       router.replace({ pathname: '/night/[id]', params: { id: night.id } });
     } finally {
@@ -112,34 +116,46 @@ export default function AddMissedNight() {
               <Stretch value={bedtime} onChange={setBedtime} nightKey={key!} timeLabel="Down at" />
             </View>
 
-            {wakings.map((w, i) => (
-              <View key={i} style={styles.card}>
-                <View style={styles.cardHead}>
-                  <Text style={styles.cardTitle}>Waking {i + 1}</Text>
-                  <Pressable
-                    onPress={() => setWakings(wakings.filter((_, j) => j !== i))}
-                    hitSlop={10}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Remove waking ${i + 1}`}
-                  >
-                    <Text style={styles.remove}>Remove</Text>
-                  </Pressable>
-                </View>
-                <Stretch
-                  value={w}
-                  onChange={(v) => setWakings(wakings.map((x, j) => (j === i ? v : x)))}
-                  nightKey={key!}
-                  timeLabel="Woke at"
-                />
-              </View>
-            ))}
-            <Pressable
-              onPress={() => setWakings([...wakings, { at: { h: 2, m: 0 }, cryingMin: 5, checkIns: 0 }])}
-              accessibilityRole="button"
-              style={styles.addBtn}
-            >
-              <Text style={styles.addText}>+ Add a night waking</Text>
-            </Pressable>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Night wakings</Text>
+              <Stepper
+                label="Wakings"
+                value={wakings.count}
+                step={1}
+                max={MAX_WAKINGS}
+                onChange={(count) =>
+                  setWakings({
+                    count,
+                    cryingMin: count === 0 ? 0 : wakings.cryingMin,
+                    checkIns: Math.min(wakings.checkIns, maxWakingCheckIns({ count, cryingMin: wakings.cryingMin })),
+                  })
+                }
+              />
+              {wakings.count > 0 && (
+                <>
+                  <Stepper
+                    label="Minutes crying, all together"
+                    value={wakings.cryingMin}
+                    step={5}
+                    max={MAX_CRYING_MIN}
+                    onChange={(cryingMin) =>
+                      setWakings({
+                        ...wakings,
+                        cryingMin,
+                        checkIns: Math.min(wakings.checkIns, maxWakingCheckIns({ count: wakings.count, cryingMin })),
+                      })
+                    }
+                  />
+                  <Stepper
+                    label="Check-ins"
+                    value={wakings.checkIns}
+                    step={1}
+                    max={maxWakingCheckIns(wakings)}
+                    onChange={(checkIns) => setWakings({ ...wakings, checkIns })}
+                  />
+                </>
+              )}
+            </View>
 
             <View style={styles.card}>
               <View style={styles.cardHead}>

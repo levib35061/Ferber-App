@@ -9,7 +9,17 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EVENT_LABEL, EventSheet } from '../../components/EventSheet';
-import { Night, getNight, insertEvent, listEvents, setNightNote, softDeleteEvent, updateEventTime } from '../../data/db';
+import {
+  Night,
+  getNight,
+  isAddedLater,
+  softDeleteNightEvents,
+  insertEvent,
+  listEvents,
+  setNightNote,
+  softDeleteEvent,
+  updateEventTime,
+} from '../../data/db';
 import { useNightStore } from '../../data/NightStore';
 import { EventType, NightEvent, episodes } from '../../lib/session';
 import { episodeCryingMs, summarizeNight } from '../../lib/summary';
@@ -86,32 +96,45 @@ export default function NightDetailScreen() {
           <Stat label="Wakings" value={String(summary.wakings)} />
         </View>
 
-        {eps.map((ep, i) => (
-          <View key={ep.start.id} style={styles.episode}>
-            <Text style={styles.epTitle}>
-              {ep.start.type === 'down'
-                ? 'Bedtime'
-                : `Waking ${eps.slice(0, i + 1).filter((x) => x.start.type !== 'down').length}`}
-              {' · '}
-              {ep.end ? `${formatMinutes(episodeCryingMs(ep) / 60_000)} crying` : 'not finished'}
-            </Text>
-            {ep.events.map((e) => (
-              <EventRow key={e.id} e={e} onPress={() => setSheet({ mode: 'edit', event: e })} />
+        {isAddedLater(night) ? (
+          <AddedLater
+            night={night}
+            events={events}
+            onDeleted={async () => {
+              await store.reload();
+              router.back();
+            }}
+          />
+        ) : (
+          <>
+            {eps.map((ep, i) => (
+              <View key={ep.start.id} style={styles.episode}>
+                <Text style={styles.epTitle}>
+                  {ep.start.type === 'down'
+                    ? 'Bedtime'
+                    : `Waking ${eps.slice(0, i + 1).filter((x) => x.start.type !== 'down').length}`}
+                  {' · '}
+                  {ep.end ? `${formatMinutes(episodeCryingMs(ep) / 60_000)} crying` : 'not finished'}
+                </Text>
+                {ep.events.map((e) => (
+                  <EventRow key={e.id} e={e} onPress={() => setSheet({ mode: 'edit', event: e })} />
+                ))}
+              </View>
             ))}
-          </View>
-        ))}
-        {strays.length > 0 && (
-          <View style={styles.episode}>
-            <Text style={styles.epTitle}>Not part of an episode</Text>
-            {strays.map((e) => (
-              <EventRow key={e.id} e={e} onPress={() => setSheet({ mode: 'edit', event: e })} />
-            ))}
-          </View>
-        )}
+            {strays.length > 0 && (
+              <View style={styles.episode}>
+                <Text style={styles.epTitle}>Not part of an episode</Text>
+                {strays.map((e) => (
+                  <EventRow key={e.id} e={e} onPress={() => setSheet({ mode: 'edit', event: e })} />
+                ))}
+              </View>
+            )}
 
-        <Pressable onPress={() => setSheet({ mode: 'add' })} style={styles.addBtn} accessibilityRole="button">
-          <Text style={styles.addText}>+ Add a missed tap</Text>
-        </Pressable>
+            <Pressable onPress={() => setSheet({ mode: 'add' })} style={styles.addBtn} accessibilityRole="button">
+              <Text style={styles.addText}>+ Add a missed tap</Text>
+            </Pressable>
+          </>
+        )}
 
         <Text style={styles.label}>Note</Text>
         <TextInput
@@ -149,6 +172,51 @@ export default function NightDetailScreen() {
         />
       )}
     </SafeAreaView>
+  );
+}
+
+/**
+ * A night entered afterwards: only its totals are known, so no times for the
+ * wakings or check-ins (they were spread out evenly just to count them).
+ */
+function AddedLater({ night, events, onDeleted }: { night: Night; events: NightEvent[]; onDeleted: () => void }) {
+  const styles = stylesHook();
+  const db = useSQLiteContext();
+  const [confirm, setConfirm] = useState(false);
+  const live = events.filter((e) => !e.deletedAt);
+  const down = live.find((e) => e.type === 'down');
+  const up = live.find((e) => e.type === 'up');
+  return (
+    <View style={styles.episode}>
+      <Text style={styles.epTitle}>Added afterwards</Text>
+      {down && (
+        <View style={styles.eventRow}>
+          <Text style={styles.eventTime}>{formatClock(down.at)}</Text>
+          <Text style={styles.eventLabel}>Down for the night</Text>
+        </View>
+      )}
+      {up && (
+        <View style={styles.eventRow}>
+          <Text style={styles.eventTime}>{formatClock(up.at)}</Text>
+          <Text style={styles.eventLabel}>Up for the day</Text>
+        </View>
+      )}
+      <Text style={styles.addedNote}>
+        Entered as totals, so the times of night wakings and check-ins aren&apos;t shown. To change it, delete this night and
+        add it again.
+      </Text>
+      <Pressable
+        onPress={async () => {
+          if (!confirm) return setConfirm(true);
+          await softDeleteNightEvents(db, night.id);
+          onDeleted();
+        }}
+        style={styles.addBtn}
+        accessibilityRole="button"
+      >
+        <Text style={styles.deleteText}>{confirm ? 'Tap again to delete this night' : 'Delete this night'}</Text>
+      </Pressable>
+    </View>
   );
 }
 
@@ -233,6 +301,8 @@ const stylesHook = makeStyles(({ colors, fonts, type }) =>
       justifyContent: 'center',
     },
     addText: { color: colors.text, fontFamily: fonts.bold, fontSize: type.body },
+    addedNote: { color: colors.textDim, fontFamily: fonts.regular, fontSize: 15, lineHeight: 21, marginTop: 10 },
+    deleteText: { color: colors.accent, fontFamily: fonts.bold, fontSize: type.body },
     label: {
       color: colors.textDim,
       fontFamily: fonts.bold,

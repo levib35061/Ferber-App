@@ -336,6 +336,7 @@ export class SyncEngine {
         started_at: n.startedAt,
         note: n.note,
         on_duty: n.onDuty ?? null,
+        added_later: !!n.addedLater,
         updated_at: n.updatedAt,
       }));
       const { error } = await supabase.from('nights').upsert(rows);
@@ -426,6 +427,7 @@ export class SyncEngine {
         startedAt: Number(r.started_at),
         note: (r.note as string) ?? null,
         onDuty: (r.on_duty as string) ?? null,
+        addedLater: r.added_later === true,
         updatedAt: Number(r.updated_at),
       });
     } else {

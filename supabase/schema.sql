@@ -63,6 +63,7 @@ create table public.nights (
   started_at bigint not null,
   note text,
   on_duty uuid,
+  added_later boolean not null default false,
   updated_at bigint not null,
   server_updated_at timestamptz not null default now()
 );
