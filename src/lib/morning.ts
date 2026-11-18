@@ -136,6 +136,16 @@ export function moments(events: NightEvent[], fmt: (at: number) => string): Mome
   return out;
 }
 
+/** When the night "ends" on the timeline: "Up for the day" if logged, else 6:30am (or the last event if later). */
+export function timelineEnd(nightKey: string, events: NightEvent[]): number {
+  const up = upAt(events);
+  if (up != null) return up;
+  const [y, m, d] = nightKey.split('-').map(Number);
+  const morning = new Date(y, m - 1, d + 1, 6, 30).getTime();
+  const lastAt = Math.max(...events.map((e) => e.at));
+  return Math.max(morning, lastAt);
+}
+
 /** When the baby got up for the day, if it was logged. */
 export function upAt(events: NightEvent[]): number | null {
   return liveEvents(events).find((e) => e.type === 'up')?.at ?? null;

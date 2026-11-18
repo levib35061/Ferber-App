@@ -24,6 +24,7 @@ import {
   morningTiles,
   stretchLines,
   timeline,
+  timelineEnd,
   totalSleepMs,
   upAt,
 } from '../lib/morning';
@@ -87,16 +88,6 @@ const KIND_LABEL: Record<SegmentKind, string> = {
   settling: 'Settling',
   feeding: 'Feeding',
 };
-
-/** When the night "ends" on the timeline: "Up for the day" if logged, else 6:30am (or the last event if later). */
-function timelineEnd(key: string, events: NightEvent[]): number {
-  const up = upAt(events);
-  if (up != null) return up;
-  const [y, m, d] = key.split('-').map(Number);
-  const morning = new Date(y, m - 1, d + 1, 6, 30).getTime();
-  const lastAt = Math.max(...events.map((e) => e.at));
-  return Math.max(morning, lastAt);
-}
 
 export function TodaySummary({ data, onStartTonight }: { data: LastNights; onStartTonight: () => void }) {
   const { baby, chart, settings, updateSetting } = useNightStore();
@@ -250,7 +241,26 @@ export function TodaySummary({ data, onStartTonight }: { data: LastNights; onSta
 
         {note && <Text style={styles.note}>{note}</Text>}
 
-        <ShareProgressButton round={data.round} name={name} />
+        <ShareProgressButton
+          name={name}
+          input={{
+            round: data.round,
+            last: {
+              nightNumber: last.night.nightNumber,
+              nightKey: last.night.nightKey,
+              events: last.events,
+              summary,
+              end,
+            },
+            previous:
+              tiles[0].delta != null && data.previous
+                ? {
+                    nightNumber: data.previous.night.nightNumber,
+                    cryingMinutes: summarizeNight(data.previous.events).cryingMinutes,
+                  }
+                : null,
+          }}
+        />
 
         <View
           style={styles.card}
