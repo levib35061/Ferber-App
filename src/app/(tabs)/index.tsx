@@ -19,7 +19,7 @@ import { useNightStore } from '../../data/NightStore';
 import { IN_ROOM_NOTE, waitingNote } from '../../lib/encourage';
 import { chooseView } from '../../lib/nightView';
 import { Action, UNDO_WINDOW_MS } from '../../lib/session';
-import { episodeCryingMs, summarizeNight } from '../../lib/summary';
+import { asleepLines, episodeCryingMs, summarizeNight } from '../../lib/summary';
 import { formatClock, formatDuration, isMorningWindow, isVeryEarly, spokenDuration } from '../../lib/time';
 import { ThemeProvider } from '../../theme';
 import { day, dayFonts } from '../../theme/day';
@@ -427,6 +427,7 @@ export default function NightScreen() {
             since={state.since}
             cryingMs={episodeCryingMs(state.episode)}
             checkIns={state.episode.checkIns}
+            wasWaking={state.episode.start.type !== 'down'}
             night={summarizeNight(store.events)}
             onWoke={() => store.tap('woke')}
             onFeed={() => store.tap('feed_start')}
@@ -444,6 +445,8 @@ function AsleepView(props: {
   since: number;
   cryingMs: number;
   checkIns: number;
+  /** The stretch that just ended started with a waking (not bedtime) */
+  wasWaking: boolean;
   night: ReturnType<typeof summarizeNight>;
   onWoke: () => void;
   onFeed: () => void;
@@ -454,29 +457,37 @@ function AsleepView(props: {
   veryEarly: boolean;
 }) {
   const { night } = props;
+  // The big number is always the whole night's crying; the lines below explain
+  // the stretch that just ended and the night so far.
+  const lines = asleepLines(night, {
+    cryingMinutes: Math.round(props.cryingMs / MIN),
+    checkIns: props.checkIns,
+    wasWaking: props.wasWaking,
+  });
   return (
     <>
       <View style={styles.middle}>
         <ProgressRing
           progress={1}
-          accessibilityLabel={`Asleep at ${formatClock(props.since)}. ${Math.round(props.cryingMs / MIN)} minutes crying.`}
+          accessibilityLabel={`Asleep at ${formatClock(props.since)}. ${night.cryingMinutes} minutes crying tonight. ${lines.latest}.${lines.tonight ? ` ${lines.tonight}.` : ''}`}
         >
           <MoonIcon size={32} color={colors.primary} />
           <Text maxFontSizeMultiplier={1.25} style={[styles.ringCaption, { marginTop: 8 }]}>
             Asleep at {formatClock(props.since)}
           </Text>
           <Text maxFontSizeMultiplier={1} style={styles.countdown}>
-            {Math.round(props.cryingMs / MIN)}
+            {night.cryingMinutes}
           </Text>
           <Text maxFontSizeMultiplier={1.25} style={styles.ringSub}>
-            min crying
+            min crying tonight
           </Text>
         </ProgressRing>
-        <CheckInDots done={props.checkIns} label={`${props.checkIns} check-in${props.checkIns === 1 ? '' : 's'}`} />
-        {night.episodeCount > 1 && (
-          <Text style={styles.hint}>
-            Tonight: {night.cryingMinutes} min · {night.checkIns} check-ins · {night.wakings} waking
-            {night.wakings === 1 ? '' : 's'}
+        <Text maxFontSizeMultiplier={1.3} style={styles.asleepLatest}>
+          {lines.latest}
+        </Text>
+        {lines.tonight && (
+          <Text maxFontSizeMultiplier={1.3} style={[styles.hint, { marginTop: -12 }]}>
+            {lines.tonight}
           </Text>
         )}
       </View>
@@ -663,6 +674,7 @@ const styles = StyleSheet.create({
   dutyAction: { color: colors.primary, fontFamily: fonts.bold, fontSize: 14 },
   nudge: { color: colors.accentText, fontFamily: fonts.bold },
   note: { paddingHorizontal: 12, lineHeight: 21 },
+  asleepLatest: { color: colors.textDim, fontFamily: fonts.semibold, fontSize: type.body, textAlign: 'center' },
   hint: {
     color: colors.textFaint,
     fontFamily: fonts.regular,

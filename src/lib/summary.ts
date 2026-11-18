@@ -43,3 +43,28 @@ export function summarizeNight(events: NightEvent[], now?: number): NightSummary
     episodeCount: eps.length,
   };
 }
+
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
+
+/**
+ * The two lines under the "asleep" ring. The ring itself shows crying minutes
+ * for the whole night; these explain the latest stretch and the night so far.
+ * `latest` is the episode that just ended in sleep.
+ */
+export function asleepLines(
+  night: NightSummary,
+  latest: { cryingMinutes: number; checkIns: number; wasWaking: boolean },
+): { latest: string; tonight: string | null } {
+  const label = latest.wasWaking ? 'Last waking' : 'Bedtime';
+  let detail: string;
+  if (latest.checkIns === 0 && latest.cryingMinutes === 0) {
+    detail = latest.wasWaking ? 'settled on their own' : 'asleep with no crying';
+  } else if (latest.checkIns === 0) {
+    detail = `${latest.cryingMinutes} min crying, no check-ins`;
+  } else {
+    detail = `${latest.cryingMinutes} min crying, ${plural(latest.checkIns, 'check-in')}`;
+  }
+  const tonight =
+    night.episodeCount > 1 ? `Tonight: ${plural(night.checkIns, 'check-in')} · ${plural(night.wakings, 'waking')}` : null;
+  return { latest: `${label}: ${detail}`, tonight };
+}
