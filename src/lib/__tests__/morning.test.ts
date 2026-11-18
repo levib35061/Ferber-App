@@ -1,4 +1,14 @@
-import { compareCrying, formatHours, moments, morningHeadline, timeline, totalSleepMs, upAt } from '../morning';
+import {
+  compareCrying,
+  formatHours,
+  moments,
+  morningHeadline,
+  morningTiles,
+  stretchLines,
+  timeline,
+  totalSleepMs,
+  upAt,
+} from '../morning';
 import { EventType, NightEvent } from '../session';
 
 const MIN = 60_000;
@@ -120,5 +130,49 @@ describe('up for the day', () => {
         .slice(-2)
         .map((m) => m.text),
     ).toEqual(['Woke up', 'Up for the day']);
+  });
+});
+
+describe('recap tiles and stretch lines', () => {
+  const sum = (cryingMinutes: number, checkIns: number, wakings: number) => ({
+    cryingMinutes,
+    checkIns,
+    wakings,
+    longestEpisodeMinutes: 0,
+    episodeCount: wakings + 1,
+  });
+  it('compares each number with the night before', () => {
+    const t = morningTiles(sum(50, 2, 1), { nightNumber: 3, summary: sum(72, 4, 1) });
+    expect(t.map((x) => [x.value, x.delta])).toEqual([
+      ['50m', '↓ 22m'],
+      ['2', '↓ 2'],
+      ['1', 'same'],
+    ]);
+    expect(t[0].spoken).toBe('Crying, 50 minutes, 22 minutes less than night 3');
+    expect(t[2].spoken).toBe('1 waking, same as night 3');
+    expect(morningTiles(sum(95, 3, 2), { nightNumber: 1, summary: sum(80, 3, 0) })[0]).toMatchObject({
+      value: '1h\u00A035m',
+      delta: '↑ 15m',
+    });
+    expect(morningTiles(sum(30, 1, 0), null)[1]).toMatchObject({ delta: null, spoken: '1 check-in' });
+  });
+  it('gives one line per stretch of the night', () => {
+    const evs = [
+      ev('down', 0),
+      ev('cry', 2),
+      ev('check_in_start', 5),
+      ev('check_in_end', 7),
+      ev('asleep', 41),
+      ev('woke', 400),
+      ev('asleep', 409),
+      ev('woke', 600),
+      ev('up', 610),
+    ];
+    const fmt = (at: number) => `+${Math.round((at - T0) / MIN)}`;
+    expect(stretchLines(evs, fmt)).toEqual([
+      { label: 'Bedtime', text: '39\u00A0min crying · 1 check-in' },
+      { label: '+400', text: 'Woke · 9\u00A0min crying · settled' },
+      { label: '+600', text: 'Woke · 10\u00A0min crying · up for the day' },
+    ]);
   });
 });

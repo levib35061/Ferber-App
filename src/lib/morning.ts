@@ -4,8 +4,8 @@
  * comparison with the night before. Pure and tested.
  */
 import { NightEvent, episodeCryingMs, episodes, liveEvents } from './session';
-import { summarizeNight } from './summary';
-import { formatMinutes, spokenMinutes } from './time';
+import { NightSummary, summarizeNight } from './summary';
+import { formatMinutes, formatMinutesShort, spokenMinutes } from './time';
 
 const MIN = 60_000;
 
@@ -184,4 +184,73 @@ export function compareCrying(
   return d > 0
     ? `${formatMinutes(d)} less than night ${previous.nightNumber}`
     : `${formatMinutes(-d)} more than night ${previous.nightNumber}`;
+}
+
+export interface Tile {
+  label: string;
+  value: string;
+  /** "↓ 22m", "↑ 1", "same", or null on the first night */
+  delta: string | null;
+  /** For VoiceOver: "22 minutes less than night 3" */
+  spoken: string;
+}
+
+/**
+ * The three numbers at the top of the morning recap, each compared with the
+ * night before. Plain arrows, no colours for better or worse.
+ */
+export function morningTiles(cur: NightSummary, prev: { nightNumber: number; summary: NightSummary } | null): Tile[] {
+  const diff = (a: number, b: number, fmt: (n: number) => string) =>
+    a === b ? 'same' : a < b ? `↓ ${fmt(b - a)}` : `↑ ${fmt(a - b)}`;
+  const said = (a: number, b: number, fmt: (n: number) => string) =>
+    !prev
+      ? ''
+      : a === b
+        ? `, same as night ${prev.nightNumber}`
+        : `, ${fmt(Math.abs(a - b))} ${a < b ? 'fewer' : 'more'} than night ${prev.nightNumber}`;
+  const n = (x: number) => String(x);
+  const p = prev?.summary;
+  return [
+    {
+      label: 'Crying',
+      value: formatMinutesShort(cur.cryingMinutes),
+      delta: p ? diff(cur.cryingMinutes, p.cryingMinutes, formatMinutesShort) : null,
+      spoken: `Crying, ${spokenMinutes(cur.cryingMinutes)}${said(cur.cryingMinutes, p?.cryingMinutes ?? 0, spokenMinutes).replace(' fewer ', ' less ')}`,
+    },
+    {
+      label: 'Check-ins',
+      value: n(cur.checkIns),
+      delta: p ? diff(cur.checkIns, p.checkIns, n) : null,
+      spoken: `${plural(cur.checkIns, 'check-in')}${said(cur.checkIns, p?.checkIns ?? 0, n)}`,
+    },
+    {
+      label: 'Wakings',
+      value: n(cur.wakings),
+      delta: p ? diff(cur.wakings, p.wakings, n) : null,
+      spoken: `${plural(cur.wakings, 'waking')}${said(cur.wakings, p?.wakings ?? 0, n)}`,
+    },
+  ];
+}
+
+export interface StretchLine {
+  /** "Bedtime" or the waking's clock time */
+  label: string;
+  text: string;
+}
+
+/** One line per stretch of the night: "41 min crying · 2 check-ins", "Woke · 9 min crying · settled". */
+export function stretchLines(events: NightEvent[], fmt: (at: number) => string): StretchLine[] {
+  return episodes(events).map((ep) => {
+    const cry = Math.round(episodeCryingMs(ep) / MIN);
+    const fed = ep.start.type === 'feed_start' || ep.events.some((e) => e.type === 'feed_start');
+    const parts: string[] = [];
+    if (ep.start.type !== 'down') parts.push(fed ? 'Woke, fed' : 'Woke');
+    else if (fed) parts.push('Fed');
+    parts.push(cry ? `${formatMinutes(cry)} crying` : 'no crying');
+    if (ep.checkIns) parts.push(plural(ep.checkIns, 'check-in'));
+    if (!ep.end) parts.push('not logged as asleep');
+    else if (ep.end.type === 'up') parts.push('up for the day');
+    else if (ep.start.type !== 'down' && !ep.checkIns && !fed) parts.push('settled');
+    return { label: ep.start.type === 'down' ? 'Bedtime' : fmt(ep.start.at), text: parts.join(' · ') };
+  });
 }

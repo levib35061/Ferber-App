@@ -1,6 +1,7 @@
 /**
- * The daytime "Today" screen: last night as a short story. Headline, a
- * timeline bar, the key moments, total crying vs the night before, and
+ * The daytime "Today" screen (layout "B, numbers first"): three tiles
+ * (crying, check-ins, wakings) against the night before, the trend chart from
+ * night 3, a thin timeline with one line per stretch of the night, Share, and
  * tonight's first wait. Peach & plum theme.
  */
 import { router, useFocusEffect } from 'expo-router';
@@ -17,11 +18,11 @@ import { isPastNight } from '../lib/nightView';
 import {
   Segment,
   SegmentKind,
-  compareCrying,
   formatHours,
-  moments,
   morningHeadline,
   morningNote,
+  morningTiles,
+  stretchLines,
   timeline,
   totalSleepMs,
   upAt,
@@ -30,7 +31,7 @@ import { NightEvent } from '../lib/session';
 import { shouldAskForReview } from '../lib/review';
 import { RoundNight, currentRound } from '../lib/shareCard';
 import { summarizeNight } from '../lib/summary';
-import { formatClock, formatMinutes, spokenMinutes } from '../lib/time';
+import { formatClock, formatMinutes, formatMinutesShort, spokenMinutes } from '../lib/time';
 import { day, dayFonts } from '../theme/day';
 import { ShareProgressButton } from './ShareProgress';
 
@@ -123,19 +124,16 @@ export function TodaySummary({ data, onStartTonight }: { data: LastNights; onSta
   }, [cryingKey, settings.reviewAsks, settings.reviewAskedAt]); // eslint-disable-line react-hooks/exhaustive-deps
   const name = baby?.name ?? '';
   const summary = summarizeNight(last.events);
-  const prevSummary = data.previous ? summarizeNight(data.previous.events) : null;
-  const compare = compareCrying(
-    summary.cryingMinutes,
-    data.previous && prevSummary
-      ? {
-          nightNumber: data.previous.night.nightNumber,
-          cryingMinutes: prevSummary.cryingMinutes,
-        }
-      : null,
+  const tiles = morningTiles(
+    summary,
+    data.previous ? { nightNumber: data.previous.night.nightNumber, summary: summarizeNight(data.previous.events) } : null,
   );
   const note = morningNote(data.crying);
   const tonightNumber = last.night.nightNumber + 1;
   const tonightFirstWait = nextWaitMinutes(chart, last.night.chartNight + 1, 0);
+  // From night 3 on, the trend chart: every night of this round, last night highlighted.
+  const bars = data.round.length >= 3 ? data.round.slice(-7) : [];
+  const maxBar = Math.max(1, ...bars.map((b) => b.cryingMinutes));
 
   const end = timelineEnd(last.night.nightKey, last.events);
   const upTime = upAt(last.events);
@@ -143,7 +141,6 @@ export function TodaySummary({ data, onStartTonight }: { data: LastNights; onSta
   const segs = timeline(last.events, end);
   const start = segs[0]?.from ?? end;
   const span = Math.max(1, end - start);
-  const kinds = (['crying', 'asleep', 'settling', 'feeding'] as SegmentKind[]).filter((k) => segs.some((s) => s.kind === k));
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
@@ -153,8 +150,8 @@ export function TodaySummary({ data, onStartTonight }: { data: LastNights; onSta
         <Text style={styles.kicker}>
           {greeting} · Night {last.night.nightNumber}
         </Text>
-        <Text style={styles.headline} accessibilityRole="header">
-          {morningHeadline(name, last.events)}
+        <Text style={styles.headline} accessibilityRole="header" accessibilityLabel={morningHeadline(name, last.events)}>
+          {name.trim() ? `${name.trim()}'s night` : 'Last night'}
         </Text>
         {upTime != null && (
           <Text style={styles.upLine}>
@@ -163,11 +160,53 @@ export function TodaySummary({ data, onStartTonight }: { data: LastNights; onSta
           </Text>
         )}
 
-        <View style={styles.card}>
-          <View style={styles.timeRow}>
-            <Text style={styles.small}>{formatClock(start)}</Text>
-            <Text style={styles.small}>{formatClock(end)}</Text>
+        <View style={styles.tiles}>
+          {tiles.map((t) => (
+            <View key={t.label} style={styles.tile} accessible accessibilityLabel={t.spoken}>
+              <Text style={styles.small}>{t.label}</Text>
+              <Text style={styles.tileValue} adjustsFontSizeToFit numberOfLines={1}>
+                {t.value}
+              </Text>
+              {t.delta && <Text style={styles.delta}>{t.delta}</Text>}
+            </View>
+          ))}
+        </View>
+
+        {bars.length > 0 && (
+          <View
+            style={styles.card}
+            accessible
+            accessibilityRole="image"
+            accessibilityLabel={`Crying by night: ${bars.map((b) => `night ${b.nightNumber}, ${spokenMinutes(b.cryingMinutes)}`).join('; ')}`}
+          >
+            <View style={styles.chart}>
+              {bars.map((b, i) => {
+                const lastBar = i === bars.length - 1;
+                return (
+                  <View key={`${b.nightNumber}-${i}`} style={styles.col}>
+                    <Text style={[styles.colValue, lastBar && styles.colValueLast]} numberOfLines={1}>
+                      {formatMinutesShort(b.cryingMinutes)}
+                    </Text>
+                    <View
+                      style={[
+                        styles.colBar,
+                        { height: Math.max(4, (b.cryingMinutes / maxBar) * 110) },
+                        lastBar && { backgroundColor: day.plum },
+                      ]}
+                    />
+                    <Text style={[styles.colLabel, lastBar && styles.colValueLast]}>{b.nightNumber}</Text>
+                  </View>
+                );
+              })}
+            </View>
+            <Text style={[styles.small, { textAlign: 'center' }]}>crying, by night</Text>
           </View>
+        )}
+
+        <View style={styles.card}>
+          <Text style={styles.small}>
+            {formatClock(start)} → {formatClock(end)}
+          </Text>
           <View
             style={styles.bar}
             accessible
@@ -187,19 +226,11 @@ export function TodaySummary({ data, onStartTonight }: { data: LastNights; onSta
               />
             ))}
           </View>
-          <View style={styles.legend}>
-            {kinds.map((k) => (
-              <View key={k} style={styles.legendItem}>
-                <View style={[styles.swatch, { backgroundColor: KIND_COLOR[k] }]} />
-                <Text style={styles.small}>{KIND_LABEL[k]}</Text>
-              </View>
-            ))}
-          </View>
-          <View style={{ marginTop: 4 }}>
-            {moments(last.events, formatClock).map((m, i) => (
+          <View>
+            {stretchLines(last.events, formatClock).map((l, i) => (
               <View key={i} style={styles.moment}>
-                <Text style={styles.momentTime}>{formatClock(m.at)}</Text>
-                <Text style={styles.momentText}>{m.text}</Text>
+                <Text style={styles.momentTime}>{l.label}</Text>
+                <Text style={styles.momentText}>{l.text}</Text>
               </View>
             ))}
           </View>
@@ -217,29 +248,18 @@ export function TodaySummary({ data, onStartTonight }: { data: LastNights; onSta
           </Pressable>
         </View>
 
-        <View style={styles.stats}>
-          <View style={[styles.stat, { backgroundColor: day.plum }]}>
-            <Text style={[styles.small, { color: day.onPlumDim }]}>Total crying</Text>
-            <Text
-              style={[styles.statValue, { color: day.onPlum }]}
-              adjustsFontSizeToFit
-              numberOfLines={1}
-              accessibilityLabel={spokenMinutes(summary.cryingMinutes)}
-            >
-              {formatMinutes(summary.cryingMinutes)}
-            </Text>
-            {compare && <Text style={[styles.statNote, { color: day.coralSoft }]}>{compare}</Text>}
-          </View>
-          <View style={[styles.stat, { backgroundColor: day.card }]}>
-            <Text style={styles.small}>Tonight, night {tonightNumber}</Text>
-            <Text style={styles.statValue}>{tonightFirstWait} min</Text>
-            <Text style={[styles.statNote, { color: day.dim }]}>first wait</Text>
-          </View>
-        </View>
-
         {note && <Text style={styles.note}>{note}</Text>}
 
         <ShareProgressButton round={data.round} name={name} />
+
+        <View
+          style={styles.card}
+          accessible
+          accessibilityLabel={`Tonight, night ${tonightNumber}. First wait ${tonightFirstWait} minutes.`}
+        >
+          <Text style={styles.small}>Tonight, night {tonightNumber}</Text>
+          <Text style={styles.tonight}>First wait {formatMinutes(tonightFirstWait)}</Text>
+        </View>
 
         <Pressable onPress={onStartTonight} accessibilityRole="button" style={styles.startBtn}>
           <Text style={styles.startText}>Starting bedtime early? Open the night screen</Text>
@@ -275,18 +295,14 @@ const styles = StyleSheet.create({
     marginTop: -6,
   },
   card: { backgroundColor: day.card, borderRadius: 24, padding: 18, gap: 10 },
-  timeRow: { flexDirection: 'row', justifyContent: 'space-between' },
   small: { color: day.dim, fontFamily: dayFonts.medium, fontSize: 13 },
   bar: {
-    height: 28,
+    height: 14,
     borderRadius: 8,
     overflow: 'hidden',
     flexDirection: 'row',
     gap: 2,
   },
-  legend: { flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
-  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  swatch: { width: 10, height: 10, borderRadius: 2 },
   moment: {
     flexDirection: 'row',
     gap: 12,
@@ -295,7 +311,7 @@ const styles = StyleSheet.create({
     borderTopColor: day.line,
   },
   momentTime: {
-    width: 72,
+    width: 76,
     color: day.plum,
     fontFamily: dayFonts.bold,
     fontSize: 15,
@@ -309,20 +325,17 @@ const styles = StyleSheet.create({
   },
   linkRow: { paddingTop: 6 },
   link: { color: day.plum, fontFamily: dayFonts.bold, fontSize: 15 },
-  stats: { flexDirection: 'row', gap: 10 },
-  stat: {
-    flex: 1,
-    borderRadius: 20,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-  },
-  statValue: {
-    color: day.plum,
-    fontFamily: dayFonts.display,
-    fontSize: 28,
-    marginTop: 2,
-  },
-  statNote: { fontFamily: dayFonts.bold, fontSize: 13 },
+  tiles: { flexDirection: 'row', gap: 8 },
+  tile: { flex: 1, backgroundColor: day.card, borderRadius: 18, paddingVertical: 12, paddingHorizontal: 12 },
+  tileValue: { color: day.plum, fontFamily: dayFonts.display, fontSize: 26, letterSpacing: -0.5, marginTop: 2 },
+  delta: { color: day.dim, fontFamily: dayFonts.bold, fontSize: 13 },
+  chart: { flexDirection: 'row', alignItems: 'flex-end', gap: 6, height: 150 },
+  col: { flex: 1, alignItems: 'center', justifyContent: 'flex-end' },
+  colValue: { color: day.dim, fontFamily: dayFonts.bold, fontSize: 11, marginBottom: 4 },
+  colValueLast: { color: day.plum },
+  colBar: { width: 26, borderRadius: 7, backgroundColor: day.coralSoft },
+  colLabel: { color: day.dim, fontFamily: dayFonts.medium, fontSize: 12, marginTop: 6 },
+  tonight: { color: day.plum, fontFamily: dayFonts.display, fontSize: 21, marginTop: 2 },
   startBtn: { alignSelf: 'center', paddingVertical: 12 },
   startText: {
     color: day.dim,
