@@ -2,6 +2,7 @@
  * Derived per-episode and per-night numbers. Computed from events, never stored.
  */
 import { NightEvent, episodeCryingMs, episodes } from './session';
+import { formatMinutes } from './time';
 
 export { episodeCryingMs };
 
@@ -60,9 +61,9 @@ export function asleepLines(
   if (latest.checkIns === 0 && latest.cryingMinutes === 0) {
     detail = latest.wasWaking ? 'settled on their own' : 'asleep with no crying';
   } else if (latest.checkIns === 0) {
-    detail = `${latest.cryingMinutes} min crying, no check-ins`;
+    detail = `${formatMinutes(latest.cryingMinutes)} crying, no check-ins`;
   } else {
-    detail = `${latest.cryingMinutes} min crying, ${plural(latest.checkIns, 'check-in')}`;
+    detail = `${formatMinutes(latest.cryingMinutes)} crying, ${plural(latest.checkIns, 'check-in')}`;
   }
   const tonight =
     night.episodeCount > 1 ? `Tonight: ${plural(night.checkIns, 'check-in')} · ${plural(night.wakings, 'waking')}` : null;

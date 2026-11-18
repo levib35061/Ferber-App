@@ -20,7 +20,15 @@ import { IN_ROOM_NOTE, waitingNote } from '../../lib/encourage';
 import { chooseView } from '../../lib/nightView';
 import { Action, UNDO_WINDOW_MS } from '../../lib/session';
 import { asleepLines, episodeCryingMs, summarizeNight } from '../../lib/summary';
-import { formatClock, formatDuration, isMorningWindow, isVeryEarly, spokenDuration } from '../../lib/time';
+import {
+  formatClock,
+  formatDuration,
+  formatMinutesShort,
+  isMorningWindow,
+  isVeryEarly,
+  spokenDuration,
+  spokenMinutes,
+} from '../../lib/time';
 import { ThemeProvider } from '../../theme';
 import { day, dayFonts } from '../../theme/day';
 import { colors, fonts, type } from '../../theme/night';
@@ -469,17 +477,17 @@ function AsleepView(props: {
       <View style={styles.middle}>
         <ProgressRing
           progress={1}
-          accessibilityLabel={`Asleep at ${formatClock(props.since)}. ${night.cryingMinutes} minutes crying tonight. ${lines.latest}.${lines.tonight ? ` ${lines.tonight}.` : ''}`}
+          accessibilityLabel={`Asleep at ${formatClock(props.since)}. ${spokenMinutes(night.cryingMinutes)} crying tonight. ${lines.latest}.${lines.tonight ? ` ${lines.tonight}.` : ''}`}
         >
           <MoonIcon size={32} color={colors.primary} />
           <Text maxFontSizeMultiplier={1.25} style={[styles.ringCaption, { marginTop: 8 }]}>
             Asleep at {formatClock(props.since)}
           </Text>
-          <Text maxFontSizeMultiplier={1} style={styles.countdown}>
-            {night.cryingMinutes}
+          <Text maxFontSizeMultiplier={1} style={styles.countdown} adjustsFontSizeToFit numberOfLines={1}>
+            {night.cryingMinutes >= 60 ? formatMinutesShort(night.cryingMinutes) : night.cryingMinutes}
           </Text>
           <Text maxFontSizeMultiplier={1.25} style={styles.ringSub}>
-            min crying tonight
+            {night.cryingMinutes >= 60 ? 'crying tonight' : 'min crying tonight'}
           </Text>
         </ProgressRing>
         <Text maxFontSizeMultiplier={1.3} style={styles.asleepLatest}>

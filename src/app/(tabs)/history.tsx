@@ -12,6 +12,7 @@ import { Night, listNightsWithEvents } from '../../data/db';
 import { useNightStore } from '../../data/NightStore';
 import { NightEvent } from '../../lib/session';
 import { summarizeNight } from '../../lib/summary';
+import { formatMinutes } from '../../lib/time';
 import { makeStyles } from '../../theme';
 
 export default function HistoryScreen() {
@@ -54,7 +55,7 @@ export default function HistoryScreen() {
                 </Text>
               </View>
               <View style={{ alignItems: 'flex-end' }}>
-                <Text style={styles.rowTitle}>{s.cryingMinutes} min</Text>
+                <Text style={styles.rowTitle}>{formatMinutes(s.cryingMinutes)}</Text>
                 <Text style={styles.rowSub}>
                   {s.checkIns} check-in{s.checkIns === 1 ? '' : 's'} · {s.wakings} waking{s.wakings === 1 ? '' : 's'}
                 </Text>

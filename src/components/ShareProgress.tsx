@@ -10,15 +10,24 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { captureRef } from 'react-native-view-shot';
 
 import { RoundNight, shareCard } from '../lib/shareCard';
+import { formatMinutesShort } from '../lib/time';
 import { day, dayFonts } from '../theme/day';
 
 export function ShareProgressButton({ round, name }: { round: RoundNight[]; name: string }) {
   const [open, setOpen] = useState(false);
-  if (!shareCard(round)) return null;
+  const preview = shareCard(round);
+  if (!preview) return null;
+  // Every morning can be shared; a clearly good run gets the bolder button.
   return (
     <>
-      <Pressable onPress={() => setOpen(true)} accessibilityRole="button" style={styles.entry}>
-        <Text style={styles.entryText}>Share this progress</Text>
+      <Pressable
+        onPress={() => setOpen(true)}
+        accessibilityRole="button"
+        style={[styles.entry, preview.celebrate && styles.entryBold]}
+      >
+        <Text style={[styles.entryText, preview.celebrate && styles.entryTextBold]}>
+          {preview.celebrate ? 'Share this progress' : 'Share last night'}
+        </Text>
       </Pressable>
       <Modal visible={open} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setOpen(false)}>
         <ShareSheet round={round} name={name} onClose={() => setOpen(false)} />
@@ -73,31 +82,45 @@ function ShareSheet({ round, name, onClose }: { round: RoundNight[]; name: strin
           <Text style={styles.headline} maxFontSizeMultiplier={1}>
             {card.headline}
           </Text>
-          <View style={styles.chart}>
-            {card.bars.map((b, i) => {
-              const lastBar = i === card.bars.length - 1;
-              return (
-                <View key={b.nightNumber} style={styles.col}>
-                  <Text style={[styles.colValue, lastBar && styles.colValueLast]} maxFontSizeMultiplier={1}>
-                    {b.cryingMinutes}
-                  </Text>
-                  <View
-                    style={[
-                      styles.barFill,
-                      { height: Math.max(4, (b.cryingMinutes / max) * 130) },
-                      lastBar && { backgroundColor: day.plum },
-                    ]}
-                  />
-                  <Text style={styles.colLabel} maxFontSizeMultiplier={1}>
-                    {b.nightNumber}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
-          <Text style={styles.axis} maxFontSizeMultiplier={1}>
-            minutes of crying, by night
-          </Text>
+          {card.bars.length === 0 && (
+            <View style={styles.single}>
+              <Text style={styles.singleValue} maxFontSizeMultiplier={1} adjustsFontSizeToFit numberOfLines={1}>
+                {formatMinutesShort(round[round.length - 1].cryingMinutes)}
+              </Text>
+              <Text style={styles.axis} maxFontSizeMultiplier={1}>
+                of crying
+              </Text>
+            </View>
+          )}
+          {card.bars.length > 0 && (
+            <View style={styles.chart}>
+              {card.bars.map((b, i) => {
+                const lastBar = i === card.bars.length - 1;
+                return (
+                  <View key={b.nightNumber} style={styles.col}>
+                    <Text style={[styles.colValue, lastBar && styles.colValueLast]} maxFontSizeMultiplier={1}>
+                      {formatMinutesShort(b.cryingMinutes)}
+                    </Text>
+                    <View
+                      style={[
+                        styles.barFill,
+                        { height: Math.max(4, (b.cryingMinutes / max) * 130) },
+                        lastBar && { backgroundColor: day.plum },
+                      ]}
+                    />
+                    <Text style={styles.colLabel} maxFontSizeMultiplier={1}>
+                      {b.nightNumber}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+          {card.bars.length > 0 && (
+            <Text style={styles.axis} maxFontSizeMultiplier={1}>
+              crying, by night
+            </Text>
+          )}
           <View style={styles.footer}>
             <Text style={styles.brand} maxFontSizeMultiplier={1}>
               Check In
@@ -132,6 +155,10 @@ function ShareSheet({ round, name, onClose }: { round: RoundNight[]; name: strin
 const styles = StyleSheet.create({
   entry: { alignSelf: 'center', paddingVertical: 12, paddingHorizontal: 22, borderRadius: 999, backgroundColor: day.card },
   entryText: { color: day.plum, fontFamily: dayFonts.bold, fontSize: 16 },
+  entryBold: { backgroundColor: day.plum },
+  entryTextBold: { color: day.onPlum },
+  single: { marginTop: 'auto', alignItems: 'center', paddingBottom: 8 },
+  singleValue: { color: day.plum, fontFamily: dayFonts.display, fontSize: 64, letterSpacing: -1.5 },
   sheet: { flex: 1, backgroundColor: day.bg, paddingHorizontal: 22 },
   sheetTop: { height: 48, flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' },
   close: { color: day.plum, fontFamily: dayFonts.bold, fontSize: 17 },
@@ -149,7 +176,7 @@ const styles = StyleSheet.create({
   },
   chart: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', height: 196, marginTop: 'auto' },
   col: { flex: 1, alignItems: 'center', justifyContent: 'flex-end' },
-  colValue: { color: day.dim, fontFamily: dayFonts.bold, fontSize: 11, marginBottom: 4 },
+  colValue: { color: day.dim, fontFamily: dayFonts.bold, fontSize: 10, marginBottom: 4 },
   colValueLast: { color: day.plum, fontSize: 13 },
   barFill: { width: 22, borderRadius: 8, backgroundColor: day.coralSoft },
   colLabel: { color: day.dim, fontFamily: dayFonts.medium, fontSize: 11, marginTop: 6 },

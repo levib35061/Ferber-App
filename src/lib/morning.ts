@@ -5,6 +5,7 @@
  */
 import { NightEvent, episodeCryingMs, episodes, liveEvents } from './session';
 import { summarizeNight } from './summary';
+import { formatMinutes, spokenMinutes } from './time';
 
 const MIN = 60_000;
 
@@ -39,8 +40,7 @@ export function morningHeadline(name: string, events: NightEvent[]): string {
           : `and woke ${wakings} times`;
   if (!bed || !bed.end) return `${who} woke ${wakings === 1 ? 'once' : plural(wakings, 'time')} in the night.`;
   const cry = Math.round(episodeCryingMs(bed) / MIN);
-  const first =
-    cry === 0 ? `${who} fell asleep without crying` : `${who} fell asleep after ${plural(cry, 'minute')} of crying`;
+  const first = cry === 0 ? `${who} fell asleep without crying` : `${who} fell asleep after ${spokenMinutes(cry)} of crying`;
   return `${first}, ${wakePart}.`;
 }
 
@@ -116,12 +116,12 @@ export function moments(events: NightEvent[], fmt: (at: number) => string): Mome
         if (e.type === 'check_in_start') {
           const endEv = evs.slice(i + 1).find((x) => x.type === 'check_in_end' || x.type === 'asleep');
           const mins = endEv ? Math.max(1, Math.round((endEv.at - e.at) / MIN)) : null;
-          out.push({ at: e.at, text: mins ? `Check-in, ${mins} min` : 'Check-in' });
+          out.push({ at: e.at, text: mins ? `Check-in, ${formatMinutes(mins)}` : 'Check-in' });
         }
         if (e.type === 'feed_start') {
           const endEv = evs.slice(i + 1).find((x) => x.type === 'feed_end' || x.type === 'asleep');
           const mins = endEv ? Math.max(1, Math.round((endEv.at - e.at) / MIN)) : null;
-          out.push({ at: e.at, text: mins ? `Night feed, ${mins} min` : 'Night feed' });
+          out.push({ at: e.at, text: mins ? `Night feed, ${formatMinutes(mins)}` : 'Night feed' });
         }
       }
       if (ep.end?.type === 'asleep') out.push({ at: ep.end.at, text: 'Asleep' });
@@ -152,13 +152,9 @@ export function totalSleepMs(events: NightEvent[]): number | null {
 
 /** 37_500_000 → "10 h 25 min" */
 export function formatHours(ms: number): string {
-  const total = Math.round(ms / MIN);
-  const h = Math.floor(total / 60);
-  const m = total % 60;
-  return h ? `${h} h ${m} min` : `${m} min`;
+  return formatMinutes(ms / MIN);
 }
 
-/** "9 less than night 2", "4 more than night 2", "Same as night 2", or null for the first night. */
 /**
  * One kind, honest line under the numbers, or null. `crying` is minutes per
  * finished night, oldest first, ending with last night.
@@ -177,6 +173,7 @@ export function morningNote(crying: number[]): string | null {
   return null;
 }
 
+/** "9 min less than night 2", "1 h 5 min more than night 2", "Same as night 2", or null for the first night. */
 export function compareCrying(
   minutes: number,
   previous: { nightNumber: number; cryingMinutes: number } | null,
@@ -184,5 +181,7 @@ export function compareCrying(
   if (!previous) return null;
   const d = previous.cryingMinutes - minutes;
   if (d === 0) return `Same as night ${previous.nightNumber}`;
-  return d > 0 ? `${d} less than night ${previous.nightNumber}` : `${-d} more than night ${previous.nightNumber}`;
+  return d > 0
+    ? `${formatMinutes(d)} less than night ${previous.nightNumber}`
+    : `${formatMinutes(-d)} more than night ${previous.nightNumber}`;
 }

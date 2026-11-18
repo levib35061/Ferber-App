@@ -67,7 +67,7 @@ describe('moments', () => {
     expect(moments(night, fmt).map((m) => `${fmt(m.at)} ${m.text}`)).toEqual([
       '+0 Down for the night',
       '+4 Started crying',
-      '+14 Check-in, 2 min',
+      '+14 Check-in, 2\u00A0min',
       '+36 Asleep',
       '+450 Woke up, asleep by +464',
     ]);
@@ -89,8 +89,8 @@ describe('moments', () => {
 
 describe('compareCrying', () => {
   it('compares with the previous night', () => {
-    expect(compareCrying(46, { nightNumber: 2, cryingMinutes: 55 })).toBe('9 less than night 2');
-    expect(compareCrying(60, { nightNumber: 2, cryingMinutes: 55 })).toBe('5 more than night 2');
+    expect(compareCrying(46, { nightNumber: 2, cryingMinutes: 55 })).toBe('9\u00A0min less than night 2');
+    expect(compareCrying(60, { nightNumber: 2, cryingMinutes: 55 })).toBe('5\u00A0min more than night 2');
     expect(compareCrying(55, { nightNumber: 2, cryingMinutes: 55 })).toBe('Same as night 2');
     expect(compareCrying(55, null)).toBeNull();
   });
@@ -109,7 +109,7 @@ describe('up for the day', () => {
     expect(upAt(withUp)).toBe(T0 + 660 * MIN);
     // asleep 36→450 and 464→660
     expect(totalSleepMs(withUp)).toBe((414 + 196) * MIN);
-    expect(formatHours((414 + 196) * MIN)).toBe('10 h 10 min');
+    expect(formatHours((414 + 196) * MIN)).toBe('10\u00A0h 10\u00A0min');
     expect(totalSleepMs(night)).toBeNull();
   });
 

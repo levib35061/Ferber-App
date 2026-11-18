@@ -11,7 +11,7 @@ import { AppState } from 'react-native';
 import { Chart, chartForPreset } from '../lib/ferber';
 import { Action, NightEvent, NightState, UNDO_WINDOW_MS, deriveNightState, liveEvents } from '../lib/session';
 import { Duty, alertsOnThisPhone, dutyFor, partnerId } from '../lib/duty';
-import { NIGHT_ENDS_HOUR, nightKey } from '../lib/time';
+import { nightKey } from '../lib/time';
 import { freeNightsLeft, needsUnlock } from '../lib/trial';
 import {
   Baby,
@@ -260,9 +260,9 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
   const kindNow = night ? deriveNightState(events, chart, night.chartNight, tick).kind : 'idle';
   const nightActive = activeKinds.includes(kindNow);
   // After "Up for the day" the night is over, even if it's before 7am.
-  // Tonight already started (after 11am) and baby is asleep: still night, keep it dark.
-  const tonightAsleep = kindNow === 'asleep' && new Date(tick).getHours() >= NIGHT_ENDS_HOUR;
-  const nightMode = (clockMode === 'night' && kindNow !== 'up') || nightActive || tonightAsleep || bedtimeEarly;
+  // Baby asleep: still night, keep it dark (in the morning too, until "Up for the day").
+  const asleepNow = kindNow === 'asleep';
+  const nightMode = (clockMode === 'night' && kindNow !== 'up') || nightActive || asleepNow || bedtimeEarly;
 
   const deleteEverything = useCallback(async () => {
     await sync.deleteAccount(); // throws if offline: nothing is wiped then

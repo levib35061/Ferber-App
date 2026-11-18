@@ -1,4 +1,13 @@
-import { ageInMonths, atTimeInNight, formatDuration, nightKey, spokenDuration } from '../time';
+import {
+  ageInMonths,
+  atTimeInNight,
+  formatDuration,
+  formatMinutes,
+  formatMinutesShort,
+  nightKey,
+  spokenDuration,
+  spokenMinutes,
+} from '../time';
 
 describe('spokenDuration', () => {
   it('reads naturally', () => {
@@ -55,5 +64,20 @@ describe('ageInMonths', () => {
   });
   it('never goes negative', () => {
     expect(ageInMonths('2027-01-01', now)).toBe(0);
+  });
+});
+
+describe('crying time in hours and minutes', () => {
+  it('formats minutes as hours and minutes once past an hour', () => {
+    expect(formatMinutes(45)).toBe('45\u00A0min');
+    expect(formatMinutes(72)).toBe('1\u00A0h 12\u00A0min');
+    expect(formatMinutes(120)).toBe('2\u00A0h');
+    expect(formatMinutes(0)).toBe('0\u00A0min');
+    expect(formatMinutesShort(45)).toBe('45m');
+    expect(formatMinutesShort(72)).toBe('1h\u00A012m');
+    expect(formatMinutesShort(60)).toBe('1h');
+    expect(spokenMinutes(1)).toBe('1 minute');
+    expect(spokenMinutes(61)).toBe('1 hour 1 minute');
+    expect(spokenMinutes(150)).toBe('2 hours 30 minutes');
   });
 });

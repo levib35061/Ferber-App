@@ -17,17 +17,17 @@ describe('asleepLines', () => {
   });
   it('describes the latest stretch plainly', () => {
     expect(asleepLines(night({}), { cryingMinutes: 6, checkIns: 1, wasWaking: true }).latest).toBe(
-      'Last waking: 6 min crying, 1 check-in',
+      'Last waking: 6\u00A0min crying, 1 check-in',
     );
     expect(asleepLines(night({}), { cryingMinutes: 4, checkIns: 0, wasWaking: true }).latest).toBe(
-      'Last waking: 4 min crying, no check-ins',
+      'Last waking: 4\u00A0min crying, no check-ins',
     );
   });
   it('at bedtime, talks about bedtime and has no "tonight" line yet', () => {
     expect(
       asleepLines(night({ episodeCount: 1, wakings: 0 }), { cryingMinutes: 12, checkIns: 2, wasWaking: false }),
     ).toEqual({
-      latest: 'Bedtime: 12 min crying, 2 check-ins',
+      latest: 'Bedtime: 12\u00A0min crying, 2 check-ins',
       tonight: null,
     });
     expect(asleepLines(night({ episodeCount: 1 }), { cryingMinutes: 0, checkIns: 0, wasWaking: false }).latest).toBe(

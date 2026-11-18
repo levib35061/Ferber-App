@@ -13,7 +13,7 @@ import { Night, getNight, insertEvent, listEvents, setNightNote, softDeleteEvent
 import { useNightStore } from '../../data/NightStore';
 import { EventType, NightEvent, episodes } from '../../lib/session';
 import { episodeCryingMs, summarizeNight } from '../../lib/summary';
-import { formatClock } from '../../lib/time';
+import { formatClock, formatMinutes } from '../../lib/time';
 import { makeStyles, useTheme } from '../../theme';
 
 type Sheet = { mode: 'edit'; event: NightEvent } | { mode: 'add' } | null;
@@ -81,7 +81,7 @@ export default function NightDetailScreen() {
         </Text>
 
         <View style={styles.stats}>
-          <Stat label="Crying" value={`${summary.cryingMinutes} min`} />
+          <Stat label="Crying" value={formatMinutes(summary.cryingMinutes)} />
           <Stat label="Check-ins" value={String(summary.checkIns)} />
           <Stat label="Wakings" value={String(summary.wakings)} />
         </View>
@@ -93,7 +93,7 @@ export default function NightDetailScreen() {
                 ? 'Bedtime'
                 : `Waking ${eps.slice(0, i + 1).filter((x) => x.start.type !== 'down').length}`}
               {' · '}
-              {ep.end ? `${Math.round(episodeCryingMs(ep) / 60_000)} min crying` : 'not finished'}
+              {ep.end ? `${formatMinutes(episodeCryingMs(ep) / 60_000)} crying` : 'not finished'}
             </Text>
             {ep.events.map((e) => (
               <EventRow key={e.id} e={e} onPress={() => setSheet({ mode: 'edit', event: e })} />

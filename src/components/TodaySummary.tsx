@@ -30,7 +30,7 @@ import { NightEvent } from '../lib/session';
 import { shouldAskForReview } from '../lib/review';
 import { RoundNight, currentRound } from '../lib/shareCard';
 import { summarizeNight } from '../lib/summary';
-import { formatClock } from '../lib/time';
+import { formatClock, formatMinutes, spokenMinutes } from '../lib/time';
 import { day, dayFonts } from '../theme/day';
 import { ShareProgressButton } from './ShareProgress';
 
@@ -220,7 +220,14 @@ export function TodaySummary({ data, onStartTonight }: { data: LastNights; onSta
         <View style={styles.stats}>
           <View style={[styles.stat, { backgroundColor: day.plum }]}>
             <Text style={[styles.small, { color: day.onPlumDim }]}>Total crying</Text>
-            <Text style={[styles.statValue, { color: day.onPlum }]}>{summary.cryingMinutes} min</Text>
+            <Text
+              style={[styles.statValue, { color: day.onPlum }]}
+              adjustsFontSizeToFit
+              numberOfLines={1}
+              accessibilityLabel={spokenMinutes(summary.cryingMinutes)}
+            >
+              {formatMinutes(summary.cryingMinutes)}
+            </Text>
             {compare && <Text style={[styles.statNote, { color: day.coralSoft }]}>{compare}</Text>}
           </View>
           <View style={[styles.stat, { backgroundColor: day.card }]}>

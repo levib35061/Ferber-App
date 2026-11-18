@@ -49,9 +49,15 @@ describe('tonight vs last night', () => {
       'night',
     );
   });
-  it('asleep in the morning still shows Today', () => {
-    const now = new Date(2026, 10, 17, 7, 30).getTime();
-    expect(chooseView({ now, stateKind: 'asleep', bedtimeEarly: false, lastNightKey: LAST_NIGHT }).view).toBe('today');
+  it('a baby still asleep in the morning keeps the night screen until "Up for the day"', () => {
+    for (const h of [7, 8, 10]) {
+      const now = new Date(2026, 10, 17, h, 30).getTime();
+      expect(chooseView({ now, stateKind: 'asleep', bedtimeEarly: false, lastNightKey: LAST_NIGHT })).toEqual({
+        view: 'night',
+        canShowToday: false,
+      });
+      expect(chooseView({ now, stateKind: 'up', bedtimeEarly: false, lastNightKey: LAST_NIGHT }).view).toBe('today');
+    }
   });
   it("only counts tonight's key as last night before 11am", () => {
     expect(isPastNight(LAST_NIGHT, at(16))).toBe(true);

@@ -1,11 +1,13 @@
 /**
- * The shareable progress card ("Night 1: 43 min → Night 5: 8 min"), offered
- * on the Today screen after a good morning. Pure and tested.
+ * The shareable progress card, on every morning's Today screen. Pure and tested.
  *
- * Only offered when it's genuinely good news, so the card never feels like
- * a scorecard: at least 3 nights in this round, last night no worse than the
- * one before, and crying down by at least 40% since night 1.
+ * After a clearly good run (3+ nights this round, last night no worse than the
+ * one before, crying down 40%+ since night 1) it celebrates the drop ("Crying
+ * down from 43 min to 8 min") and is offered more prominently. Any other
+ * morning it states last night plainly ("Night 2: 1 h 5 min of crying"), so it
+ * never reads as a scorecard.
  */
+import { formatMinutes } from './time';
 
 export interface RoundNight {
   nightNumber: number;
@@ -20,6 +22,8 @@ export interface ShareCard {
   bars: RoundNight[];
   /** Text sent with the image */
   message: string;
+  /** Clearly good news (offered more prominently) */
+  celebrate: boolean;
 }
 
 const MAX_BARS = 7;
@@ -33,27 +37,44 @@ export function currentRound(nightsOldestFirst: RoundNight[]): RoundNight[] {
   return nightsOldestFirst.slice(start);
 }
 
-const mins = (n: number) => `${n}\u00A0min`;
-
-export function shareCard(round: RoundNight[], name = ''): ShareCard | null {
-  if (round.length < 3) return null;
+/** Clearly good news: 3+ nights, last night no worse than the one before, crying down 40%+ since night 1. */
+export function isGoodRun(round: RoundNight[]): boolean {
+  if (round.length < 3) return false;
   const first = round[0];
   const last = round[round.length - 1];
   const prev = round[round.length - 2];
-  if (first.cryingMinutes <= 0) return null;
-  if (last.cryingMinutes > prev.cryingMinutes) return null;
-  if (last.cryingMinutes > first.cryingMinutes * 0.6) return null;
+  return (
+    first.cryingMinutes > 0 && last.cryingMinutes <= prev.cryingMinutes && last.cryingMinutes <= first.cryingMinutes * 0.6
+  );
+}
 
+const FOOTER = 'Timed with Check In: ferbertimer.com';
+
+/** The card for any morning with a logged night (null only when there's no night yet). */
+export function shareCard(round: RoundNight[], name = ''): ShareCard | null {
+  if (!round.length) return null;
+  const first = round[0];
+  const last = round[round.length - 1];
   const who = name.trim();
-  const headline =
-    last.cryingMinutes === 0
-      ? `From ${mins(first.cryingMinutes)} of crying to none`
-      : `Crying down from ${mins(first.cryingMinutes)} to ${mins(last.cryingMinutes)}`;
-  const span = `Night ${first.nightNumber} → night ${last.nightNumber}`;
   const subject = who ? `${who}'s sleep training` : 'Sleep training';
-  const message =
-    last.cryingMinutes === 0
-      ? `${subject}, night ${last.nightNumber}: from ${mins(first.cryingMinutes)} of crying on night ${first.nightNumber} to none. Timed with Check In: ferbertimer.com`
-      : `${subject}, night ${last.nightNumber}: crying down from ${mins(first.cryingMinutes)} on night ${first.nightNumber} to ${mins(last.cryingMinutes)}. Timed with Check In: ferbertimer.com`;
-  return { headline, span, bars: round.slice(-MAX_BARS), message };
+  const bars = round.length >= 2 ? round.slice(-MAX_BARS) : [];
+  const span = round.length >= 2 ? `Night ${first.nightNumber} → night ${last.nightNumber}` : `Night ${last.nightNumber}`;
+  const celebrate = isGoodRun(round);
+
+  if (celebrate) {
+    const from = formatMinutes(first.cryingMinutes);
+    const to = formatMinutes(last.cryingMinutes);
+    const headline = last.cryingMinutes === 0 ? `From ${from} of crying to none` : `Crying down from ${from} to ${to}`;
+    const message =
+      last.cryingMinutes === 0
+        ? `${subject}, night ${last.nightNumber}: from ${from} of crying on night ${first.nightNumber} to none. ${FOOTER}`
+        : `${subject}, night ${last.nightNumber}: crying down from ${from} on night ${first.nightNumber} to ${to}. ${FOOTER}`;
+    return { headline, span, bars, message, celebrate };
+  }
+
+  // Any other morning: just last night, stated plainly. No judgement either way.
+  const amount = last.cryingMinutes === 0 ? 'no crying' : `${formatMinutes(last.cryingMinutes)} of crying`;
+  const headline = `Night ${last.nightNumber}: ${amount}`;
+  const message = `${subject}, night ${last.nightNumber}: ${amount}. ${FOOTER}`;
+  return { headline, span, bars, message, celebrate };
 }

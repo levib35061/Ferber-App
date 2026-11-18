@@ -13,6 +13,7 @@ import { listNightsWithEvents } from '../../data/db';
 import { useNightStore } from '../../data/NightStore';
 import { NightPoint, trendLine } from '../../lib/progress';
 import { summarizeNight } from '../../lib/summary';
+import { formatMinutes } from '../../lib/time';
 import { makeStyles } from '../../theme';
 
 const MAX_NIGHTS = 21;
@@ -84,6 +85,7 @@ export default function ProgressScreen() {
           <BarChart
             bars={bars}
             unit={view === 'crying' ? 'min' : 'check-ins'}
+            format={view === 'crying' ? formatMinutes : undefined}
             accessibilityLabel={view === 'crying' ? 'Crying minutes per night' : 'Check-ins per night'}
           />
         )}

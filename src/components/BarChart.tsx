@@ -34,7 +34,18 @@ function columnPath(x: number, w: number, y: number, base: number): string {
   return `M${x},${base} L${x},${y + r} Q${x},${y} ${x + r},${y} L${x + w - r},${y} Q${x + w},${y} ${x + w},${y + r} L${x + w},${base} Z`;
 }
 
-export function BarChart({ bars, unit, accessibilityLabel }: { bars: Bar[]; unit: string; accessibilityLabel: string }) {
+export function BarChart({
+  bars,
+  unit,
+  format,
+  accessibilityLabel,
+}: {
+  bars: Bar[];
+  unit: string;
+  /** Readout text for a value (default: "<value> <unit>") */
+  format?: (value: number) => string;
+  accessibilityLabel: string;
+}) {
   const styles = stylesHook();
   const { colors, fonts } = useTheme();
   const [width, setWidth] = useState(0);
@@ -53,7 +64,9 @@ export function BarChart({ bars, unit, accessibilityLabel }: { bars: Bar[]; unit
 
   return (
     <View>
-      <Text style={styles.readout}>{sel ? `Night ${sel.label}: ${sel.value} ${unit}` : 'Tap a bar to see its value'}</Text>
+      <Text style={styles.readout}>
+        {sel ? `Night ${sel.label}: ${format ? format(sel.value) : `${sel.value} ${unit}`}` : 'Tap a bar to see its value'}
+      </Text>
       <View onLayout={onLayout} accessibilityLabel={accessibilityLabel} style={{ height: H }}>
         {width > 0 && (
           <Svg width={width} height={H}>

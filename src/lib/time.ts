@@ -25,6 +25,34 @@ export function localDateString(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
+/** Whole minutes as hours and minutes: 45 → "45 min", 72 → "1 h 12 min", 120 → "2 h". */
+export function formatMinutes(min: number): string {
+  const total = Math.max(0, Math.round(min));
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  if (!h) return `${m}\u00A0min`;
+  return m ? `${h}\u00A0h ${m}\u00A0min` : `${h}\u00A0h`;
+}
+
+/** Tight spaces (chart bars, the asleep ring): 45 → "45m", 72 → "1h 12m", 120 → "2h". */
+export function formatMinutesShort(min: number): string {
+  const total = Math.max(0, Math.round(min));
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  if (!h) return `${m}m`;
+  return m ? `${h}h\u00A0${m}m` : `${h}h`;
+}
+
+/** For VoiceOver and sentences: 1 → "1 minute", 72 → "1 hour 12 minutes". */
+export function spokenMinutes(min: number): string {
+  const total = Math.max(0, Math.round(min));
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  const part = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
+  if (!h) return part(m, 'minute');
+  return m ? `${part(h, 'hour')} ${part(m, 'minute')}` : part(h, 'hour');
+}
+
 /** True between 6pm and 7am local: the Night screen is the default then. */
 export function isNightTime(atMs: number): boolean {
   const h = new Date(atMs).getHours();

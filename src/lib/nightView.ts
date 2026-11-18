@@ -23,11 +23,11 @@ export interface ViewChoice {
 
 export function chooseView({ now, stateKind, bedtimeEarly, lastNightKey }: ViewInput): ViewChoice {
   const recent = lastNightKey != null && [nightKey(now), nightKey(now - 24 * 3600_000)].includes(lastNightKey);
-  // Before 11am "asleep" is last night (morning); after 11am it's tonight, already under way.
-  const morning = new Date(now).getHours() < NIGHT_ENDS_HOUR;
-  const restful = stateKind === 'idle' || (stateKind === 'asleep' && morning);
-  // After "Up for the day" the night is over, so Today shows at any hour.
-  const canShowToday = recent && (stateKind === 'up' || (!isNightTime(now) && restful));
+  // The night is over when someone taps "Up for the day" (at any hour). A baby
+  // still asleep at 8am is still last night: the night screen stays, with
+  // "Up for the day" on it. If nobody taps it, the night ends on its own at
+  // 11am (tonight's night starts then, so the state is idle again).
+  const canShowToday = recent && (stateKind === 'up' || (stateKind === 'idle' && !isNightTime(now)));
   const view = canShowToday && (stateKind === 'up' || !bedtimeEarly) ? 'today' : 'night';
   return { view, canShowToday };
 }
