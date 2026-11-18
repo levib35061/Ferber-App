@@ -20,6 +20,9 @@ The running list. The reasons and evidence are in `reports/Check In app launch s
 
 ## At App Store launch (after Apple approval)
 
+All the wording is ready in `docs/LAUNCH_COPY.md`.
+
+
 - [ ] Enroll in the Small Business Program (15% instead of 30%) before the first sale
 - [ ] Featuring nomination in App Store Connect, at least 2 weeks before launch
 - [ ] Spanish (Mexico) and English (UK/Australia) keyword fields (`docs/APP_STORE.md`)
@@ -30,7 +33,7 @@ The running list. The reasons and evidence are in `reports/Check In app launch s
 - [ ] Campaign links (App Store Connect) on the website's download buttons, so you can see which page sends downloads
 - [ ] Launch listings: Product Hunt and AlternativeTo
 - [ ] Email about 20 Ferber-friendly sleep consultants with a free unlock code for their clients
-- [ ] Ask the r/sleeptrain moderators and Facebook group admins for permission before posting anything (accept a no)
+- [ ] Ask Facebook group admins for permission before posting anything (accept a no)
 
 ## First 90 days
 
