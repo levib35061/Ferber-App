@@ -68,7 +68,8 @@
           "enableBackgroundRemoteNotifications": true
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-widgets"
     ],
     "scheme": "checkin",
     "backgroundColor": "#0A0918",

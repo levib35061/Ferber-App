@@ -9,7 +9,16 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { AppState } from 'react-native';
 
 import { Chart, chartForPreset } from '../lib/ferber';
-import { Action, NightEvent, NightState, UNDO_WINDOW_MS, deriveNightState, liveEvents } from '../lib/session';
+import {
+  Action,
+  NightEvent,
+  NightState,
+  UNDO_WINDOW_MS,
+  allowedActions,
+  deriveNightState,
+  liveEvents,
+} from '../lib/session';
+import { actionForTarget, activityFor } from '../lib/liveActivity';
 import { Duty, alertsOnThisPhone, dutyFor, partnerId } from '../lib/duty';
 import { nightKey } from '../lib/time';
 import { freeNightsLeft, needsUnlock } from '../lib/trial';
@@ -42,6 +51,7 @@ import {
 } from './notifications';
 import { onUnlockChange, ownsUnlock, startPurchases } from './purchases';
 import { SyncEngine, SyncStatus } from './sync';
+import { onLiveActivityTap, reconcileLiveActivity } from './liveActivity';
 import { useNow } from '../components/useNow';
 import { useClockMode } from '../theme';
 
@@ -257,7 +267,26 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
   const bedtimeEarly = bedtimeEarlyAt != null && tick - bedtimeEarlyAt < 6 * 3600_000;
   const setBedtimeEarly = useCallback((on: boolean) => setBedtimeEarlyAt(on ? Date.now() : null), []);
   const activeKinds = ['quiet', 'waiting', 'due', 'in_room', 'feeding'];
-  const kindNow = night ? deriveNightState(events, chart, night.chartNight, tick).kind : 'idle';
+  const stateNow: NightState = night ? deriveNightState(events, chart, night.chartNight, tick) : { kind: 'idle' };
+  const kindNow = stateNow.kind;
+
+  // Lock-screen Live Activity: follows the night state (see lib/liveActivity).
+  const activity = activityFor(stateNow);
+  const activityKey = JSON.stringify(activity);
+  useEffect(() => {
+    reconcileLiveActivity(activity);
+  }, [activityKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Its buttons log events without unlocking (only if that step is allowed right now).
+  useEffect(
+    () =>
+      onLiveActivityTap((target) => {
+        const action = actionForTarget(target);
+        const current: NightState = night ? deriveNightState(events, chart, night.chartNight, Date.now()) : { kind: 'idle' };
+        if (action && allowedActions(current).includes(action)) tap(action);
+      }),
+    [night, events, chart, tap],
+  );
   const nightActive = activeKinds.includes(kindNow);
   // After "Up for the day" the night is over, even if it's before 7am.
   // Baby asleep: still night, keep it dark (in the morning too, until "Up for the day").
