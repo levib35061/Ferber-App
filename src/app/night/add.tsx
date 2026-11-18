@@ -134,7 +134,7 @@ export default function AddMissedNight() {
               {wakings.count > 0 && (
                 <>
                   <Stepper
-                    label="Minutes crying, all together"
+                    label="Minutes crying, total"
                     value={wakings.cryingMin}
                     step={5}
                     max={MAX_CRYING_MIN}
@@ -292,8 +292,16 @@ const stylesHook = makeStyles(({ colors, fonts, type }) =>
     cardTitle: { color: colors.text, fontFamily: fonts.bold, fontSize: type.body },
     remove: { color: colors.primary, fontFamily: fonts.bold, fontSize: 15 },
     row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44 },
-    rowLabel: { color: colors.text, fontFamily: fonts.regular, fontSize: type.body },
-    stepper: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    // The label wraps rather than pushing the buttons off screen (large text sizes too).
+    rowLabel: {
+      flex: 1,
+      flexShrink: 1,
+      paddingRight: 10,
+      color: colors.text,
+      fontFamily: fonts.regular,
+      fontSize: type.body,
+    },
+    stepper: { flexDirection: 'row', alignItems: 'center', gap: 12, flexShrink: 0 },
     stepBtn: {
       width: 40,
       height: 40,
