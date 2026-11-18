@@ -19,9 +19,6 @@
     },
     "screenshots": {
       "distribution": "internal",
-      "ios": {
-        "simulator": true
-      },
       "env": {
         "EXPO_PUBLIC_DEMO_TOOLS": "1"
       }
