@@ -4,6 +4,7 @@ import React from 'react';
 import { Alert, Text, View } from 'react-native';
 
 import { Card, SettingsButton, SettingsPage, SwitchRow, useSettingsStyles } from '../../../components/SettingsUI';
+import { signInWithApple } from '../../../data/appleAuth';
 import { eraseAllNights, loadSampleNights } from '../../../data/db';
 import { useNightStore } from '../../../data/NightStore';
 import { DEMO_TOOLS } from '../../../config';
@@ -28,6 +29,15 @@ export default function TestingSettings() {
           hint={`Skips the free-trial limit (${nightsUsed} night${nightsUsed === 1 ? '' : 's'} logged so far)`}
           value={settings.devUnlocked}
           onChange={(v) => updateSetting('devUnlocked', v)}
+        />
+        <SettingsButton
+          label="Sign in with Apple again"
+          onPress={() =>
+            // Same Apple ID → same account; sends a fresh code to the server (apple-token).
+            signInWithApple()
+              .then((id) => id && Alert.alert('Signed in', 'Same account. The server got a fresh Apple code.'))
+              .catch((e) => Alert.alert('Sign in failed', String(e?.message ?? e)))
+          }
         />
         <SettingsButton
           label="Load a sample week"
