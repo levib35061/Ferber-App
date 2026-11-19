@@ -58,15 +58,25 @@ export async function reconcileCheckInAlert(
   opts: { sound: boolean },
   now: number = Date.now(),
 ): Promise<void> {
+  // Within a couple of seconds of the alert, never cancel it: iOS can't schedule a
+  // date that has (almost) passed, so a re-sync right then would lose the alert.
+  if (state.kind === 'waiting' && state.nextCheckInAt - Date.now() < 2000 && state.nextCheckInAt > now - 1000) {
+    const pending = await Notifications.getAllScheduledNotificationsAsync();
+    if (pending.some((p) => p.identifier === CHECKIN_ID)) return;
+    await cancelCheckInAlert();
+    await schedule(state.checkInNumber, nightNumber, opts.sound, Date.now() + 2000);
+    return;
+  }
   await cancelCheckInAlert();
   if (state.kind !== 'waiting' || state.nextCheckInAt <= now) return;
-  await Notifications.scheduleNotificationAsync({
+  await schedule(state.checkInNumber, nightNumber, opts.sound, state.nextCheckInAt);
+}
+
+function schedule(checkInNumber: number, nightNumber: number, sound: boolean, at: number) {
+  return Notifications.scheduleNotificationAsync({
     identifier: CHECKIN_ID,
-    content: content(state.checkInNumber, nightNumber, opts.sound),
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.DATE,
-      date: state.nextCheckInAt,
-    },
+    content: content(checkInNumber, nightNumber, sound),
+    trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: at },
   });
 }
 

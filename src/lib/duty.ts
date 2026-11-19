@@ -19,9 +19,23 @@ export function dutyFor(onDuty: string | null | undefined, myId: string | null, 
   return myId ? 'partner' : 'unset';
 }
 
-/** Alerts stay on unless the partner is on duty. */
-export function alertsOnThisPhone(duty: Duty): boolean {
-  return duty !== 'partner';
+/**
+ * Alerts stay on unless someone else is on duty. They're also on for whoever
+ * tapped the step that started the running wait (they're clearly awake), so a
+ * wait never depends only on a silent push reaching the on-duty phone.
+ */
+export function alertsOnThisPhone(duty: Duty, startedTheWait = false): boolean {
+  return duty !== 'partner' || startedTheWait;
+}
+
+/** Who tapped the step that started the wait that's running now (null if none or unknown). */
+export function waitStartedBy(
+  events: { at: number; createdBy?: string | null; deletedAt?: number | null }[],
+  state: { kind: string; waitStartedAt?: number },
+): string | null {
+  if ((state.kind !== 'waiting' && state.kind !== 'due') || state.waitStartedAt == null) return null;
+  const e = [...events].reverse().find((x) => !x.deletedAt && x.at === state.waitStartedAt);
+  return e?.createdBy ?? null;
 }
 
 /** The other member of a two-parent family. */

@@ -11,7 +11,7 @@ import { AppState } from 'react-native';
 import { Chart, chartForPreset } from '../lib/ferber';
 import { Action, NightEvent, NightState, UNDO_WINDOW_MS, deriveNightState, liveEvents } from '../lib/session';
 import { activityFor } from '../lib/liveActivity';
-import { Duty, alertsOnThisPhone, dutyFor, partnerId } from '../lib/duty';
+import { Duty, alertsOnThisPhone, dutyFor, partnerId, waitStartedBy } from '../lib/duty';
 import { nightKey } from '../lib/time';
 import { freeNightsLeft, needsUnlock } from '../lib/trial';
 import {
@@ -111,13 +111,18 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
   const [night, setNight] = useState<Night | null>(null);
   const [prevNight, setPrevNight] = useState<Night | null>(null);
   const [events, setEvents] = useState<NightEvent[]>([]);
-  const [repeatLastNight, setRepeat] = useState(false);
+  // "Repeat last night's intervals" belongs to one night: a choice made for tonight never carries into tomorrow.
+  const [repeatChoice, setRepeatChoice] = useState<{ key: string; on: boolean } | null>(null);
   const [lastTap, setLastTap] = useState<LastTap | null>(null);
   const [bedtimeEarlyAt, setBedtimeEarlyAt] = useState<number | null>(null);
   const [nightsUsed, setNightsUsed] = useState(0);
   const clockMode = useClockMode();
   const tick = useNow(30_000);
+  const repeatLastNight = repeatChoice?.key === nightKey(tick) ? repeatChoice.on : false;
+  const setRepeat = useCallback((on: boolean) => setRepeatChoice({ key: nightKey(Date.now()), on }), []);
   const busy = useRef(false);
+  // A sleepy double-tap must not hit the button that replaces the first one ("I'm going in" then "Back out").
+  const lastTapAt = useRef(0);
   const [sync] = useState(() => new SyncEngine(db));
   const [syncStatus, setSyncStatus] = useState<SyncStatus>(() => sync.getStatus());
   // Unlocked when this phone bought it (RevenueCat's verified customer info), when the
@@ -155,12 +160,15 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
     const c = chartForPreset(b.chartPreset, b.customChart);
     const nn = n ?? null;
     const st = sync.getStatus();
-    const here = alertsOnThisPhone(dutyFor(nn?.onDuty, st.userId, st.familyId != null && st.memberCount > 1));
-    // Off duty: no scheduled alert on this phone (the on-duty partner's phone has it).
-    const state = nn && here ? deriveNightState(evs, c, nn.chartNight, Date.now()) : ({ kind: 'idle' } as NightState);
+    const full: NightState = nn ? deriveNightState(evs, c, nn.chartNight, Date.now()) : { kind: 'idle' };
+    const mine = st.userId != null && waitStartedBy(evs, full) === st.userId;
+    // Off duty: no scheduled alert on this phone (the on-duty phone has it), unless this
+    // phone tapped the step that started the running wait.
+    const here = alertsOnThisPhone(dutyFor(nn?.onDuty, st.userId, st.familyId != null && st.memberCount > 1), mine);
+    const state = here ? full : ({ kind: 'idle' } as NightState);
     await reconcileCheckInAlert(state, nn?.nightNumber ?? 1, { sound: s.sound }).catch(() => {});
     setReady(true);
-  }, [db, sync]);
+  }, [db, setRepeat, sync]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- initial async load from SQLite
@@ -200,7 +208,9 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
   const tap = useCallback(
     async (action: Action) => {
       if (busy.current || !baby) return;
+      if (Date.now() - lastTapAt.current < 800) return;
       busy.current = true;
+      lastTapAt.current = Date.now();
       try {
         haptic();
         const now = Date.now();
@@ -247,7 +257,7 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
         await reload();
       }
     },
-    [db, night, prevNight, reload],
+    [db, night, prevNight, reload, setRepeat],
   );
 
   const updateSetting = useCallback(
@@ -270,6 +280,7 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
   // so a cold start never ends the card that's already running.
   const activityHere = alertsOnThisPhone(
     dutyFor(night?.onDuty, syncStatus.userId, syncStatus.familyId != null && syncStatus.memberCount > 1),
+    syncStatus.userId != null && waitStartedBy(events, stateNow) === syncStatus.userId,
   );
   const activity = ready && activityHere ? activityFor(stateNow) : null;
   const activityKey = JSON.stringify(activity);

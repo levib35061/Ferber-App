@@ -393,7 +393,8 @@ export class SyncEngine {
       const { error } = await supabase.from('events').upsert(rows);
       if (error) throw new Error(error.message);
       await markClean(this.db, 'event', dirty.events);
-      const mine = dirty.events.filter((e) => !e.deletedAt && e.createdBy && e.createdBy === this.userId).map((e) => e.id);
+      // Undos too, so the partner's phone drops an alert for a tap that no longer exists.
+      const mine = dirty.events.filter((e) => e.createdBy && e.createdBy === this.userId).map((e) => e.id);
       if (mine.length) this.notifyPartner({ eventIds: mine });
       if (dirty.events.length >= 500) this.again = true; // more to push
     }

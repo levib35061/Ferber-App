@@ -28,12 +28,14 @@ Deno.serve(async (req) => {
   if (body.eventIds?.length) {
     const { data } = await admin
       .from('events')
-      .select('family_id, type, at, created_by')
-      .in('id', body.eventIds.slice(0, 200))
-      .is('deleted_at', null);
+      .select('family_id, type, at, created_by, deleted_at')
+      .in('id', body.eventIds.slice(0, 200));
+    // Undone taps count too (the partner's phone must cancel its alert), but only live ones are announced.
     const mine = (data ?? []).filter((e) => e.created_by === actorId);
     familyId = mine[0]?.family_id ?? null;
-    events = mine.filter((e) => e.family_id === familyId).map((e) => ({ type: e.type, at: Number(e.at) }));
+    events = mine
+      .filter((e) => e.family_id === familyId && !e.deleted_at)
+      .map((e) => ({ type: e.type, at: Number(e.at) }));
   } else if (body.nightId) {
     const { data } = await admin.from('nights').select('family_id, on_duty').eq('id', body.nightId).maybeSingle();
     familyId = data?.family_id ?? null;
@@ -72,6 +74,7 @@ Deno.serve(async (req) => {
     recipients,
     events,
     onDutyUserId,
+    now: Date.now(),
   });
   if (!messages.length) return Response.json({ ok: true, sent: 0 });
 

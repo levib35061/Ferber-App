@@ -1,4 +1,4 @@
-import { alertsOnThisPhone, dutyFor, dutyLine, handOffTargets, memberName, partnerId } from '../duty';
+import { alertsOnThisPhone, dutyFor, dutyLine, handOffTargets, memberName, partnerId, waitStartedBy } from '../duty';
 
 describe('dutyFor', () => {
   it('is solo without a partner, whatever is stored', () => {
@@ -55,5 +55,26 @@ describe('named family members', () => {
     expect(memberName({ id: 'a', name: '  Sara ' }, 2)).toBe('Sara');
     expect(memberName(undefined, 2)).toBe('Your partner');
     expect(memberName({ id: 'a', name: '' }, 3)).toBe('Someone else');
+  });
+});
+
+describe('alerts for whoever started the wait', () => {
+  const waiting = { kind: 'waiting', waitStartedAt: 2000 };
+  const events = [
+    { at: 1000, createdBy: 'b', deletedAt: null },
+    { at: 2000, createdBy: 'a', deletedAt: null },
+  ];
+  it('finds who tapped the step that started the running wait', () => {
+    expect(waitStartedBy(events, waiting)).toBe('a');
+    expect(waitStartedBy(events, { kind: 'due', waitStartedAt: 1000 })).toBe('b');
+  });
+  it('is nobody when no wait is running or the tap was undone', () => {
+    expect(waitStartedBy(events, { kind: 'asleep' })).toBeNull();
+    expect(waitStartedBy([{ at: 2000, createdBy: 'a', deletedAt: 5 }], waiting)).toBeNull();
+  });
+  it('keeps alerts on an off-duty phone that started the wait', () => {
+    expect(alertsOnThisPhone('partner')).toBe(false);
+    expect(alertsOnThisPhone('partner', true)).toBe(true);
+    expect(alertsOnThisPhone('me', false)).toBe(true);
   });
 });

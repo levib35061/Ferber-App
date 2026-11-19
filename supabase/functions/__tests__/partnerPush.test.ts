@@ -9,7 +9,7 @@ describe('partner push', () => {
   it('sends a silent sync to every partner phone, never to yourself', () => {
     const m = messagesFor({ actorId: 'me', babyName: 'Tommy', recipients, events: [{ type: 'check_in_start', at: 1 }] });
     expect(m.map((x) => x.to)).toEqual(['tok-p1', 'tok-p2']);
-    expect(m[0]).toEqual({ to: 'tok-p1', data: { kind: 'sync' }, _contentAvailable: true, priority: 'high' });
+    expect(m[0]).toEqual({ to: 'tok-p1', data: { kind: 'sync' }, _contentAvailable: true, priority: 'normal' });
   });
 
   it('shows a quiet line for asleep and up-for-the-day (latest wins)', () => {
@@ -47,7 +47,7 @@ describe('partner push', () => {
     expect(visibleFor([{ type: 'asleep', at: 2 }], 'Tommy', 'Grandma')?.body).toBe('Logged by Grandma.');
     expect(visibleFor([{ type: 'asleep', at: 2 }], 'Tommy')?.body).toBe('Logged by your partner.');
     const m = messagesFor({ actorId: 'me', actorName: 'Levi', babyName: 'Tommy', recipients, onDutyUserId: 'partner' });
-    expect(m[0].body).toBe('Levi handed off to you. Check-in alerts are on for this phone.');
+    expect(m[0].body).toBe('Levi handed off to you. Open Check In so this phone gets the check-in alerts.');
   });
 
   it('finds dead tokens to remove', () => {
@@ -55,5 +55,13 @@ describe('partner push', () => {
     expect(deadTokens(m, [{ status: 'ok' }, { status: 'error', details: { error: 'DeviceNotRegistered' } }])).toEqual([
       'tok-p2',
     ]);
+  });
+
+  it('announces only recent taps; old ones (History edits, added nights) sync silently', () => {
+    const now = 100 * 60_000;
+    expect(visibleFor([{ type: 'asleep', at: now - 60_000 }], 'Tommy', null, now)?.title).toBe('Tommy is asleep');
+    expect(visibleFor([{ type: 'asleep', at: now - 11 * 60_000 }], 'Tommy', null, now)).toBeNull();
+    const m = messagesFor({ actorId: 'me', babyName: 'Tommy', recipients, events: [{ type: 'up', at: 0 }], now });
+    expect(m.every((x) => x.title === undefined && x.priority === 'normal')).toBe(true);
   });
 });
