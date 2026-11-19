@@ -83,7 +83,7 @@ function phone() {
   const engine = new syncm.SyncEngine(db);
   let remoteChanges = 0;
   engine.setOnRemoteChange(() => remoteChanges++);
-  return { dbm, db, engine, sb, remote: () => remoteChanges };
+  return { dbm, syncm, db, engine, sb, remote: () => remoteChanges };
 }
 
 const at = (h: number, m: number) => new Date(2026, 10, h < 11 ? 17 : 16, h, m).getTime();
@@ -241,6 +241,21 @@ d('partner sync (real Supabase)', () => {
     expect(await live(A, nA.id)).toHaveLength(2);
     expect(await live(B, nA.id)).toHaveLength(2);
     console.log(`family invite code used in this test: ${A.engine.getStatus().inviteCode}`);
+  });
+
+  it('paging (2 rows a page) downloads every row exactly once', async () => {
+    const F = phone();
+    await F.dbm.migrate(F.db);
+    try {
+      F.syncm.setPageSizeForTests(2); // this phone's own copy of the sync module
+      await F.engine.joinFamily(A.engine.getStatus().inviteCode!);
+      const count = async (p: ReturnType<typeof phone>) =>
+        (await (p.db as unknown as { getAllAsync: (q: string) => Promise<unknown[]> }).getAllAsync('SELECT id FROM event')).length;
+      expect(await count(F)).toBe(await count(A));
+    } finally {
+      await F.engine.deleteAccount().catch(() => {});
+      F.engine.stop();
+    }
   });
 
   it("a join that can't download leaves the phone exactly as it was", async () => {

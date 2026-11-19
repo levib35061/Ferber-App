@@ -30,11 +30,13 @@ Deno.serve(async (req) => {
       .from('events')
       .select('family_id, type, at, created_by, deleted_at')
       .in('id', body.eventIds.slice(0, 200));
-    // Undone taps count too (the partner's phone must cancel its alert), but only live ones are announced.
-    const mine = (data ?? []).filter((e) => e.created_by === actorId);
-    familyId = mine[0]?.family_id ?? null;
-    events = mine
-      .filter((e) => e.family_id === familyId && !e.deleted_at)
+    // Any change the caller uploaded (taps, undos, History edits, even of a partner's tap)
+    // wakes the other phones to re-sync; membership is checked below. Only the caller's
+    // own live taps can be announced ("Logged by …").
+    const rows = data ?? [];
+    familyId = rows[0]?.family_id ?? null;
+    events = rows
+      .filter((e) => e.family_id === familyId && e.created_by === actorId && !e.deleted_at)
       .map((e) => ({ type: e.type, at: Number(e.at) }));
   } else if (body.nightId) {
     const { data } = await admin.from('nights').select('family_id, on_duty').eq('id', body.nightId).maybeSingle();

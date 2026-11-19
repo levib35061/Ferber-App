@@ -69,7 +69,9 @@ export async function reconcileCheckInAlert(
     const want = plan.find((a) => a.kind === kind);
     // Within a couple of seconds of an alert, never cancel it: iOS can't schedule a
     // date that has (almost) passed, so a re-sync right then would lose the alert.
-    if (want && want.at - Date.now() < 2000 && want.at > now - 1000) {
+    // Only while it's still ahead: once it has fired it isn't pending any more, and
+    // scheduling it again would ring twice.
+    if (want && want.at > Date.now() && want.at - Date.now() < 2000) {
       pending ??= (await Notifications.getAllScheduledNotificationsAsync()).map((p) => p.identifier);
       if (pending.includes(id)) continue;
       await Notifications.cancelScheduledNotificationAsync(id);

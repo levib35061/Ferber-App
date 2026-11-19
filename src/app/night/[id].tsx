@@ -174,7 +174,7 @@ export default function NightDetailScreen() {
           onClose={() => setSheet(null)}
           onSave={async (t: EventType, at: number) => {
             if (sheet.mode === 'edit') await updateEventTime(db, sheet.event.id, at);
-            else await insertEvent(db, night.id, t, at);
+            else await insertEvent(db, night.id, t, at, store.sync.userId);
             await changed();
           }}
           onDelete={

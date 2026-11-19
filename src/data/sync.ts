@@ -62,7 +62,11 @@ export interface SyncStatus {
 }
 
 const PULL_OVERLAP_MS = 5_000;
-const PAGE = 1000;
+let PAGE = 1000;
+/** Tests only: a tiny page size to exercise paging against the real server. */
+export function setPageSizeForTests(n: number): void {
+  PAGE = n;
+}
 const TABLES = ['babies', 'nights', 'events'] as const;
 type Table = (typeof TABLES)[number];
 
@@ -263,7 +267,14 @@ export class SyncEngine {
     if (familyId) {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
-        await supabase.from('family_members').delete().eq('family_id', familyId).eq('user_id', data.session.user.id);
+        // Must reach the server: otherwise this phone stays a member there (and could stay
+        // on duty), so the others' alerts would keep routing to it. Nothing changes locally then.
+        const { error } = await supabase
+          .from('family_members')
+          .delete()
+          .eq('family_id', familyId)
+          .eq('user_id', data.session.user.id);
+        if (error) throw new Error(`Couldn't reach the server to stop sharing (${error.message}). Try again with signal.`);
       }
     }
     this.unsubscribe();
@@ -462,9 +473,11 @@ export class SyncEngine {
       const { error } = await supabase.from('events').upsert(rows);
       if (error) throw new Error(error.message);
       await markClean(this.db, 'event', dirty.events);
-      // Undos too, so the partner's phone drops an alert for a tap that no longer exists.
-      const mine = dirty.events.filter((e) => e.createdBy && e.createdBy === this.userId).map((e) => e.id);
-      if (mine.length) this.notifyPartner({ eventIds: mine });
+      // Every change this phone uploads (new taps, undos, History edits and deletes, even of
+      // a partner's tap), so a closed partner phone re-syncs and re-plans its alert. The
+      // server only *announces* this phone's own recent taps.
+      const ids = dirty.events.map((e) => e.id);
+      if (ids.length) this.notifyPartner({ eventIds: ids.slice(0, 200) });
       if (dirty.events.length >= 500) this.again = true; // more to push
     }
   }
@@ -480,37 +493,45 @@ export class SyncEngine {
     const cursor = await getSyncValue<string>(this.db, `cursor.${table}`);
     const since = cursor ? new Date(new Date(cursor).getTime() - PULL_OVERLAP_MS).toISOString() : '1970-01-01T00:00:00Z';
     const rows = await this.fetchRows(familyId, table, since);
-    for (const r of rows) await this.applyRow(table, r);
+    // The overlap window re-fetches the last few rows every time: only real changes count,
+    // so the store isn't reloaded (and alerts re-synced) on every quiet 15-second sync.
+    let changed = false;
+    for (const r of rows) changed = (await this.applyRow(table, r)) || changed;
     const maxSeen = latestStamp(rows, cursor);
     if (maxSeen && maxSeen !== cursor) await setSyncValue(this.db, `cursor.${table}`, maxSeen);
-    return rows.length > 0;
+    return changed;
   }
 
-  /** Download a table's rows for the family, changed since `since` (network only; writes nothing). */
+  /**
+   * Download a table's rows for the family, changed since `since` (network only; writes
+   * nothing). Pages by position, not offset: each page asks for rows after the last one
+   * seen (by server_updated_at, then id), so a row changed while paging can't make another
+   * row slip between two pages.
+   */
   private async fetchRows(familyId: string, table: Table, since: string): Promise<Record<string, unknown>[]> {
     const out: Record<string, unknown>[] = [];
-    let from = 0;
+    let after: { ts: string; id: string } | null = null;
     for (;;) {
-      const { data, error } = await supabase
-        .from(table)
-        .select('*')
-        .eq('family_id', familyId)
-        .gte('server_updated_at', since)
-        .order('server_updated_at')
-        .range(from, from + PAGE - 1);
+      let q = supabase.from(table).select('*').eq('family_id', familyId);
+      q = after
+        ? q.or(`server_updated_at.gt."${after.ts}",and(server_updated_at.eq."${after.ts}",id.gt.${after.id})`)
+        : q.gte('server_updated_at', since);
+      const { data, error } = await q.order('server_updated_at').order('id').limit(PAGE);
       if (error) throw new Error(error.message);
       const rows = (data ?? []) as Record<string, unknown>[];
       out.push(...rows);
       if (rows.length < PAGE) break;
-      from += PAGE;
+      const last = rows[rows.length - 1];
+      after = { ts: last.server_updated_at as string, id: last.id as string };
     }
     return out;
   }
 
-  private async applyRow(table: Table, r: Record<string, unknown>): Promise<void> {
+  /** Returns true if the row changed something on this phone (not just the same version again). */
+  private async applyRow(table: Table, r: Record<string, unknown>): Promise<boolean> {
     const n = (v: unknown) => (v == null ? null : Number(v));
     if (table === 'babies') {
-      await applyRemoteBaby(this.db, {
+      return applyRemoteBaby(this.db, {
         id: r.id as string,
         name: (r.name as string) ?? '',
         birthDate: (r.birth_date as string) ?? null,
@@ -521,7 +542,7 @@ export class SyncEngine {
         updatedAt: Number(r.updated_at),
       });
     } else if (table === 'nights') {
-      await applyRemoteNight(this.db, {
+      return applyRemoteNight(this.db, {
         id: r.id as string,
         babyId: r.baby_id as string,
         nightNumber: Number(r.night_number),
@@ -534,7 +555,7 @@ export class SyncEngine {
         updatedAt: Number(r.updated_at),
       });
     } else {
-      await applyRemoteEvent(this.db, {
+      return applyRemoteEvent(this.db, {
         id: r.id as string,
         nightId: r.night_id as string,
         type: r.type as never,

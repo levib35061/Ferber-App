@@ -509,14 +509,14 @@ export async function markAllDirty(db: SQLiteDatabase): Promise<void> {
 }
 
 /** Rows from the server. Applied only if newer than (or equal to) the local copy; they arrive clean. */
-export async function applyRemoteBaby(db: SQLiteDatabase, b: Baby & { updatedAt: number }): Promise<void> {
-  await db.runAsync(
+export async function applyRemoteBaby(db: SQLiteDatabase, b: Baby & { updatedAt: number }): Promise<boolean> {
+  const r = await db.runAsync(
     `INSERT INTO baby (id, name, birthDate, trainingStartDate, chartPreset, customChart, familyId, updatedAt, dirty)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
      ON CONFLICT(id) DO UPDATE SET name = excluded.name, birthDate = excluded.birthDate,
        trainingStartDate = excluded.trainingStartDate, chartPreset = excluded.chartPreset,
        customChart = excluded.customChart, familyId = excluded.familyId, updatedAt = excluded.updatedAt, dirty = 0
-     WHERE excluded.updatedAt >= baby.updatedAt`,
+     WHERE excluded.updatedAt > baby.updatedAt`,
     b.id,
     b.name,
     b.birthDate,
@@ -526,16 +526,17 @@ export async function applyRemoteBaby(db: SQLiteDatabase, b: Baby & { updatedAt:
     b.familyId,
     b.updatedAt,
   );
+  return r.changes > 0;
 }
 
-export async function applyRemoteNight(db: SQLiteDatabase, n: Night & { updatedAt: number }): Promise<void> {
-  await db.runAsync(
+export async function applyRemoteNight(db: SQLiteDatabase, n: Night & { updatedAt: number }): Promise<boolean> {
+  const r = await db.runAsync(
     `INSERT INTO night (id, babyId, nightNumber, chartNight, nightKey, startedAt, note, onDuty, addedLater, updatedAt, dirty)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
      ON CONFLICT(id) DO UPDATE SET nightNumber = excluded.nightNumber, chartNight = excluded.chartNight,
        startedAt = excluded.startedAt, note = excluded.note, onDuty = excluded.onDuty, addedLater = excluded.addedLater,
        updatedAt = excluded.updatedAt, dirty = 0
-     WHERE excluded.updatedAt >= night.updatedAt`,
+     WHERE excluded.updatedAt > night.updatedAt`,
     n.id,
     n.babyId,
     n.nightNumber,
@@ -547,15 +548,16 @@ export async function applyRemoteNight(db: SQLiteDatabase, n: Night & { updatedA
     n.addedLater ? 1 : 0,
     n.updatedAt,
   );
+  return r.changes > 0;
 }
 
-export async function applyRemoteEvent(db: SQLiteDatabase, e: NightEvent & { updatedAt: number }): Promise<void> {
-  await db.runAsync(
+export async function applyRemoteEvent(db: SQLiteDatabase, e: NightEvent & { updatedAt: number }): Promise<boolean> {
+  const r = await db.runAsync(
     `INSERT INTO event (id, nightId, type, at, createdBy, deletedAt, updatedAt, dirty)
      VALUES (?, ?, ?, ?, ?, ?, ?, 0)
      ON CONFLICT(id) DO UPDATE SET type = excluded.type, at = excluded.at, createdBy = excluded.createdBy,
        deletedAt = excluded.deletedAt, updatedAt = excluded.updatedAt, dirty = 0
-     WHERE excluded.updatedAt >= event.updatedAt`,
+     WHERE excluded.updatedAt > event.updatedAt`,
     e.id,
     e.nightId,
     e.type,
@@ -564,6 +566,7 @@ export async function applyRemoteEvent(db: SQLiteDatabase, e: NightEvent & { upd
     e.deletedAt ?? null,
     e.updatedAt,
   );
+  return r.changes > 0;
 }
 
 /** Joining a partner's family: this phone's own (never-shared) data is replaced by the family's. */
