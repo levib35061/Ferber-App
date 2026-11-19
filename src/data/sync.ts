@@ -93,6 +93,7 @@ export class SyncEngine {
       inviteCode: await getSyncValue<string>(this.db, 'inviteCode'),
       unlocked: await getSyncValue<boolean>(this.db, 'unlocked'),
     });
+    await this.restoreMembers(baby.familyId);
     this.checkUnlock().catch(() => {});
     this.cleanups.push(onLocalWrite(() => this.soon(400)));
     const sub = AppState.addEventListener('change', (s) => s === 'active' && this.soon(0));
@@ -269,10 +270,19 @@ export class SyncEngine {
   userId: string | null = null;
 
   /** One sync from a background push (no listeners, timers or realtime). Returns true if anything changed. */
+  /** The family's members as last seen online (only for the same family). */
+  private async restoreMembers(familyId: string | null): Promise<void> {
+    if (!familyId) return;
+    const saved = await getSyncValue<{ familyId: string; members: Member[] }>(this.db, 'members');
+    if (saved?.familyId !== familyId || !saved.members?.length) return;
+    this.setStatus({ memberCount: saved.members.length, memberIds: saved.members.map((m) => m.id), members: saved.members });
+  }
+
   async backgroundSync(): Promise<boolean> {
     const baby = await getOrCreateBaby(this.db);
     this.setStatus({ familyId: baby.familyId });
     if (!baby.familyId) return false;
+    await this.restoreMembers(baby.familyId);
     this.userId = await ensureUserId();
     this.setStatus({ userId: this.userId });
     let changed = false;
@@ -322,6 +332,10 @@ export class SyncEngine {
         id: m.user_id,
         name: m.display_name,
       }));
+      // Remembered for the next launch, so an offline phone still knows it shares (and who's on duty).
+      if (members && this.status.familyId) {
+        await setSyncValue(this.db, 'members', { familyId: this.status.familyId, members: list });
+      }
       this.setStatus({
         syncing: false,
         error: null,

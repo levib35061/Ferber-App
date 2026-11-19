@@ -90,7 +90,16 @@ const KIND_LABEL: Record<SegmentKind, string> = {
   feeding: 'Feeding',
 };
 
-export function TodaySummary({ data, onStartTonight }: { data: LastNights; onStartTonight: () => void }) {
+export function TodaySummary({
+  data,
+  onStartTonight,
+  onNotUpYet,
+}: {
+  data: LastNights;
+  onStartTonight: () => void;
+  /** Set when "Up for the day" can still be taken back (before 11am): the baby woke again */
+  onNotUpYet?: () => void;
+}) {
   const { baby, chart, settings, updateSetting } = useNightStore();
   const last = data.last!;
 
@@ -151,6 +160,11 @@ export function TodaySummary({ data, onStartTonight }: { data: LastNights; onSta
             Up at {formatClock(upTime)}
             {sleepMs != null && sleepMs > 0 ? ` · ${formatHours(sleepMs)} of sleep` : ''}
           </Text>
+        )}
+        {onNotUpYet && (
+          <Pressable onPress={onNotUpYet} accessibilityRole="button" hitSlop={10} style={{ marginTop: 6 }}>
+            <Text style={styles.link}>Not up yet? Back to the night ›</Text>
+          </Pressable>
         )}
 
         <View style={styles.tiles}>

@@ -72,6 +72,8 @@ interface NightStoreValue {
   tap: (action: Action) => Promise<void>;
   lastTap: LastTap | null;
   undo: () => Promise<void>;
+  /** "Up for the day" was tapped too soon (before 11am): take it back and return to the night. Null when not possible. */
+  notUpYet: (() => Promise<void>) | null;
   updateSetting: <K extends keyof Settings>(key: K, value: Settings[K]) => Promise<void>;
   saveBaby: (baby: Baby) => Promise<void>;
   reload: () => Promise<void>;
@@ -123,6 +125,8 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
   const busy = useRef(false);
   // A sleepy double-tap must not hit the button that replaces the first one ("I'm going in" then "Back out").
   const lastTapAt = useRef(0);
+  const reloadGen = useRef(0);
+  const alertChain = useRef<Promise<void>>(Promise.resolve());
   const [sync] = useState(() => new SyncEngine(db));
   const [syncStatus, setSyncStatus] = useState<SyncStatus>(() => sync.getStatus());
   // Unlocked when this phone bought it (RevenueCat's verified customer info), when the
@@ -143,13 +147,18 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
 
   /** Re-read everything for the current night and re-sync the alert. */
   const reload = useCallback(async () => {
+    // Several reloads can overlap (a tap, a partner's sync, coming to the foreground):
+    // only the newest one may update the screen and the alert.
+    const gen = ++reloadGen.current;
     const b = await getOrCreateBaby(db);
     const s = await getSettings(db);
     const key = nightKey(Date.now());
     const n = await getNightForKey(db, b.id, key);
     const p = await getPreviousNight(db, b.id, key, b.trainingStartDate);
     const evs = n ? await listEvents(db, n.id) : [];
-    setNightsUsed(await countNightsUsed(db));
+    const used = await countNightsUsed(db);
+    if (gen !== reloadGen.current) return;
+    setNightsUsed(used);
     setBaby(b);
     setSettings(s);
     setNight(n);
@@ -166,7 +175,14 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
     // phone tapped the step that started the running wait.
     const here = alertsOnThisPhone(dutyFor(nn?.onDuty, st.userId, st.familyId != null && st.memberCount > 1), mine);
     const state = here ? full : ({ kind: 'idle' } as NightState);
-    await reconcileCheckInAlert(state, nn?.nightNumber ?? 1, { sound: s.sound }).catch(() => {});
+    // One alert re-sync at a time, in order; a superseded one is skipped.
+    const next = alertChain.current.then(() =>
+      gen === reloadGen.current
+        ? reconcileCheckInAlert(state, nn?.nightNumber ?? 1, { sound: s.sound }).catch(() => {})
+        : undefined,
+    );
+    alertChain.current = next;
+    await next;
     setReady(true);
   }, [db, setRepeat, sync]);
 
@@ -226,7 +242,11 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
         }
         let n = night;
         if (!n) n = await createNight(db, baby.id, now, repeatLastNight, baby.trainingStartDate);
-        const e = await insertEvent(db, n.id, action, now, sync.userId);
+        // A partner's phone clock can run slightly ahead: never stamp a tap before the latest
+        // one already logged (within 2 minutes), or the night would read them out of order.
+        const latest = liveEvents(events).reduce((m, x) => Math.max(m, x.at), 0);
+        const at = latest >= now && latest - now < 2 * 60_000 ? latest + 1 : now;
+        const e = await insertEvent(db, n.id, action, at, sync.userId);
         // With a partner: whoever puts the baby down is on duty, unless someone already is.
         if (action === 'down' && !n.onDuty && sync.userId && syncStatus.memberCount > 1) {
           await setNightDuty(db, n.id, sync.userId);
@@ -247,6 +267,16 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
     setLastTap(null);
     await reload();
   }, [db, haptic, lastTap, reload]);
+
+  const upEvent = night && nightKey(tick) === night.nightKey ? [...liveEvents(events)].reverse().find((e) => e.type === 'up') : undefined;
+  const upEventId = upEvent?.id ?? null;
+  const notUpYetFn = useCallback(async () => {
+    if (!upEventId) return;
+    haptic();
+    await softDeleteEvent(db, upEventId, Date.now());
+    setLastTap(null);
+    await reload();
+  }, [db, haptic, reload, upEventId]);
 
   const setRepeatLastNight = useCallback(
     async (v: boolean) => {
@@ -365,6 +395,7 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
     tap,
     lastTap,
     undo,
+    notUpYet: upEventId ? notUpYetFn : null,
     updateSetting,
     saveBaby,
     sync,

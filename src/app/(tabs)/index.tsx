@@ -161,7 +161,11 @@ export default function NightScreen() {
     return (
       <>
         {focused && <StatusBar style="dark" />}
-        <TodaySummary data={lastNights} onStartTonight={() => store.setBedtimeEarly(true)} />
+        <TodaySummary
+          data={lastNights}
+          onStartTonight={() => store.setBedtimeEarly(true)}
+          onNotUpYet={store.notUpYet ?? undefined}
+        />
       </>
     );
   }

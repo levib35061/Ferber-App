@@ -9,9 +9,12 @@
  */
 import * as Notifications from 'expo-notifications';
 
+import { alertPlan, type AlertKind } from '../lib/alertPlan';
 import type { NightState } from '../lib/session';
 
 const CHECKIN_ID = 'ferber-checkin';
+const REPEAT_ID = 'ferber-checkin-repeat';
+const IDS: Record<AlertKind, string> = { checkin: CHECKIN_ID, repeat: REPEAT_ID };
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -49,33 +52,46 @@ function content(checkInNumber: number, nightNumber: number, sound: boolean): No
 
 export async function cancelCheckInAlert(): Promise<void> {
   await Notifications.cancelScheduledNotificationAsync(CHECKIN_ID);
+  await Notifications.cancelScheduledNotificationAsync(REPEAT_ID);
 }
 
-/** Make the scheduled alert match the current state. Safe to call any time. */
+/** Make the scheduled alerts match the current state. Safe to call any time. */
 export async function reconcileCheckInAlert(
   state: NightState,
   nightNumber: number,
   opts: { sound: boolean },
   now: number = Date.now(),
 ): Promise<void> {
-  // Within a couple of seconds of the alert, never cancel it: iOS can't schedule a
-  // date that has (almost) passed, so a re-sync right then would lose the alert.
-  if (state.kind === 'waiting' && state.nextCheckInAt - Date.now() < 2000 && state.nextCheckInAt > now - 1000) {
-    const pending = await Notifications.getAllScheduledNotificationsAsync();
-    if (pending.some((p) => p.identifier === CHECKIN_ID)) return;
-    await cancelCheckInAlert();
-    await schedule(state.checkInNumber, nightNumber, opts.sound, Date.now() + 2000);
-    return;
+  const plan = alertPlan(state);
+  let pending: string[] | null = null;
+  for (const kind of ['checkin', 'repeat'] as const) {
+    const id = IDS[kind];
+    const want = plan.find((a) => a.kind === kind);
+    // Within a couple of seconds of an alert, never cancel it: iOS can't schedule a
+    // date that has (almost) passed, so a re-sync right then would lose the alert.
+    if (want && want.at - Date.now() < 2000 && want.at > now - 1000) {
+      pending ??= (await Notifications.getAllScheduledNotificationsAsync()).map((p) => p.identifier);
+      if (pending.includes(id)) continue;
+      await Notifications.cancelScheduledNotificationAsync(id);
+      await schedule(id, alertContent(kind, want.checkInNumber, nightNumber, opts.sound), Date.now() + 2000);
+      continue;
+    }
+    await Notifications.cancelScheduledNotificationAsync(id);
+    if (!want || want.at <= now) continue;
+    await schedule(id, alertContent(kind, want.checkInNumber, nightNumber, opts.sound), want.at);
   }
-  await cancelCheckInAlert();
-  if (state.kind !== 'waiting' || state.nextCheckInAt <= now) return;
-  await schedule(state.checkInNumber, nightNumber, opts.sound, state.nextCheckInAt);
 }
 
-function schedule(checkInNumber: number, nightNumber: number, sound: boolean, at: number) {
+function alertContent(kind: AlertKind, checkInNumber: number, nightNumber: number, sound: boolean) {
+  const c = content(checkInNumber, nightNumber, sound);
+  if (kind === 'checkin') return c;
+  return { ...c, title: 'Still time to check in', body: `Check-in #${checkInNumber} is waiting (night ${nightNumber})` };
+}
+
+function schedule(id: string, c: Notifications.NotificationContentInput, at: number) {
   return Notifications.scheduleNotificationAsync({
-    identifier: CHECKIN_ID,
-    content: content(checkInNumber, nightNumber, sound),
+    identifier: id,
+    content: c,
     trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: at },
   });
 }
