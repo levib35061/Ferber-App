@@ -14,7 +14,7 @@ describe('RevenueCat webhook → unlocks', () => {
       id: 'e1',
     });
     expect(c).toEqual([
-      { userId: A, productId: 'checkin_unlock', active: true, store: null, environment: 'SANDBOX', eventId: 'e1' },
+      { userId: A, productId: 'unlock', active: true, store: null, environment: 'SANDBOX', eventId: 'e1' },
     ]);
   });
 
@@ -55,5 +55,16 @@ describe('RevenueCat webhook → unlocks', () => {
     expect(secretMatches('nope', 's3cret')).toBe(false);
     expect(secretMatches(null, 's3cret')).toBe(false);
     expect(secretMatches('s3cret', undefined)).toBe(false);
+  });
+
+  it('buy, restore on another account, then refund: only one row per user, and the refund revokes', () => {
+    const rows = new Map<string, boolean>();
+    const apply = (e: Parameters<typeof changesFor>[0]) =>
+      changesFor(e).forEach((c) => rows.set(`${c.userId}|${c.productId}`, c.active));
+    apply({ type: 'NON_RENEWING_PURCHASE', app_user_id: A, product_id: 'checkin_unlock', entitlement_ids: ['unlock'] });
+    apply({ type: 'TRANSFER', transferred_from: [A], transferred_to: [B] });
+    expect([...rows]).toEqual([[`${A}|unlock`, false], [`${B}|unlock`, true]]);
+    apply({ type: 'CANCELLATION', app_user_id: B, product_id: 'checkin_unlock', entitlement_ids: ['unlock'] });
+    expect(rows.get(`${B}|unlock`)).toBe(false);
   });
 });

@@ -54,8 +54,11 @@ function concernsUnlock(e: RcEvent): boolean {
 
 export function changesFor(e: RcEvent): UnlockChange[] {
   if (!e || !concernsUnlock(e)) return [];
+  // Always keyed by the entitlement, never the store product id: a TRANSFER (restore on
+  // another account) names no product, and grants, refunds and transfers must all land on
+  // the same row, or a restored purchase stays unlocked on the old account too.
   const base = {
-    productId: e.product_id ?? ENTITLEMENT,
+    productId: ENTITLEMENT,
     store: e.store ?? null,
     environment: e.environment ?? null,
     eventId: e.id ?? null,
@@ -68,8 +71,8 @@ export function changesFor(e: RcEvent): UnlockChange[] {
   }
   if (e.type === 'TRANSFER') {
     // Restore on a new account: the purchase moves from the old user(s) to the new one(s).
-    const from = users(e.transferred_from).map((userId) => ({ ...base, productId: ENTITLEMENT, userId, active: false }));
-    const to = users(e.transferred_to).map((userId) => ({ ...base, productId: ENTITLEMENT, userId, active: true }));
+    const from = users(e.transferred_from).map((userId) => ({ ...base, userId, active: false }));
+    const to = users(e.transferred_to).map((userId) => ({ ...base, userId, active: true }));
     return [...from, ...to];
   }
   return []; // TEST, BILLING_ISSUE, etc.

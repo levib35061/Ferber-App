@@ -239,7 +239,7 @@ grant execute on function public.delete_my_account() to authenticated;
 
 create table if not exists public.unlocks (
   user_id uuid not null references auth.users (id) on delete cascade,
-  product_id text not null,
+  product_id text not null, -- always the entitlement id 'unlock' (migration 012)
   active boolean not null default true,
   store text,
   environment text,
