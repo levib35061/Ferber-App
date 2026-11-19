@@ -153,10 +153,14 @@ export class SyncEngine {
   async joinFamily(code: string): Promise<void> {
     await ensureUserId({ create: true });
     const { data, error } = await supabase.rpc('join_family', { code });
-    if (error)
-      throw new Error(
-        error.message.includes('not found') ? "That code wasn't found. Check it and try again." : error.message,
-      );
+    if (error?.message.includes('too many')) {
+      throw new Error('Too many wrong codes. Please wait an hour, then try again.');
+    }
+    // A wrong code comes back empty (older servers raised "not found").
+    if ((error && error.message.includes('not found')) || (!error && !data)) {
+      throw new Error("That code wasn't found. Check it and try again.");
+    }
+    if (error) throw new Error(error.message);
     const familyId = data as string;
     const { data: fam } = await supabase.from('families').select('invite_code').eq('id', familyId).single();
     const { count } = await supabase.from('babies').select('*', { count: 'exact', head: true }).eq('family_id', familyId);

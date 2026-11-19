@@ -125,6 +125,10 @@ d('partner sync (real Supabase)', () => {
     expect((await A.dbm.listDirty(A.db)).events).toHaveLength(0);
   });
 
+  it('a wrong code says so (and wrong guesses are limited)', async () => {
+    await expect(B.engine.joinFamily('00000000')).rejects.toThrow("That code wasn't found");
+  });
+
   it("B joins with the code and gets A's baby, night and taps", async () => {
     await B.dbm.getOrCreateBaby(B.db); // B had its own empty baby
     await B.engine.start();

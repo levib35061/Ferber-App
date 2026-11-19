@@ -107,15 +107,16 @@ export function PartnerSection({ setup = false, onJoined }: { setup?: boolean; o
 
   // Sign in with Apple is optional. Without it, sharing uses a private account
   // that lives on this phone only; signing in with Apple keeps it (same family,
-  // same nights) and lets you get it back after a reinstall or on a new phone.
+  // same nights). After a reinstall or on a new phone, signing in again brings back the same account;
+  // the family is joined again with its invite code.
   const upgrade =
     account !== 'apple' ? (
       <View style={{ marginTop: 22 }}>
         <Text style={styles.label}>Optional: sign in with Apple</Text>
         <Text style={styles.hint}>
           {st.familyId
-            ? 'Keeps your sharing if you reinstall the app or change phones. Your family and nights stay as they are.'
-            : 'Already shared from another phone, or want your sharing kept if you change phones? We don\u2019t ask Apple for your name or email.'}
+            ? 'Ties your sharing account to your Apple ID, so a reinstall or a new phone can use the same account (enter your family\u2019s code again to reconnect). Your family and nights stay as they are.'
+            : 'Ties your sharing account to your Apple ID, so a reinstall or a new phone can use the same account. We don\u2019t ask Apple for your name or email.'}
         </Text>
         {appleButton(AppleAuthentication.AppleAuthenticationButtonType.CONTINUE)}
       </View>
