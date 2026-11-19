@@ -77,7 +77,8 @@ export default function UnlockScreen() {
     try {
       const owned = await restoreUnlock();
       await sync.checkUnlock().catch(() => {});
-      if (owned) close();
+      // Unlocked either way: this Apple ID's purchase, or someone in the family's.
+      if (owned || sync.getStatus().unlocked === true) close();
       else {
         Alert.alert(
           'Nothing to restore',
