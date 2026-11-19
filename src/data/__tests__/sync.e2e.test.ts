@@ -137,13 +137,15 @@ d('partner sync (real Supabase)', () => {
 
   it("an extra empty baby on B (made mid-join) never hides A's baby", async () => {
     // Simulates the race seen on a real phone: an empty baby row created while joining.
-    await B.db.runAsync(
+    await (B.db as unknown as { runAsync: (sql: string, ...p: unknown[]) => Promise<unknown> }).runAsync(
       "INSERT INTO baby (id, name, chartPreset, familyId, updatedAt, dirty) VALUES ('00000000-0000-4000-8000-000000000001', '', 'ferber', ?, ?, 0)",
       A.engine.getStatus().familyId,
       Date.now() + 60_000,
     );
     expect((await B.dbm.getOrCreateBaby(B.db)).name).toBe('Sync Test');
-    await B.db.runAsync("DELETE FROM baby WHERE id = '00000000-0000-4000-8000-000000000001'");
+    await (B.db as unknown as { runAsync: (sql: string, ...p: unknown[]) => Promise<unknown> }).runAsync(
+      "DELETE FROM baby WHERE id = '00000000-0000-4000-8000-000000000001'",
+    );
   });
 
   it("A sees B's tap within seconds via realtime (no manual sync on A)", async () => {
