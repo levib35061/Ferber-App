@@ -34,6 +34,16 @@ Run lint and typecheck before declaring any task done.
 Use EAS to build, sign, and submit the app in the cloud (`eas build`, `eas submit`) and to ship over-the-air updates (`eas update`) — no local Xcode or Android Studio required. Run EAS CLI as `bunx eas-cli <command>` in Bun projects, or `npx eas-cli@latest <command>` otherwise; substitute that for bare `eas` in docs examples.
 Docs: https://docs.expo.dev/eas/index.md
 
+## Over-the-air updates (save builds)
+
+The free Expo plan has 15 iOS builds a month. `expo-updates` is set up (`runtimeVersion` policy `fingerprint`, channels per build profile in `eas.json`), so JavaScript-only changes reach TestFlight/App Store builds without a new build:
+
+```bash
+npx eas-cli@latest update --channel production --message "what changed"
+```
+
+A new build is only needed when native things change: a new library with native code, `app.json` / plugin config, the Live Activity layout (`src/widgets/`, bundled into the widget extension), icons or splash. The fingerprint policy makes sure an update only reaches builds it's compatible with.
+
 ## Rules
 
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.

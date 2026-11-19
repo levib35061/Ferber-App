@@ -86,6 +86,12 @@
         "projectId": "16295b43-c21c-4014-aeaa-f38cb89a5535"
       }
     },
-    "owner": "levib3506"
+    "owner": "levib3506",
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/16295b43-c21c-4014-aeaa-f38cb89a5535"
+    }
   }
 }

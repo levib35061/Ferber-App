@@ -9,19 +9,23 @@
       "distribution": "internal",
       "ios": {
         "resourceClass": "default"
-      }
+      },
+      "channel": "development"
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "channel": "preview"
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "channel": "production"
     },
     "screenshots": {
       "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_DEMO_TOOLS": "1"
-      }
+      },
+      "channel": "screenshots"
     }
   },
   "submit": {
