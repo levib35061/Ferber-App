@@ -19,6 +19,7 @@ import {
   applyRemoteEvent,
   applyRemoteNight,
   clearLocalData,
+  removeStrayBabies,
   getOrCreateBaby,
   getSyncValue,
   listDirty,
@@ -163,6 +164,7 @@ export class SyncEngine {
     await setSyncValue(this.db, 'inviteCode', fam?.invite_code ?? code.toUpperCase());
     this.setStatus({ familyId, inviteCode: fam?.invite_code ?? code.toUpperCase() });
     await this.pullAll(familyId);
+    await removeStrayBabies(this.db);
     this.subscribe(familyId);
     this.onRemoteChange();
     await this.syncNow();

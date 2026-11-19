@@ -156,7 +156,17 @@ function babyFromRow(row: BabyRow): Baby {
 }
 
 export async function getOrCreateBaby(db: SQLiteDatabase): Promise<Baby> {
-  const row = await db.getFirstAsync<BabyRow>('SELECT * FROM baby LIMIT 1');
+  // A phone can hold more than one baby row (e.g. an empty one made while joining a
+  // partner's family). Use the one actually being logged: latest tap first, then a
+  // named baby, then the most recently edited.
+  const row = await db.getFirstAsync<BabyRow>(
+    `SELECT b.* FROM baby b
+       LEFT JOIN night n ON n.babyId = b.id
+       LEFT JOIN event e ON e.nightId = n.id AND e.deletedAt IS NULL
+     GROUP BY b.id
+     ORDER BY MAX(e.at) IS NULL, MAX(e.at) DESC, b.name = '', b.updatedAt DESC
+     LIMIT 1`,
+  );
   if (row) return babyFromRow(row);
   const baby: Baby = {
     id: randomUUID(),
@@ -551,6 +561,15 @@ export async function applyRemoteEvent(db: SQLiteDatabase, e: NightEvent & { upd
 }
 
 /** Joining a partner's family: this phone's own (never-shared) data is replaced by the family's. */
+/**
+ * After joining a family: drop baby rows that aren't part of any family (an empty
+ * baby can be created in the moment between clearing this phone and downloading
+ * the partner's data). Never touches babies with nights.
+ */
+export async function removeStrayBabies(db: SQLiteDatabase): Promise<void> {
+  await db.runAsync('DELETE FROM baby WHERE familyId IS NULL AND id NOT IN (SELECT DISTINCT babyId FROM night)');
+}
+
 export async function clearLocalData(db: SQLiteDatabase): Promise<void> {
   await db.withTransactionAsync(async () => {
     await db.runAsync('DELETE FROM event');
