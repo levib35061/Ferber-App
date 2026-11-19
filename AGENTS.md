@@ -42,6 +42,8 @@ The free Expo plan has 15 iOS builds a month. `expo-updates` is set up (`runtime
 npx eas-cli@latest update --channel production --message "what changed"
 ```
 
+**Before every `eas update`, check the iOS runtime version still matches the build in TestFlight/App Store** (`npx expo-updates fingerprint:generate --platform ios` → `hash`; build 11 = `3e061b2c…`). The fingerprint also hashes files you wouldn't expect, such as the root `.gitignore`: don't edit it (put ignore rules in a nested `.gitignore`, e.g. `docs/.gitignore`). A mismatch means phones silently ignore the update.
+
 A new build is only needed when native things change: a new library with native code, `app.json` / plugin config, the Live Activity layout (`src/widgets/`, bundled into the widget extension), icons or splash. The fingerprint policy makes sure an update only reaches builds it's compatible with.
 
 ## Rules

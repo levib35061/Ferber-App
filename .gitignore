@@ -49,6 +49,3 @@ tools/video/*.words.json
 # Supabase CLI local state
 supabase/.temp/
 supabase/.branches/
-
-# Outreach lists hold other people's contact details; the repo is public
-docs/outreach/

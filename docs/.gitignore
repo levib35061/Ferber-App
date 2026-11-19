@@ -1,0 +1,4 @@
+# Outreach lists hold other people's contact details; the repo is public.
+# (Kept here, not in the root .gitignore: the root one is part of the app's
+# runtime fingerprint, and changing it stops over-the-air updates reaching builds.)
+outreach/
