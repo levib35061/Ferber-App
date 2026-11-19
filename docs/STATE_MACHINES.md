@@ -145,5 +145,6 @@ serialised). Shown only where `alertsHere` is true.
 | History edit sheet | `src/app/night/[id].tsx`, `src/components/EventSheet.tsx` | `Sheet` union; edits are lenient on purpose |
 | Share card | `src/lib/shareCard.ts` (tested) | layout `night` (nights 1–2) / `progress` |
 | Review prompt | `src/lib/review.ts` (tested) | at most twice, 120 days apart |
+| Better-night confetti | `shouldCelebrate` (`src/lib/morning.ts`, tested), `src/components/Confetti.tsx` | idle → waiting for the app to be active (+1.2 s) → re-check → played (marks `celebratedNight`); never while syncing; cancelled on unmount |
 | Onboarding | `src/app/onboarding.tsx` | step indices; low risk |
 | Training round | `baby.trainingStartDate`, `currentRound` in `shareCard.ts` | two definitions; see backlog |

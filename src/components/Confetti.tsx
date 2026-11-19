@@ -1,10 +1,10 @@
 /**
- * A short, soft confetti burst for the morning recap after a better night
- * (when: `shouldCelebrate` in src/lib/morning.ts). Day colours, about four
- * seconds, falls behind nothing and blocks no taps. Skipped entirely when
- * the phone has Reduce Motion on. Built on Animated (no extra library).
+ * A soft confetti burst for the morning recap after a better night (when:
+ * `shouldCelebrate` in src/lib/morning.ts). Day colours, about four and a half
+ * seconds from first to last piece, blocks no taps. With Reduce Motion on there's
+ * no confetti and no buzz. Built on Animated (no extra library).
  */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as Haptics from 'expo-haptics';
 import { AccessibilityInfo, AppState, Animated, Easing, StyleSheet, View, useWindowDimensions } from 'react-native';
 
@@ -19,63 +19,83 @@ const rand = (i: number, salt: number) => {
   return x - Math.floor(x);
 };
 
-/**
- * A small celebratory buzz with the burst: a success tap, then two lighter ones.
- * iOS drops haptics while the app is still coming to the front, so this waits until
- * the app is active and a moment has passed.
- */
-function celebrateHaptics() {
-  const play = () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-    setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {}), 350);
-    setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {}), 650);
-  };
-  const later = () => setTimeout(play, 400);
-  if (AppState.currentState === 'active') return later();
-  const sub = AppState.addEventListener('change', (st) => {
-    if (st !== 'active') return;
-    sub.remove();
-    later();
-  });
+/** A small celebratory buzz with the burst: a success tap, then two lighter ones. */
+function celebrateHaptics(later: (fn: () => void, ms: number) => void) {
+  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+  later(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {}), 350);
+  later(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {}), 650);
 }
 
-export function Confetti({ onDone, haptics = true }: { onDone?: () => void; haptics?: boolean }) {
+/**
+ * Plays once, and only once the app is on screen: a recap can mount in the background
+ * (a partner's silent push), and iOS drops haptics while the app is coming to the front.
+ * A moment after the app is active it asks `canStart()` again (a partner's night may
+ * have just synced and changed the numbers); only then does it call `onStarted` (the
+ * caller remembers the night as celebrated), buzz and animate. Unmounting cancels
+ * everything still pending.
+ */
+export function Confetti({
+  canStart,
+  onStarted,
+  haptics = true,
+}: {
+  /** Re-checked right before playing, with the latest data */
+  canStart: () => boolean;
+  onStarted: () => void;
+  haptics?: boolean;
+}) {
   const { width, height } = useWindowDimensions();
   const [progress] = useState(() => Array.from({ length: PIECES }, () => new Animated.Value(0)));
-  const [show, setShow] = useState(true);
+  const [show, setShow] = useState(false);
+  // Latest props, read when the moment comes (the effect itself runs once).
+  const latest = useRef({ canStart, onStarted, haptics });
+  useEffect(() => {
+    latest.current = { canStart, onStarted, haptics };
+  });
 
   useEffect(() => {
     let cancelled = false;
-    if (haptics) celebrateHaptics();
-    AccessibilityInfo.isReduceMotionEnabled()
-      .catch(() => false)
-      .then((reduce) => {
-        if (cancelled) return;
-        if (reduce) {
-          setShow(false);
-          onDone?.();
-          return;
-        }
-        Animated.stagger(
-          45,
-          progress.map((p, i) =>
-            Animated.timing(p, {
-              toValue: 1,
-              duration: 3200 + rand(i, 1) * 1400,
-              easing: Easing.out(Easing.cubic),
-              useNativeDriver: true,
-            }),
-          ),
-        ).start(() => {
-          if (cancelled) return;
-          setShow(false);
-          onDone?.();
-        });
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const later = (fn: () => void, ms: number) => timers.push(setTimeout(() => !cancelled && fn(), ms));
+    let sub: { remove: () => void } | null = null;
+
+    const play = async () => {
+      const reduce = await AccessibilityInfo.isReduceMotionEnabled().catch(() => false);
+      if (cancelled || AppState.currentState !== 'active' || !latest.current.canStart()) return;
+      latest.current.onStarted();
+      if (reduce) return; // no motion, and no buzz without anything to see
+      if (latest.current.haptics) celebrateHaptics(later);
+      setShow(true);
+      Animated.stagger(
+        25,
+        progress.map((p, i) =>
+          Animated.timing(p, {
+            toValue: 1,
+            duration: 2600 + rand(i, 1) * 1000,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+        ),
+      ).start(() => !cancelled && setShow(false));
+    };
+    // Give a just-opened app a moment (and a partner's sync time to land), then play.
+    const whenActive = () => later(play, 1200);
+    if (AppState.currentState === 'active') whenActive();
+    else {
+      sub = AppState.addEventListener('change', (st) => {
+        if (st !== 'active') return;
+        sub?.remove();
+        sub = null;
+        whenActive();
       });
+    }
     return () => {
       cancelled = true;
+      timers.forEach(clearTimeout);
+      sub?.remove();
+      progress.forEach((p) => p.stopAnimation());
     };
-  }, [progress, onDone, haptics]);
+  }, [progress]);
 
   if (!show) return null;
   return (

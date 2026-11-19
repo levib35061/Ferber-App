@@ -7,7 +7,7 @@
 import { router, useFocusEffect } from 'expo-router';
 import * as StoreReview from 'expo-store-review';
 import { useSQLiteContext } from 'expo-sqlite';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -102,7 +102,7 @@ export function TodaySummary({
   /** Set when "Up for the day" can still be taken back (before 11am): the baby woke again */
   onNotUpYet?: () => void;
 }) {
-  const { baby, chart, settings, updateSetting } = useNightStore();
+  const { baby, chart, settings, updateSetting, syncStatus } = useNightStore();
   const last = data.last!;
 
   // On a good morning (never during a night), ask for an App Store rating. Rarely: see lib/review.
@@ -132,15 +132,17 @@ export function TodaySummary({
     summary,
     data.previous && prevSummary ? { nightNumber: data.previous.night.nightNumber, summary: prevSummary } : null,
   );
-  // A clearly better night: a short confetti burst, once per night (lib/morning shouldCelebrate).
-  // Decided when the recap opens, so remembering it doesn't cut the animation short.
-  const [confettiFor] = useState(() =>
-    shouldCelebrate(summary, prevSummary) && settings.celebratedNight !== last.night.id ? last.night.id : null,
-  );
+  // A clearly better night: a confetti burst, once per night (lib/morning shouldCelebrate).
+  // Confetti re-checks this with the latest data right before it plays, and only marks the
+  // night as celebrated once it actually plays (on screen, not in the background).
+  // Not while a sync is running: a partner's taps could still change last night's numbers.
+  const celebrate =
+    shouldCelebrate(summary, prevSummary) && settings.celebratedNight !== last.night.id && !syncStatus.syncing;
+  const [playedFor, setPlayedFor] = useState<string | null>(null);
+  const celebrateNow = useRef(celebrate);
   useEffect(() => {
-    if (!confettiFor) return;
-    updateSetting('celebratedNight', confettiFor);
-  }, [confettiFor]); // eslint-disable-line react-hooks/exhaustive-deps
+    celebrateNow.current = celebrate;
+  });
   const note = morningNote(data.crying);
   const tonightNumber = last.night.nightNumber + 1;
   const tonightFirstWait = nextWaitMinutes(chart, last.night.chartNight + 1, 0);
@@ -310,7 +312,17 @@ export function TodaySummary({
           <Text style={styles.startText}>Starting bedtime early? Open the night screen</Text>
         </Pressable>
       </ScrollView>
-      {confettiFor === last.night.id && <Confetti haptics={settings.haptics} />}
+      {(celebrate || playedFor === last.night.id) && (
+        <Confetti
+          key={last.night.id}
+          haptics={settings.haptics}
+          canStart={() => celebrateNow.current}
+          onStarted={() => {
+            setPlayedFor(last.night.id);
+            updateSetting('celebratedNight', last.night.id);
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 }
