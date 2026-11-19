@@ -142,7 +142,7 @@ I'm Levi, a parent who built Check In, an iPhone app for families doing timed ch
 
 At 2am the hardest part is the counting, so the app does it: it times each wait (only while the baby is crying), restarts the waits after a night waking, alerts the parent on the lock screen, and keeps both parents' phones in sync, with one person "on duty" each night. The waits are fully editable, so it can follow your plan instead of a standard chart.
 
-I'd like to give your clients the full app for free, so I've set up a code just for them: [CODE]. They open the app, tap Unlock, then "Have a code?" and enter it. No subscription, no ads, no tracking.
+I'd like to give your clients the full app for free, so I've set up a code just for them, good for 20 free unlocks: [CODE]. They open the app, tap Unlock, then "Have a code?" and enter it. No subscription, no ads, no tracking. If the 20 run out, just tell me and I'll make more.
 
 App Store: [App Store link]
 A 2-minute walkthrough: [video link]
@@ -157,7 +157,7 @@ Check In · ferbertimer.com
 **Follow-up**, once only, a week later if there's no reply:
 
 ```
-Hi [first name], just bumping this in case it got buried. Your clients' code ([CODE]) is ready whenever it's useful, and I'm happy to change anything that would make the app fit your plans better. Levi
+Hi [first name], just bumping this in case it got buried. Your clients' code ([CODE], 20 free unlocks) is ready whenever it's useful, and I'm happy to change anything that would make the app fit your plans better. Levi
 ```
 
 ---

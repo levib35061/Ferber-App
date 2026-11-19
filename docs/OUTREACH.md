@@ -21,7 +21,7 @@ Read it from Gmail with the Gmail tools (search for that subject).
 
 - Send from **askcheckin@gmail.com** (the Gmail connector must be signed in to that account).
 - **Personal opener** per consultant, from what their own site says (already written in the list email).
-- **One offer code per consultant** (e.g. `ROCKABYE`), so we can see who sends clients. The email says so: "I've set up a code just for them".
+- **One offer code per consultant** (e.g. `ROCKABYE`), so we can see who sends clients. Each code is capped at **20 redemptions**, and the email says so: "I've set up a code just for them, good for 20 free unlocks". If a consultant uses them up, make a new code for them.
 - Sign as **Levi**. Subject: `A free Ferber timer for your clients`.
 - One follow-up only, a week later, only if no reply.
 
@@ -29,7 +29,7 @@ Read it from Gmail with the Gmail tools (search for that subject).
 
 1. **Prerequisites:** the app is live on the App Store (`python3 tools/site/app_links.py live`
    has been run), video 3 is public, and the offer codes exist. Codes: App Store Connect →
-   In-App Purchases → `checkin_unlock` → Offer Codes, one custom code per consultant, free,
+   In-App Purchases → `checkin_unlock` → Offer Codes, one custom code per consultant, free, **redemption limit 20**,
    created **at least 3 days before** sending (free codes can take 48–72 hours to work).
    Ask Levi for the list of codes and the App Store / video links.
 2. **Recheck each consultant** before drafting: open their evidence link and make sure the
