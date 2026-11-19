@@ -128,30 +128,36 @@ codes for one-time purchases taking 48 to 72 hours to start working.
 
 ### The email
 
+Send from **askcheckin@gmail.com** (the address on the website). One draft per consultant,
+with a **personal opener** taken from their own site, and **one offer code per consultant**
+(for example `ROCKABYE`) so you can see who sends clients. Sign as **Levi**. The list of 21
+lives in your Gmail ("Check In launch: sleep consultant outreach list"), not in this repo.
+
 **Subject:** `A free Ferber timer for your clients`
 
 ```
 Hi [first name],
 
-I'm Levi Brown, a parent who built Check In, an iPhone app for families doing the Ferber method (graduated check-ins). I came across your work on [their website / Instagram] and saw that you use check-ins with families.
+I'm Levi, a parent who built Check In, an iPhone app for families doing timed check-ins. [Personal line from their site, e.g. "I read your post on the check and console method" or "I saw you offer Modified Ferber to your families."]
 
-Check In does the counting at 2am: it times each wait (only while the baby is crying), restarts the waits at night wakings, alerts the parent on the lock screen, and keeps the whole family's phones in sync (a grandparent or night nanny can join too), with one person "on duty" each night. The waits are fully editable, so it can follow your plan rather than a standard chart.
+At 2am the hardest part is the counting, so the app does it: it times each wait (only while the baby is crying), restarts the waits after a night waking, alerts the parent on the lock screen, and keeps both parents' phones in sync, with one person "on duty" each night. The waits are fully editable, so it can follow your plan instead of a standard chart.
 
-I'd like to offer your clients the full app for free. They can open the app, tap Unlock, then "Have a code?" and enter [CODE] (it unlocks everything; no subscription, no ads, no tracking).
+I'd like to give your clients the full app for free. They open the app, tap Unlock, then "Have a code?" and enter [CODE]. No subscription, no ads, no tracking.
 
-Here's the app: [App Store link]
-And a 2-minute walkthrough: [YouTube video 3 link]
+App Store: [App Store link]
+A 2-minute walkthrough: [video link]
+More about it: https://ferbertimer.com/press.html
 
 If it's not a fit for how you work, no problem at all, and thanks for reading.
 
-Levi Brown
+Levi
 Check In · ferbertimer.com
 ```
 
 **Follow-up**, once only, a week later if there's no reply:
 
 ```
-Hi [first name], just bumping this in case it got buried. Happy to set up a code just for your clients, or to change anything about the app that would make it fit your plans better. Levi Brown
+Hi [first name], just bumping this in case it got buried. Happy to change anything that would make the app fit your plans better. Levi
 ```
 
 ---
