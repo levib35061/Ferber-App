@@ -237,8 +237,19 @@ export function PartnerSection({ setup = false, onJoined }: { setup?: boolean; o
         <>
           <Text style={[styles.hint, { marginTop: 14 }]}>
             {st.syncing ? 'Syncing…' : st.lastSyncedAt ? `Last synced ${ago(st.lastSyncedAt)}` : 'Not synced yet'}
-            {st.error ? ' · offline, will retry' : ''}
+            {st.error && !st.needsSignIn ? ' · offline, will retry' : ''}
           </Text>
+          {st.needsSignIn && (
+            <View style={styles.signInBox} accessible accessibilityRole="alert">
+              <Text style={styles.signInTitle}>This phone has lost its link to your family</Text>
+              <Text style={styles.hint}>
+                Taps on this phone aren&apos;t being shared. If you signed in with Apple before, sign in again below.
+                Otherwise, tap Stop sharing on this phone, then join again with your family&apos;s code (on another
+                phone: Settings → Partner sharing).
+              </Text>
+              {account !== 'apple' && appleButton(AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN)}
+            </View>
+          )}
           <Btn label="Sync now" onPress={() => run(() => sync.syncNow())} disabled={busy} />
           {alertsOff && (
             <Text style={[styles.hint, { marginTop: 14 }]}>
@@ -360,6 +371,8 @@ const stylesHook = makeStyles(({ colors, fonts, type }) =>
     },
     btnPrimaryText: { color: colors.onPrimary, fontFamily: fonts.extrabold },
     linkBtn: { alignSelf: 'flex-start', paddingVertical: 12 },
+    signInBox: { marginTop: 14, padding: 14, borderRadius: 14, backgroundColor: colors.buttonBg },
+    signInTitle: { color: colors.text, fontFamily: fonts.bold, fontSize: 16, marginBottom: 4 },
     linkText: { color: colors.accent, fontFamily: fonts.bold, fontSize: 15 },
   }),
 );

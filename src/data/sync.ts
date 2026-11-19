@@ -36,6 +36,7 @@ import {
 import type { Member } from '../lib/duty';
 import { registerPushToken } from './push';
 import { ensureUserId, supabase } from './supabase';
+import { isSignInProblem } from '../lib/syncErrors';
 
 export interface SyncStatus {
   familyId: string | null;
@@ -52,6 +53,12 @@ export interface SyncStatus {
   error: string | null;
   /** Server says this family has the unlock (null = not known yet) */
   unlocked: boolean | null;
+  /**
+   * Sharing is on but this phone can't act for the family: its sign-in is gone, or the
+   * account it's signed in to isn't a member. Retrying won't fix it; the person has to
+   * sign in again or rejoin. Distinct from `error` (offline, will retry by itself).
+   */
+  needsSignIn: boolean;
 }
 
 const PULL_OVERLAP_MS = 5_000;
@@ -83,6 +90,7 @@ export class SyncEngine {
     syncing: false,
     error: null,
     unlocked: null,
+    needsSignIn: false,
   };
   private statusListeners = new Set<(s: SyncStatus) => void>();
   private channel: RealtimeChannel | null = null;
@@ -234,6 +242,7 @@ export class SyncEngine {
       userId: null,
       lastSyncedAt: null,
       error: null,
+      needsSignIn: false,
     });
   }
 
@@ -259,6 +268,7 @@ export class SyncEngine {
       members: [],
       lastSyncedAt: null,
       error: null,
+      needsSignIn: false,
     });
   }
 
@@ -363,6 +373,7 @@ export class SyncEngine {
       this.setStatus({
         syncing: false,
         error: null,
+        needsSignIn: false,
         lastSyncedAt: Date.now(),
         memberCount: members ? list.length : this.status.memberCount,
         memberIds: members ? list.map((m) => m.id) : this.status.memberIds,
@@ -372,7 +383,11 @@ export class SyncEngine {
       await this.checkUnlock().catch(() => {});
       if (!this.pushRegistered) this.pushRegistered = await registerPushToken().catch(() => false);
     } catch (e) {
-      this.setStatus({ syncing: false, error: e instanceof Error ? e.message : String(e) });
+      this.setStatus({
+        syncing: false,
+        error: e instanceof Error ? e.message : String(e),
+        needsSignIn: isSignInProblem(e),
+      });
     }
   }
 

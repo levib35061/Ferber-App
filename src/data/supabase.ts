@@ -54,6 +54,7 @@ AppState.addEventListener('change', (state) => {
 export class NeedsSignInError extends Error {
   constructor() {
     super('Not signed in.');
+    this.name = 'NeedsSignInError';
   }
 }
 
