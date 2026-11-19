@@ -57,6 +57,7 @@ The product spec is `docs/SPEC.md`. Read it before changing behavior.
 - iPhone only (v1). No custom native Swift. Only Expo-compatible libraries.
 - Routes live in `src/app/`. Pure logic lives in `src/lib/` (no React Native imports) and has Jest tests in `src/lib/__tests__/`.
 - `src/lib/ferber.ts` — interval chart + `nextWaitMinutes(chart, nightNumber, checkInsSoFarThisEpisode)`.
+- **State machines: read `docs/STATE_MACHINES.md` before changing how anything moves between states** (the night, which phone rings, unlock, sharing, screens, Live Activity). Each machine is declared once in `src/lib/` and tested; the store, screens, background task and widget read it rather than re-deciding. `NightStore.tap` enforces `allowedActions` against storage at tap time; `alertsHere` (`src/lib/duty.ts`) is the only place that decides which phone rings.
 - `src/lib/session.ts` — derives the Night-screen state from the event log. Events are the source of truth; never store derived values.
 - `wait_more` event ("Wait a little longer", only when a check-in is due): skips the check-in; the next, longer wait starts from the tap and it isn't counted as a check-in. New event types need a Supabase migration for `events_type_check`.
 - `src/lib/encourage.ts` + `morningNote` in `src/lib/morning.ts`: the short reassurance lines. Plain and true, never cheerful, never judgmental; grounded in Ferber's wording (a check-in reassures, it isn't meant to stop the crying). No streaks, no red for bad nights.
