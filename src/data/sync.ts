@@ -66,6 +66,14 @@ const PAGE = 1000;
 const TABLES = ['babies', 'nights', 'events'] as const;
 type Table = (typeof TABLES)[number];
 
+/** The signed-in account no longer exists on the server (deleted). Offline is not "gone". */
+async function accountIsGone(): Promise<boolean> {
+  const { error } = await supabase.auth.getUser();
+  if (!error) return false;
+  const e = error as { code?: string; message?: string; status?: number };
+  return e.code === 'user_not_found' || /does not exist|user not found/i.test(e.message ?? '');
+}
+
 /** The newest server_updated_at among rows (or the cursor if none are newer). */
 function latestStamp(rows: Record<string, unknown>[], cursor: string | null): string | null {
   let maxSeen = cursor;
@@ -224,7 +232,10 @@ export class SyncEngine {
       // The server revokes any Sign in with Apple token with Apple, then deletes
       // the account and its data (supabase/functions/delete-account).
       const { data: res, error } = await supabase.functions.invoke('delete-account', { method: 'POST' });
-      if (error || !(res as { ok?: boolean } | null)?.ok) {
+      // A retry after an earlier attempt whose reply was lost: the server already deleted the
+      // account, so the call is refused. Ask the server whether the account still exists.
+      const alreadyGone = !!error && (await accountIsGone());
+      if (!alreadyGone && (error || !(res as { ok?: boolean } | null)?.ok)) {
         throw new Error(
           (res as { error?: string } | null)?.error ?? "Couldn't reach the server to delete your account. Please try again.",
         );

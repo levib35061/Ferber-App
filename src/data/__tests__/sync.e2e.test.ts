@@ -52,6 +52,7 @@ type SyncModule = typeof import('../sync');
 function phone() {
   let dbm!: DbModule;
   let syncm!: SyncModule;
+  let sb!: { functions: { invoke: (name: string, o: object) => Promise<{ error: unknown }> } };
   jest.isolateModules(() => {
     // Push registration needs a real phone build; not part of this test.
     jest.doMock('../push', () => ({ registerPushToken: async () => false }));
@@ -75,13 +76,14 @@ function phone() {
     /* eslint-disable @typescript-eslint/no-require-imports -- fresh module instances per simulated phone */
     dbm = require('../db');
     syncm = require('../sync');
+    sb = require('../supabase').supabase;
     /* eslint-enable @typescript-eslint/no-require-imports */
   });
   const db = sqlite() as never;
   const engine = new syncm.SyncEngine(db);
   let remoteChanges = 0;
   engine.setOnRemoteChange(() => remoteChanges++);
-  return { dbm, db, engine, remote: () => remoteChanges };
+  return { dbm, db, engine, sb, remote: () => remoteChanges };
 }
 
 const at = (h: number, m: number) => new Date(2026, 10, h < 11 ? 17 : 16, h, m).getTime();
@@ -292,6 +294,19 @@ d('partner sync (real Supabase)', () => {
       await C.engine.deleteAccount().catch(() => {});
       C.engine.stop();
     }
+  });
+
+  it("deleting an account when the first reply was lost: the retry finishes instead of failing forever", async () => {
+    const E = phone();
+    await E.dbm.migrate(E.db);
+    await E.engine.createFamily();
+    // The server deletes the account, but the phone never hears back.
+    const { error } = await E.sb.functions.invoke('delete-account', { method: 'POST' });
+    expect(error).toBeNull();
+    // The person taps Delete again: it must complete, not say "nothing was deleted".
+    await expect(E.engine.deleteAccount()).resolves.toBeUndefined();
+    expect(E.engine.getStatus().familyId).toBeNull();
+    E.engine.stop();
   });
 
   it('deleting an account: the partner keeps the shared nights; the last one out deletes the family', async () => {

@@ -22,9 +22,6 @@ Not fixed yet, roughly in priority order:
 
 From the state-machine survey (map: `docs/STATE_MACHINES.md`):
 
-- **Join isn't atomic**: `joinFamily` wipes local data before the pull finishes; a dropped connection there leaves an empty, unshared phone. Pull into place first, then swap.
-- **Sign-in problems look like "offline"**: a phone with a family but no session shows "offline, will retry" forever. Give `SyncStatus` an explicit `needsSignIn` state with a button.
-- **Lost delete-account response**: if the server deleted the account but the reply was lost, retries get 401 and the local wipe never runs. Treat 401 after a delete attempt as done.
 - **One SyncStatus type**: replace the flat bag (`syncing` + `error` + `familyId`...) with a declared union (`notSharing | waitingForPartner | shared` × `idle | syncing | error | needsSignIn`).
 - **Training round has two definitions** (`trainingStartDate` vs `currentRound`'s "latest night 1"); morning notes and the review prompt use every night ever. Pick `trainingStartDate` and derive the rest from it.
 - **Onboarding** uses step indices; the dots count the skipped baby step after joining.

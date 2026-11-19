@@ -117,9 +117,13 @@ launches (`members` sync value), so an offline phone still knows it shares. Leav
 re-keys this phone's copy (`rekeyLocalData`). Tests: network e2e
 (`src/data/__tests__/sync.e2e.test.ts`, `npm run test:sync`).
 
-Known gaps (`docs/BACKLOG.md`): `joinFamily` clears local data before the pull finishes;
-a sign-in problem shows as "offline, will retry"; a lost delete-account response can't be
-retried.
+Rules: **joining downloads everything first**, then swaps this phone's data in one
+transaction (`replaceLocalData`), so a dropped connection changes nothing; a partner who
+hasn't shared yet undoes the membership. **Two kinds of sync failure:** `error` alone =
+offline, retries by itself; `needsSignIn` = this phone's account can't act for the family
+(`isSignInProblem` in `src/lib/syncErrors.ts`, tested), shown in Partner sharing with what to
+do. **Deleting** an account whose first reply was lost completes on retry (the phone checks
+the account is gone). Still one flat `SyncStatus` rather than a declared union (backlog).
 
 ## 5. Which screen and theme
 
