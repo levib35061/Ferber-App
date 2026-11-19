@@ -34,7 +34,7 @@ const dayLabel = (key: string) =>
 export default function AddMissedNight() {
   const styles = stylesHook();
   const db = useSQLiteContext();
-  const { baby, reload, unlocked, nightsUsed, sync } = useNightStore();
+  const { baby, reload, unlocked, nightsUsed, sync, saveBaby } = useNightStore();
   const [keys, setKeys] = useState<string[] | null>(null);
   const [key, setKey] = useState<string | null>(null);
   const [bedtime, setBedtime] = useState<MissedStretch>({ at: { h: 19, m: 30 }, cryingMin: 0, checkIns: 0 });
@@ -64,7 +64,11 @@ export default function AddMissedNight() {
     if (needsUnlock({ unlocked, nightsUsed, startsNewNight: true })) return router.push('/unlock');
     setSaving(true);
     try {
-      const night = await createNight(db, baby.id, result.events[0].at, false, baby.trainingStartDate);
+      // A missed night before this round's start date belongs to the round: move the start back to it,
+      // so it counts as the earlier night (e.g. night 1) and tonight follows on from it.
+      const roundStart = baby.trainingStartDate && key < baby.trainingStartDate ? key : baby.trainingStartDate;
+      if (roundStart !== baby.trainingStartDate) await saveBaby({ ...baby, trainingStartDate: roundStart });
+      const night = await createNight(db, baby.id, result.events[0].at, false, roundStart);
       for (const e of result.events) await insertEvent(db, night.id, e.type, e.at, sync.userId);
       await setNightAddedLater(db, night.id);
       await reload();
