@@ -5,7 +5,6 @@
  * tonight's first wait. Peach & plum theme.
  */
 import { router, useFocusEffect } from 'expo-router';
-import * as Haptics from 'expo-haptics';
 import * as StoreReview from 'expo-store-review';
 import { useSQLiteContext } from 'expo-sqlite';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -140,7 +139,6 @@ export function TodaySummary({
   );
   useEffect(() => {
     if (!confettiFor) return;
-    if (settings.haptics) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     updateSetting('celebratedNight', confettiFor);
   }, [confettiFor]); // eslint-disable-line react-hooks/exhaustive-deps
   const note = morningNote(data.crying);
@@ -312,7 +310,7 @@ export function TodaySummary({
           <Text style={styles.startText}>Starting bedtime early? Open the night screen</Text>
         </Pressable>
       </ScrollView>
-      {confettiFor === last.night.id && <Confetti />}
+      {confettiFor === last.night.id && <Confetti haptics={settings.haptics} />}
     </SafeAreaView>
   );
 }

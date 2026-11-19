@@ -73,7 +73,9 @@ export function SwitchRow(props: { label: string; hint?: string; value: boolean;
         value={props.value}
         onValueChange={props.onChange}
         trackColor={{ true: colors.primary, false: colors.buttonBg }}
-        thumbColor={colors.text}
+        ios_backgroundColor={colors.buttonBg}
+        // The knob must contrast with the track in both themes (day: white on plum).
+        thumbColor={props.value ? colors.onPrimary : colors.text}
         accessibilityLabel={props.label}
       />
     </View>
