@@ -123,7 +123,11 @@ export default function NightDetailScreen() {
             ))}
             {strays.length > 0 && (
               <View style={styles.episode}>
-                <Text style={styles.epTitle}>Not part of an episode</Text>
+                <Text style={styles.epTitle}>Not counted</Text>
+                <Text style={styles.strayHint}>
+                  These taps don&apos;t fit after Bedtime or a Woke up (for example, a tap logged after Asleep), so
+                  they aren&apos;t in tonight&apos;s numbers. Tap one to fix its time or delete it.
+                </Text>
                 {strays.map((e) => (
                   <EventRow key={e.id} e={e} onPress={() => setSheet({ mode: 'edit', event: e })} />
                 ))}
@@ -276,6 +280,7 @@ const stylesHook = makeStyles(({ colors, fonts, type }) =>
       letterSpacing: 0.5,
       marginBottom: 4,
     },
+    strayHint: { color: colors.textFaint, fontFamily: fonts.regular, fontSize: 14, lineHeight: 20, marginBottom: 4 },
     eventRow: {
       flexDirection: 'row',
       alignItems: 'center',
