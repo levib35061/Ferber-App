@@ -237,6 +237,36 @@ d('partner sync (real Supabase)', () => {
     console.log(`family invite code used in this test: ${A.engine.getStatus().inviteCode}`);
   });
 
+  it('stop sharing, then invite someone new: the new family uploads and the new partner gets the nights', async () => {
+    const before = (await B.dbm.listDirty(B.db)).events.length;
+    expect(before).toBe(0);
+    const babyBefore = await B.dbm.getOrCreateBaby(B.db);
+    await B.engine.leaveFamily();
+    const babyAfter = await B.dbm.getOrCreateBaby(B.db);
+    expect(babyAfter.id).not.toBe(babyBefore.id); // its own copy now
+    await A.engine.syncNow();
+    expect(A.engine.getStatus().memberCount).toBe(1);
+
+    await B.engine.createFamily();
+    expect(B.engine.getStatus().error).toBeNull();
+    expect((await B.dbm.listDirty(B.db)).events).toHaveLength(0); // everything uploaded
+    const C = phone();
+    await C.dbm.migrate(C.db);
+    try {
+      await C.engine.joinFamily(B.engine.getStatus().inviteCode!);
+      const cBaby = await C.dbm.getOrCreateBaby(C.db);
+      expect(cBaby.id).toBe(babyAfter.id);
+      const bNights = await (B.db as unknown as { getAllAsync: (q: string) => Promise<unknown[]> }).getAllAsync('SELECT id FROM night');
+      const cNights = await (C.db as unknown as { getAllAsync: (q: string) => Promise<unknown[]> }).getAllAsync('SELECT id FROM night');
+      expect(cNights.length).toBe(bNights.length);
+      // A's family is untouched.
+      expect((await live(A, nightId)).length).toBeGreaterThan(0);
+    } finally {
+      await C.engine.deleteAccount().catch(() => {});
+      C.engine.stop();
+    }
+  });
+
   it('deleting an account: the partner keeps the shared nights; the last one out deletes the family', async () => {
     await B.engine.deleteAccount();
     expect(B.engine.getStatus().familyId).toBeNull();

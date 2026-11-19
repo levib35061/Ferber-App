@@ -591,6 +591,50 @@ export async function wipeAllLocalData(db: SQLiteDatabase): Promise<void> {
   });
 }
 
+/**
+ * After leaving a family: give this phone's baby, nights and taps new ids. The old
+ * family keeps its rows on the server under the old ids, so without this a family
+ * started later ("Invite my partner" again) would collide with them and never upload.
+ * Night ids stay deterministic for the new baby id; undone taps are dropped.
+ */
+export async function rekeyLocalData(db: SQLiteDatabase): Promise<void> {
+  const babies = await db.getAllAsync<{ id: string }>('SELECT id FROM baby');
+  const nights = await db.getAllAsync<{ id: string; babyId: string; nightKey: string }>(
+    'SELECT id, babyId, nightKey FROM night',
+  );
+  const events = await db.getAllAsync<{ id: string; nightId: string }>('SELECT id, nightId FROM event WHERE deletedAt IS NULL');
+  const babyIds = new Map(babies.map((b) => [b.id, randomUUID()]));
+  const nightIds = new Map<string, string>();
+  for (const n of nights) nightIds.set(n.id, await nightIdFor(babyIds.get(n.babyId) ?? n.babyId, n.nightKey));
+  const now = Date.now();
+  // Copy each row to its new id, move the children across, then delete the old row,
+  // so the links between tables hold at every step.
+  const copyRow = async (table: 'baby' | 'night', oldId: string, newId: string, extra: string, args: string[]) => {
+    await db.execAsync('DROP TABLE IF EXISTS temp.rekey');
+    await db.runAsync(`CREATE TEMP TABLE rekey AS SELECT * FROM ${table} WHERE id = ?`, oldId);
+    await db.runAsync(`UPDATE temp.rekey SET id = ?, ${extra}, updatedAt = ?, dirty = 1`, newId, ...args, now);
+    await db.execAsync(`INSERT INTO ${table} SELECT * FROM temp.rekey; DROP TABLE temp.rekey;`);
+  };
+  await db.withTransactionAsync(async () => {
+    await db.runAsync('DELETE FROM event WHERE deletedAt IS NOT NULL');
+    for (const b of babies) await copyRow('baby', b.id, babyIds.get(b.id)!, 'familyId = NULL', []);
+    for (const n of nights) {
+      await copyRow('night', n.id, nightIds.get(n.id)!, 'babyId = ?, onDuty = NULL', [babyIds.get(n.babyId) ?? n.babyId]);
+    }
+    for (const e of events) {
+      await db.runAsync(
+        'UPDATE event SET id = ?, nightId = ?, updatedAt = ?, dirty = 1 WHERE id = ?',
+        randomUUID(),
+        nightIds.get(e.nightId) ?? e.nightId,
+        now,
+        e.id,
+      );
+    }
+    for (const n of nights) await db.runAsync('DELETE FROM night WHERE id = ?', n.id);
+    for (const b of babies) await db.runAsync('DELETE FROM baby WHERE id = ?', b.id);
+  });
+}
+
 // ---------- testing helpers (shown only in development builds) ----------
 
 /** Removes every logged tap (soft delete, so it syncs). Keeps the baby (name, chart) and settings. */

@@ -29,6 +29,7 @@ import {
   pendingDutyChanges,
   clearDutyChanges,
   onLocalWrite,
+  rekeyLocalData,
   setBabyFamily,
   setSyncValue,
 } from './db';
@@ -217,8 +218,8 @@ export class SyncEngine {
       }
     }
     this.unsubscribe();
-    const baby = await getOrCreateBaby(this.db);
-    await setBabyFamily(this.db, baby.id, null);
+    // This phone's copy becomes its own (new ids, no family), so sharing can start again later.
+    await rekeyLocalData(this.db);
     await setSyncValue(this.db, 'inviteCode', null);
     for (const t of TABLES) await setSyncValue(this.db, `cursor.${t}`, null);
     this.setStatus({
