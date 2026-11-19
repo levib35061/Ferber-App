@@ -72,7 +72,7 @@ Tonight, know exactly when to go in. Check In times every wait, alerts you on th
 ```
 Check In is an iPhone timer for the Ferber method of baby sleep training (also called graduated check-ins or progressive waiting). It counts down to each check-in using the Ferber interval chart, alerts you with the phone locked, and logs every night so you can see crying time drop.
 
-It's free for your first 2 nights, then $4.99 once. One purchase covers both parents. No subscription, no ads, no tracking.
+It's free for your first 2 nights, then $4.99 once. One purchase covers the whole family. No subscription, no ads, no tracking.
 
 Sleep training is hard enough at 2am. Put your baby down, tap once, and Check In tells you when it's time for a short check-in. The waits get a little longer each time and each night, just like the chart in the book.
 
@@ -80,6 +80,7 @@ MADE FOR A DARK NURSERY
 • Huge countdown and big buttons you can hit half-asleep
 • A dark, soft night theme that won't blind you
 • Alerts on the lock screen, even during a Sleep Focus when you allow time-sensitive alerts
+• A live countdown right on your lock screen
 • No timer until your baby actually cries, and it pauses when they stop
 • Undo instead of "are you sure?" pop-ups
 
@@ -93,10 +94,13 @@ SEE IT WORKING
 • A warm morning summary: how last night went and how it compares
 • Charts of crying time and check-ins across the week
 • Every night in History, with each tap editable
+• Missed logging a night? Add it later in a few taps
+• A simple card to share your progress, if you want to
 
-SHARE WITH YOUR PARTNER
-• Both phones see every tap within seconds
-• Choose who's on duty, so only one of you gets woken up
+SHARE WITH YOUR PARTNER, OR THE WHOLE FAMILY
+• Every phone sees every tap within seconds
+• A grandparent or a sitter can join with a code too
+• Choose who's on duty, so only one of you gets woken up, and hand the night off by name
 • One purchase unlocks the app for your whole family
 
 PRIVATE BY DESIGN
@@ -105,7 +109,7 @@ PRIVATE BY DESIGN
 • No account needed. Sign in with Apple is optional.
 
 TRY IT FREE
-Your first two nights are free. After that, a one-time $4.99 unlock keeps every feature, for every night, for you and your partner. No subscription.
+Your first two nights are free. After that, a one-time $4.99 unlock keeps every feature, for every night, for your whole family. No subscription.
 
 Sleep training is meant for babies about 6 months and older. Check In isn't medical advice. Please talk to your pediatrician before you start.
 ```
