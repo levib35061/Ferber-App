@@ -20,8 +20,8 @@ The running list. The reasons and evidence are in `reports/Check In app launch s
 
 ## Beta (once TestFlight's beta review approves build 3)
 
-- [ ] TestFlight → Friends & Family → turn on **Public Link** and copy it
-- [ ] Website: I run `python3 tools/site/app_links.py beta <link>` (every page's app box becomes "Try the free beta")
+- [x] TestFlight → Friends & Family → **Public Link** on: https://testflight.apple.com/join/mCSprSvf
+- [x] Website: `python3 tools/site/app_links.py beta <link>` (every page's app box becomes "Try the free beta")
 - [ ] Add the beta link to the YouTube descriptions (when external links are approved)
 
 ## At App Store launch (after Apple approval)
