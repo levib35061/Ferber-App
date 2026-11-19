@@ -14,7 +14,9 @@ for free, with a code made just for them. Template and follow-up: `docs/LAUNCH_C
 **Not in this repo** (the repo is public; `docs/outreach/` is gitignored). The list of 21,
 with each consultant's published business email, evidence link and a ready-written personal
 opener, is an email in Levi's Gmail with the subject
-**"Check In launch: consultant list with openers (21)"**, forwarded to askcheckin@gmail.com.
+**"Check In launch: consultant list with openers (21)"**, plus a second round
+**"Check In launch: consultant list, round 2 (25 more, #22-46)"** (#37-46 are weaker fits: send last
+or skip), both forwarded to askcheckin@gmail.com.
 Read it from Gmail with the Gmail tools (search for that subject).
 
 ## Decisions already made (don't re-ask)
