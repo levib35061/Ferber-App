@@ -202,7 +202,7 @@ export function PartnerSection({ setup = false, onJoined }: { setup?: boolean; o
         maxLength={30}
         autoCapitalize="words"
         returnKeyType="done"
-        style={styles.input}
+        style={[styles.input, styles.nameInput]}
         accessibilityLabel="Your name, shown to your family"
       />
       <Text style={styles.hint}>Shown to everyone you share with, so they can see who&apos;s on duty.</Text>
@@ -341,6 +341,7 @@ const stylesHook = makeStyles(({ colors, fonts, type }) =>
       fontSize: 18,
       letterSpacing: 2,
     },
+    nameInput: { letterSpacing: 0, fontSize: 17 },
     btn: {
       marginTop: 12,
       minHeight: 48,

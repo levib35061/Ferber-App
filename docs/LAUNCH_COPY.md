@@ -22,7 +22,7 @@ A calm Ferber timer for 2am, made by a parent
 **Description** (260 characters max):
 
 ```
-Check In times Ferber-method check-ins so tired parents don't have to. It counts only while your baby cries, restarts the waits at night wakings, alerts you on the lock screen and syncs both parents' phones. 2 free nights, then $4.99 once. No ads or tracking.
+Check In times Ferber-method check-ins so tired parents don't have to. It counts only while your baby cries, restarts waits at night wakings, alerts you on the lock screen and syncs the whole family. 2 free nights, then $4.99 once. No ads or tracking.
 ```
 
 **Topics:** Parenting, iOS, Health & Fitness, Productivity
@@ -43,11 +43,12 @@ The Ferber method is simple on paper: wait a few minutes, check in briefly, wait
 So Check In does the counting:
 • The timer only runs while your baby is crying, and pauses when they settle
 • A night waking restarts at the first wait for that night, the way the method says
-• Alerts on the lock screen, with a soft sound or vibration only
-• Both parents' phones stay in sync, with "who's on duty tonight" so only one of you gets woken
-• A warm morning summary and a chart of crying time, so a hard night doesn't feel like the whole story
+• Alerts on the lock screen, with a soft sound or vibration only, plus a live countdown right on the lock screen
+• Every phone in the family stays in sync (a grandparent or sitter can join too), with "who's on duty tonight" so only one of you gets woken
+• A warm morning summary, a chart of crying time and a card you can share, so a hard night doesn't feel like the whole story
+• Forgot to log a night? Add it from History in a few taps
 
-It's free for two nights, then $4.99 once. One purchase covers both parents. No subscription, no ads, no tracking.
+It's free for two nights, then $4.99 once. One purchase covers the whole family. No subscription, no ads, no tracking.
 
 I'd love to hear what you think, especially if you've been through sleep training yourself.
 ```
@@ -79,12 +80,12 @@ Check In is a timer for the Ferber method (graduated check-ins) of baby sleep tr
 - Counts down to each check-in using the Ferber interval chart, or a gentler one, or your own
 - Only times while your baby is crying, and pauses when they stop
 - Restarts at the first wait for a night waking
-- Lock-screen alerts with a soft sound or vibration only
-- Two parents, one baby: both phones sync within seconds, with "who's on duty tonight"
-- Morning summary, crying-time chart, and an editable history of every night
+- Lock-screen alerts with a soft sound or vibration only, and a live countdown on the lock screen
+- The whole family in sync: both parents, plus a grandparent or sitter, with "who's on duty tonight" and a named hand-off
+- Morning summary, crying-time chart, a shareable progress card, and an editable history of every night (missed nights can be added later)
 - No account needed, no ads, no tracking
 
-Free for your first two nights, then $4.99 once. One purchase covers both parents.
+Free for your first two nights, then $4.99 once. One purchase covers the whole family.
 ```
 
 **Alternative to** (add Check In as an alternative to each that's listed): Huckleberry,
@@ -134,7 +135,7 @@ Hi [first name],
 
 I'm Levi Brown, a parent who built Check In, an iPhone app for families doing the Ferber method (graduated check-ins). I came across your work on [their website / Instagram] and saw that you use check-ins with families.
 
-Check In does the counting at 2am: it times each wait (only while the baby is crying), restarts the waits at night wakings, alerts the parent on the lock screen, and keeps both parents' phones in sync, with one parent "on duty" each night. The waits are fully editable, so it can follow your plan rather than a standard chart.
+Check In does the counting at 2am: it times each wait (only while the baby is crying), restarts the waits at night wakings, alerts the parent on the lock screen, and keeps the whole family's phones in sync (a grandparent or night nanny can join too), with one person "on duty" each night. The waits are fully editable, so it can follow your plan rather than a standard chart.
 
 I'd like to offer your clients the full app for free. They can open the app, tap Unlock, then "Have a code?" and enter [CODE] (it unlocks everything; no subscription, no ads, no tracking).
 
@@ -166,7 +167,7 @@ Hi [name], I'm a parent and a member of [group]. I built a small iPhone timer fo
 If they say yes, the post:
 
 ```
-After sleep training our baby with the Ferber method, I built the timer I wished we'd had at 2am. It counts down to each check-in (only while baby is crying), restarts the waits for night wakings, alerts you on the lock screen, and syncs both parents' phones. It's free for two nights, then $4.99 once for both of you. No ads or tracking. [App Store link]
+After sleep training our baby with the Ferber method, I built the timer I wished we'd had at 2am. It counts down to each check-in (only while baby is crying), restarts the waits for night wakings, alerts you on the lock screen, and syncs every phone in the family. It's free for two nights, then $4.99 once for the whole family. No ads or tracking. [App Store link]
 
 There's also a free printable chart at ferbertimer.com/chart.html if an app isn't your thing. Happy to answer questions!
 ```
@@ -187,7 +188,7 @@ Hi [first name],
 
 I read your piece "[article title]" and wanted to suggest an app for the next update. I'm a parent, and I built Check In after sleep training our own baby with the Ferber method.
 
-It's built around the Ferber method and two parents sharing the nights: it times each check-in only while the baby is crying, restarts the waits at night wakings, alerts on the lock screen, and syncs both parents' phones with one parent "on duty" each night. It's $4.99 once (free for two nights), with no subscription, ads or tracking.
+It's built around the Ferber method and two parents sharing the nights: it times each check-in only while the baby is crying, restarts the waits at night wakings, alerts on the lock screen, and syncs the family's phones (parents, a grandparent or a sitter) with one person "on duty" each night. It's $4.99 once (free for two nights), with no subscription, ads or tracking.
 
 App Store: [App Store link]
 Website: https://ferbertimer.com
