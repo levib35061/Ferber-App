@@ -61,6 +61,7 @@ export default function AddMissedNight() {
   const save = async () => {
     if (!baby || !key || !result || saving) return;
     if ('error' in result) return setError(result.error);
+    setError(null);
     if (needsUnlock({ unlocked, nightsUsed, startsNewNight: true })) return router.push('/unlock');
     setSaving(true);
     try {
@@ -69,10 +70,14 @@ export default function AddMissedNight() {
       const roundStart = baby.trainingStartDate && key < baby.trainingStartDate ? key : baby.trainingStartDate;
       if (roundStart !== baby.trainingStartDate) await saveBaby({ ...baby, trainingStartDate: roundStart });
       const night = await createNight(db, baby.id, result.events[0].at, false, roundStart);
-      for (const e of result.events) await insertEvent(db, night.id, e.type, e.at, sync.userId);
+      // Marked "added later" before any tap is written, so a sync in between never shows
+      // the spread-out (made-up) times on the partner's phone.
       await setNightAddedLater(db, night.id);
+      for (const e of result.events) await insertEvent(db, night.id, e.type, e.at, sync.userId);
       await reload();
       router.replace({ pathname: '/night/[id]', params: { id: night.id } });
+    } catch (e) {
+      setError(`Couldn't save that night: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setSaving(false);
     }
