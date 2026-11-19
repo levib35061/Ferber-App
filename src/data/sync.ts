@@ -18,7 +18,7 @@ import {
   applyRemoteBaby,
   applyRemoteEvent,
   applyRemoteNight,
-  clearLocalData,
+  replaceLocalData,
   removeStrayBabies,
   getOrCreateBaby,
   getSettings,
@@ -58,6 +58,16 @@ const PULL_OVERLAP_MS = 5_000;
 const PAGE = 1000;
 const TABLES = ['babies', 'nights', 'events'] as const;
 type Table = (typeof TABLES)[number];
+
+/** The newest server_updated_at among rows (or the cursor if none are newer). */
+function latestStamp(rows: Record<string, unknown>[], cursor: string | null): string | null {
+  let maxSeen = cursor;
+  for (const r of rows) {
+    const ts = r.server_updated_at as string;
+    if (!maxSeen || new Date(ts) > new Date(maxSeen)) maxSeen = ts;
+  }
+  return maxSeen;
+}
 
 export class SyncEngine {
   private db: SQLiteDatabase;
@@ -152,7 +162,7 @@ export class SyncEngine {
 
   /** Join the partner's family. This phone's own logged nights are replaced by the family's. */
   async joinFamily(code: string): Promise<void> {
-    await ensureUserId({ create: true });
+    const me = await ensureUserId({ create: true });
     const { data, error } = await supabase.rpc('join_family', { code });
     if (error?.message.includes('too many')) {
       throw new Error('Too many wrong codes. Please wait an hour, then try again.');
@@ -164,17 +174,31 @@ export class SyncEngine {
     if (error) throw new Error(error.message);
     const familyId = data as string;
     const { data: fam } = await supabase.from('families').select('invite_code').eq('id', familyId).single();
-    const { count } = await supabase.from('babies').select('*', { count: 'exact', head: true }).eq('family_id', familyId);
-    if (!count) {
+    // Download the family's nights first. Nothing on this phone changes until all of it
+    // has arrived, so a dropped connection here leaves the phone exactly as it was.
+    const downloaded = {} as Record<Table, Record<string, unknown>[]>;
+    try {
+      for (const t of TABLES) downloaded[t] = await this.fetchRows(familyId, t, '1970-01-01T00:00:00Z');
+    } catch (e) {
+      throw new Error(`Couldn't download your family's nights (${e instanceof Error ? e.message : String(e)}). Check your signal and try again.`);
+    }
+    if (!downloaded.babies.length) {
+      // Not joined after all: undo the membership so the partner's phone doesn't list us.
+      await supabase.from('family_members').delete().eq('family_id', familyId).eq('user_id', me).then(
+        () => {},
+        () => {},
+      );
       throw new Error(
         "Your partner's phone hasn't finished sharing yet. Open the app on their phone (with signal), then try again.",
       );
     }
-    await clearLocalData(this.db);
-    for (const t of TABLES) await setSyncValue(this.db, `cursor.${t}`, null);
+    // Then swap this phone's data for the family's in one step.
+    await replaceLocalData(this.db, async () => {
+      for (const t of TABLES) for (const r of downloaded[t]) await this.applyRow(t, r);
+    });
+    for (const t of TABLES) await setSyncValue(this.db, `cursor.${t}`, latestStamp(downloaded[t], null));
     await setSyncValue(this.db, 'inviteCode', fam?.invite_code ?? code.toUpperCase());
     this.setStatus({ familyId, inviteCode: fam?.invite_code ?? code.toUpperCase() });
-    await this.pullAll(familyId);
     await removeStrayBabies(this.db);
     this.subscribe(familyId);
     this.onRemoteChange();
@@ -429,8 +453,16 @@ export class SyncEngine {
   private async pull(familyId: string, table: Table): Promise<boolean> {
     const cursor = await getSyncValue<string>(this.db, `cursor.${table}`);
     const since = cursor ? new Date(new Date(cursor).getTime() - PULL_OVERLAP_MS).toISOString() : '1970-01-01T00:00:00Z';
-    let changed = false;
-    let maxSeen = cursor;
+    const rows = await this.fetchRows(familyId, table, since);
+    for (const r of rows) await this.applyRow(table, r);
+    const maxSeen = latestStamp(rows, cursor);
+    if (maxSeen && maxSeen !== cursor) await setSyncValue(this.db, `cursor.${table}`, maxSeen);
+    return rows.length > 0;
+  }
+
+  /** Download a table's rows for the family, changed since `since` (network only; writes nothing). */
+  private async fetchRows(familyId: string, table: Table, since: string): Promise<Record<string, unknown>[]> {
+    const out: Record<string, unknown>[] = [];
     let from = 0;
     for (;;) {
       const { data, error } = await supabase
@@ -442,17 +474,11 @@ export class SyncEngine {
         .range(from, from + PAGE - 1);
       if (error) throw new Error(error.message);
       const rows = (data ?? []) as Record<string, unknown>[];
-      for (const r of rows) {
-        await this.applyRow(table, r);
-        changed = true;
-        const ts = r.server_updated_at as string;
-        if (!maxSeen || new Date(ts) > new Date(maxSeen)) maxSeen = ts;
-      }
+      out.push(...rows);
       if (rows.length < PAGE) break;
       from += PAGE;
     }
-    if (maxSeen && maxSeen !== cursor) await setSyncValue(this.db, `cursor.${table}`, maxSeen);
-    return changed;
+    return out;
   }
 
   private async applyRow(table: Table, r: Record<string, unknown>): Promise<void> {

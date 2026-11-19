@@ -241,6 +241,29 @@ d('partner sync (real Supabase)', () => {
     console.log(`family invite code used in this test: ${A.engine.getStatus().inviteCode}`);
   });
 
+  it("a join that can't download leaves the phone exactly as it was", async () => {
+    const D = phone();
+    await D.dbm.migrate(D.db);
+    try {
+      const baby = await D.dbm.getOrCreateBaby(D.db);
+      const n = await D.dbm.createNight(D.db, baby.id, at(20, 0), false);
+      await D.dbm.insertEvent(D.db, n.id, 'down', at(20, 0));
+      // Simulate the connection dropping while the family's nights download.
+      const engine = D.engine as unknown as { fetchRows: () => Promise<never> };
+      const real = engine.fetchRows;
+      engine.fetchRows = async () => {
+        throw new Error('network down');
+      };
+      await expect(D.engine.joinFamily(A.engine.getStatus().inviteCode!)).rejects.toThrow("Couldn't download");
+      engine.fetchRows = real;
+      expect((await live(D, n.id)).length).toBe(1); // its own night is still there
+      expect((await D.dbm.getOrCreateBaby(D.db)).id).toBe(baby.id);
+    } finally {
+      await D.engine.deleteAccount().catch(() => {});
+      D.engine.stop();
+    }
+  });
+
   it('stop sharing, then invite someone new: the new family uploads and the new partner gets the nights', async () => {
     const before = (await B.dbm.listDirty(B.db)).events.length;
     expect(before).toBe(0);

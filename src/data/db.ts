@@ -573,11 +573,13 @@ export async function removeStrayBabies(db: SQLiteDatabase): Promise<void> {
   await db.runAsync('DELETE FROM baby WHERE familyId IS NULL AND id NOT IN (SELECT DISTINCT babyId FROM night)');
 }
 
-export async function clearLocalData(db: SQLiteDatabase): Promise<void> {
+/** Replace this phone's babies, nights and taps with what `fill` writes, in one transaction. */
+export async function replaceLocalData(db: SQLiteDatabase, fill: () => Promise<void>): Promise<void> {
   await db.withTransactionAsync(async () => {
     await db.runAsync('DELETE FROM event');
     await db.runAsync('DELETE FROM night');
     await db.runAsync('DELETE FROM baby');
+    await fill();
   });
 }
 
