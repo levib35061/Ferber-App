@@ -55,7 +55,13 @@ export function EventSheet(props: Props) {
   const [time, setTime] = useState(() => new Date(props.initialAt));
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const save = () => props.onSave(kind, atTimeInNight(props.nightKey, time.getHours(), time.getMinutes()));
+  const save = () => {
+    // The picker works in minutes. If the minute wasn't changed, keep the exact original
+    // time (seconds included), so saving can't reorder two taps in the same minute.
+    const start = new Date(props.initialAt);
+    const unchanged = time.getHours() === start.getHours() && time.getMinutes() === start.getMinutes();
+    props.onSave(kind, unchanged ? props.initialAt : atTimeInNight(props.nightKey, time.getHours(), time.getMinutes()));
+  };
 
   return (
     <Modal visible={props.visible} transparent animationType="slide" onRequestClose={props.onClose}>

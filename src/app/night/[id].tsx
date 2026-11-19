@@ -4,7 +4,7 @@
  */
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -38,13 +38,40 @@ export default function NightDetailScreen() {
   const [events, setEvents] = useState<NightEvent[]>([]);
   const [note, setNote] = useState('');
   const [sheet, setSheet] = useState<Sheet>(null);
+  // The note saves a moment after typing stops and when leaving the screen (tapping
+  // "‹ History" with the keyboard up never ends editing). A reload never overwrites
+  // text that hasn't been saved yet.
+  const noteSaved = useRef<string>('');
+  const noteTyped = useRef<string>('');
+  const noteTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveNote = useCallback(
+    (text: string) => {
+      if (noteTimer.current) clearTimeout(noteTimer.current);
+      noteTimer.current = null;
+      if (text === noteSaved.current) return;
+      noteSaved.current = text;
+      setNightNote(db, id, text).catch(() => {});
+    },
+    [db, id],
+  );
+  const typeNote = (text: string) => {
+    setNote(text);
+    noteTyped.current = text;
+    if (noteTimer.current) clearTimeout(noteTimer.current);
+    noteTimer.current = setTimeout(() => saveNote(text), 700);
+  };
+  useEffect(() => () => saveNote(noteTyped.current), [saveNote]);
 
   const load = useCallback(async () => {
     const n = await getNight(db, id);
     const evs = n ? await listEvents(db, n.id) : [];
     setNight(n);
     setEvents(evs.filter((e) => !e.deletedAt));
-    setNote(n?.note ?? '');
+    if (noteTyped.current === noteSaved.current) {
+      noteSaved.current = n?.note ?? '';
+      noteTyped.current = noteSaved.current;
+      setNote(noteSaved.current);
+    }
   }, [db, id]);
 
   useEffect(() => {
@@ -155,8 +182,8 @@ export default function NightDetailScreen() {
         <Text style={styles.label}>Note</Text>
         <TextInput
           value={note}
-          onChangeText={setNote}
-          onEndEditing={() => setNightNote(db, night.id, note)}
+          onChangeText={typeNote}
+          onEndEditing={() => saveNote(note)}
           placeholder="Teething? Late nap? Anything worth remembering."
           placeholderTextColor={colors.textFaint}
           multiline

@@ -73,7 +73,7 @@ export default function NightScreen() {
   // Check-in due: vibrate every few seconds while the app is open.
   const due = state.kind === 'due';
   useEffect(() => {
-    if (!due || !store.settings.haptics || store.duty === 'partner') return;
+    if (!due || !store.settings.haptics || !store.alertsHere) return;
     // "Check-in due" has its own pattern (three firm pulses), used for nothing else:
     // with the silent switch on, the vibration is the alert.
     const timers: ReturnType<typeof setTimeout>[] = [];
@@ -85,7 +85,7 @@ export default function NightScreen() {
       clearInterval(id);
       timers.forEach(clearTimeout);
     };
-  }, [due, store.settings.haptics, store.duty]);
+  }, [due, store.settings.haptics, store.alertsHere]);
 
   // VoiceOver: say what changed, since the screen swaps without a new page.
   const announcement =

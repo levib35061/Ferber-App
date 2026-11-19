@@ -69,6 +69,17 @@ function wrote() {
 
 // ---------- schema ----------
 
+/**
+ * Add a column unless it's already there. Upgrades must be safe to run twice: if iOS
+ * kills the app midway, the next launch repeats the step (the version is only written
+ * after every step), and a plain ALTER TABLE would then fail on every launch.
+ */
+async function addColumn(db: SQLiteDatabase, table: string, column: string, type: string): Promise<void> {
+  const cols = await db.getAllAsync<{ name: string }>(`PRAGMA table_info(${table})`);
+  if (cols.some((c) => c.name === column)) return;
+  await db.execAsync(`ALTER TABLE ${table} ADD COLUMN ${column} ${type};`);
+}
+
 export async function migrate(db: SQLiteDatabase): Promise<void> {
   const row = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
   let version = row?.user_version ?? 0;
@@ -114,25 +125,21 @@ export async function migrate(db: SQLiteDatabase): Promise<void> {
 
   if (version < 2) {
     // Sync bookkeeping. Existing rows start dirty so they upload when a family is created.
-    await db.execAsync(`
-      ALTER TABLE baby ADD COLUMN updatedAt INTEGER NOT NULL DEFAULT 0;
-      ALTER TABLE baby ADD COLUMN dirty INTEGER NOT NULL DEFAULT 1;
-      ALTER TABLE night ADD COLUMN updatedAt INTEGER NOT NULL DEFAULT 0;
-      ALTER TABLE night ADD COLUMN dirty INTEGER NOT NULL DEFAULT 1;
-      ALTER TABLE event ADD COLUMN updatedAt INTEGER NOT NULL DEFAULT 0;
-      ALTER TABLE event ADD COLUMN dirty INTEGER NOT NULL DEFAULT 1;
-    `);
+    for (const t of ['baby', 'night', 'event']) {
+      await addColumn(db, t, 'updatedAt', 'INTEGER NOT NULL DEFAULT 0');
+      await addColumn(db, t, 'dirty', 'INTEGER NOT NULL DEFAULT 1');
+    }
     version = 2;
   }
 
   if (version < 3) {
-    await db.execAsync('ALTER TABLE night ADD COLUMN onDuty TEXT;');
+    await addColumn(db, 'night', 'onDuty', 'TEXT');
     version = 3;
   }
 
   if (version < 4) {
     // 1 = entered afterwards with "Add a missed night": only totals are real, not the times in between.
-    await db.execAsync('ALTER TABLE night ADD COLUMN addedLater INTEGER NOT NULL DEFAULT 0;');
+    await addColumn(db, 'night', 'addedLater', 'INTEGER NOT NULL DEFAULT 0');
     version = 4;
   }
 
@@ -372,6 +379,30 @@ export async function updateEventTime(db: SQLiteDatabase, eventId: string, at: n
 export async function softDeleteEvent(db: SQLiteDatabase, eventId: string, at: number): Promise<void> {
   await db.runAsync('UPDATE event SET deletedAt = ?, updatedAt = ?, dirty = 1 WHERE id = ?', at, Date.now(), eventId);
   wrote();
+}
+
+/**
+ * Undo: soft-delete a tap only if it's still the night's latest live tap (ordered by time,
+ * then id, as liveEvents does), checked and done in one statement so a tap or a partner's
+ * sync can't land in between. Returns false when it wasn't the latest (nothing changed).
+ */
+export async function softDeleteIfLatest(db: SQLiteDatabase, nightId: string, eventId: string): Promise<boolean> {
+  const now = Date.now();
+  const r = await db.runAsync(
+    `UPDATE event SET deletedAt = ?, updatedAt = ?, dirty = 1
+     WHERE id = ? AND deletedAt IS NULL AND NOT EXISTS (
+       SELECT 1 FROM event later, event me
+       WHERE me.id = ? AND later.nightId = ? AND later.deletedAt IS NULL AND later.id <> me.id
+         AND (later.at > me.at OR (later.at = me.at AND later.id > me.id))
+     )`,
+    now,
+    now,
+    eventId,
+    eventId,
+    nightId,
+  );
+  if (r.changes > 0) wrote();
+  return r.changes > 0;
 }
 
 /** Removes a whole night (every tap, soft-deleted so it reaches the partner too). */

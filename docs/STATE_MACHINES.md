@@ -73,7 +73,8 @@ edits the past).
 
 **Side machines hanging off it**
 - Undo (`NightStore.undo`): available for `UNDO_WINDOW_MS` after this phone's tap, only if
-  that tap is still the night's latest, and never while another tap is being saved.
+  that tap is still the night's latest (`softDeleteIfLatest`: checked and deleted in one SQL
+  statement), and never while another tap is being saved (it holds `busy`).
 - "Not up yet" (`NightStore.notUpYet`): takes back "Up for the day" until 11am.
 - Double-tap guard: taps within 800 ms of the last are ignored.
 
@@ -85,8 +86,9 @@ the single decision "does this phone schedule tonight's alerts and show the Live
 Activity": on duty, or not shared, or this phone tapped the step that started the running
 wait. Tests: `src/lib/__tests__/duty.test.ts`.
 
-**Used by** `NightStore.reload` (alerts), the Live Activity effect in NightStore, and
-`src/data/alarm.ts` (silent-push background task). Don't recompose `dutyFor` +
+**Used by** `NightStore.reload` (alerts), the Live Activity effect in NightStore, the Night
+screen's in-app "due" vibration (`store.alertsHere`), and `src/data/alarm.ts` (silent-push
+background task). Don't recompose `dutyFor` +
 `alertsOnThisPhone` anywhere else; call `alertsHere`.
 
 **Alert plan** (`src/lib/alertPlan.ts`, tested): what's scheduled for a state: the check-in

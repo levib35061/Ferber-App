@@ -43,6 +43,7 @@ import {
   wipeAllLocalData,
   updateBaby,
   softDeleteEvent,
+  softDeleteIfLatest,
 } from './db';
 import {
   cancelCheckInAlert,
@@ -81,6 +82,8 @@ interface NightStoreValue {
   tap: (action: Action) => Promise<void>;
   lastTap: LastTap | null;
   undo: () => Promise<void>;
+  /** This phone gets tonight's alerts and buzzes (lib/duty alertsHere: the only place that decides) */
+  alertsHere: boolean;
   /** "Up for the day" was tapped too soon (before 11am): take it back and return to the night. Null when not possible. */
   notUpYet: (() => Promise<void>) | null;
   updateSetting: <K extends keyof Settings>(key: K, value: Settings[K]) => Promise<void>;
@@ -283,18 +286,16 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
 
   const undo = useCallback(async () => {
     // Never while a tap is still being saved (it would undo the one before it).
-    if (busy.current || !lastTap || Date.now() - lastTap.tappedAt > UNDO_WINDOW_MS) return;
-    // Only the night's latest tap can be undone: if a partner has logged one since, keep both.
-    const fresh = night ? liveEvents(await listEvents(db, night.id)) : [];
-    if (fresh[fresh.length - 1]?.id !== lastTap.eventId) {
+    if (busy.current || !lastTap || !night || Date.now() - lastTap.tappedAt > UNDO_WINDOW_MS) return;
+    busy.current = true;
+    try {
+      // Only the night's latest tap can be undone: if a partner has logged one since, keep both.
+      if (await softDeleteIfLatest(db, night.id, lastTap.eventId)) haptic();
       setLastTap(null);
       await reload();
-      return;
+    } finally {
+      busy.current = false;
     }
-    haptic();
-    await softDeleteEvent(db, lastTap.eventId, Date.now());
-    setLastTap(null);
-    await reload();
   }, [db, haptic, lastTap, night, reload]);
 
   const upEvent = night && nightKey(tick) === night.nightKey ? [...liveEvents(events)].reverse().find((e) => e.type === 'up') : undefined;
@@ -419,6 +420,7 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
     tap,
     lastTap,
     undo,
+    alertsHere: activityHere,
     notUpYet: upEventId ? notUpYetFn : null,
     updateSetting,
     saveBaby,
