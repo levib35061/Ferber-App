@@ -1,6 +1,5 @@
 /** Settings → Help & about: guide, privacy, contact, disclaimer, intro, version. */
 import Constants from 'expo-constants';
-import * as Updates from 'expo-updates';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, Linking, Pressable, Text } from 'react-native';
@@ -78,9 +77,7 @@ export default function AboutSettings() {
           pediatrician before you start.
         </Text>
         <Text style={s.hint}>Not affiliated with or endorsed by Dr. Richard Ferber.</Text>
-        <Text style={s.hint}>Check In: Baby Sleep Timer · version {Constants.expoConfig?.version ?? '1.0.0'}
-          {Updates.isEnabled && !Updates.isEmbeddedLaunch && Updates.updateId ? ` · update ${Updates.updateId.slice(0, 8)}` : ''}
-        </Text>
+        <Text style={s.hint}>Check In: Baby Sleep Timer · version {Constants.expoConfig?.version ?? '1.0.0'}</Text>
       </Card>
 
       <SectionLabel>Your data</SectionLabel>
