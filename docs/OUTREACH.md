@@ -21,7 +21,7 @@ Read it from Gmail with the Gmail tools (search for that subject).
 
 - Send from **askcheckin@gmail.com** (the Gmail connector must be signed in to that account).
 - **Personal opener** per consultant, from what their own site says (already written in the list email).
-- **One offer code per consultant** (e.g. `ROCKABYE`), so we can see who sends clients.
+- **One offer code per consultant** (e.g. `ROCKABYE`), so we can see who sends clients. The email says so: "I've set up a code just for them".
 - Sign as **Levi**. Subject: `A free Ferber timer for your clients`.
 - One follow-up only, a week later, only if no reply.
 
