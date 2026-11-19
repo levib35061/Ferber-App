@@ -35,7 +35,7 @@ All the wording is ready in `docs/LAUNCH_COPY.md`.
 - [ ] Video 3 (app walkthrough): post at App Store launch, then embed it in the site's app section
 - [ ] Add the App Store link to: the three YouTube descriptions and pinned comments, the YouTube channel links, ferbertimer.com (I run `python3 tools/site/app_links.py live`: App Store button on every page, Safari's app banner, and the link in the home page's structured data)
 - [x] App Store header image uploaded
-- [ ] Apple Ads: spend the free $100 credit on exact-match keywords, as keyword research; stop when it's used up
+- [ ] Apple Ads: spend the free $100 credit on exact-match keywords, as keyword research; stop when it's used up. Step-by-step setup, keywords and bids: `docs/APPLE_ADS.md`
 - [ ] Campaign links (App Store Connect) on the website's download buttons, so you can see which page sends downloads
 - [ ] Launch listings: Product Hunt and AlternativeTo
 - [ ] Sleep consultants: from Tuesday Dec 1 (after Thanksgiving), one code each capped at 20 unlocks, drafts from askcheckin@; playbook `docs/OUTREACH.md`
