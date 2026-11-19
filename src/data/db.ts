@@ -399,6 +399,8 @@ export interface Settings {
   /** App Store rating prompt: how many times we've asked, and when we last did (epoch ms, 0 = never) */
   reviewAsks: number;
   reviewAskedAt: number;
+  /** This person's name, shown to the rest of the family ("Levi", "Grandma"). '' = not set */
+  myName: string;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -409,6 +411,7 @@ export const DEFAULT_SETTINGS: Settings = {
   devUnlocked: false,
   reviewAsks: 0,
   reviewAskedAt: 0,
+  myName: '',
 };
 
 export async function getSettings(db: SQLiteDatabase): Promise<Settings> {

@@ -17,6 +17,7 @@ import { TodaySummary, useLastNights } from '../../components/TodaySummary';
 import { useNow } from '../../components/useNow';
 import { useNightStore } from '../../data/NightStore';
 import { IN_ROOM_NOTE, waitingNote } from '../../lib/encourage';
+import { Member, dutyLine, handOffTargets, memberName } from '../../lib/duty';
 import { chooseView } from '../../lib/nightView';
 import { Action, UNDO_WINDOW_MS } from '../../lib/session';
 import { asleepLines, episodeCryingMs, summarizeNight } from '../../lib/summary';
@@ -199,7 +200,15 @@ export default function NightScreen() {
         {store.chartNight !== store.nightNumber && (
           <Text style={styles.subLabel}>using night {store.chartNight} intervals</Text>
         )}
-        {store.duty !== 'solo' && <DutyBar duty={store.duty} onSet={store.setDuty} />}
+        {store.duty !== 'solo' && (
+          <DutyBar
+            duty={store.duty}
+            onDuty={store.night?.onDuty}
+            members={store.syncStatus.members}
+            myId={store.syncStatus.userId}
+            onSet={store.setDuty}
+          />
+        )}
         {isMorningWindow(now) &&
           (state.kind === 'quiet' || state.kind === 'waiting' || state.kind === 'due' || state.kind === 'feeding') && (
             <Pressable onPress={() => store.tap('up')} accessibilityRole="button" style={styles.upPill} hitSlop={8}>
@@ -546,31 +555,57 @@ function WaitingNote(props: { nightNumber: number; checkInsDone: number; waking:
   );
 }
 
-/** With a partner: who gets tonight's check-in alerts. */
-function DutyBar({ duty, onSet }: { duty: 'unset' | 'me' | 'partner'; onSet: (who: 'me' | 'partner') => void }) {
-  const text =
-    duty === 'me'
-      ? "You're on duty tonight"
-      : duty === 'partner'
-        ? 'Partner is on duty · alerts off here'
-        : "Who's on duty tonight?";
+/** With family sharing: who gets tonight's check-in alerts. With 3+ people, "Hand off" lists them by name. */
+function DutyBar(props: {
+  duty: 'unset' | 'me' | 'partner';
+  onDuty: string | null | undefined;
+  members: Member[];
+  myId: string | null;
+  onSet: (who: 'me' | { userId: string }) => void;
+}) {
+  const { duty } = props;
+  const [choosing, setChoosing] = useState(false);
+  const targets = handOffTargets(props.members, props.myId);
+  const text = dutyLine(duty, props.onDuty, props.members);
   const action = duty === 'me' ? 'Hand off' : duty === 'partner' ? 'Take over' : "I'm on";
+  const press = () => {
+    if (duty !== 'me') return props.onSet('me');
+    if (targets.length === 1) return props.onSet({ userId: targets[0].id });
+    setChoosing((c) => !c);
+  };
   return (
-    <View style={styles.duty}>
-      <View style={[styles.dutyDot, { backgroundColor: duty === 'me' ? colors.primary : colors.dotEmpty }]} />
-      <Text maxFontSizeMultiplier={1.3} style={styles.dutyText} numberOfLines={1}>
-        {text}
-      </Text>
-      <Pressable
-        onPress={() => onSet(duty === 'me' ? 'partner' : 'me')}
-        accessibilityRole="button"
-        accessibilityLabel={`${text}. ${action}`}
-        hitSlop={10}
-      >
-        <Text maxFontSizeMultiplier={1.3} style={styles.dutyAction}>
-          {action}
+    <View style={{ alignItems: 'center' }}>
+      <View style={styles.duty}>
+        <View style={[styles.dutyDot, { backgroundColor: duty === 'me' ? colors.primary : colors.dotEmpty }]} />
+        <Text maxFontSizeMultiplier={1.3} style={styles.dutyText} numberOfLines={1}>
+          {text}
         </Text>
-      </Pressable>
+        <Pressable onPress={press} accessibilityRole="button" accessibilityLabel={`${text}. ${action}`} hitSlop={10}>
+          <Text maxFontSizeMultiplier={1.3} style={styles.dutyAction}>
+            {choosing ? 'Cancel' : action}
+          </Text>
+        </Pressable>
+      </View>
+      {choosing && duty === 'me' && (
+        <View style={styles.handOff} accessibilityLabel="Hand off to">
+          {targets.map((m) => (
+            <Pressable
+              key={m.id}
+              onPress={() => {
+                setChoosing(false);
+                props.onSet({ userId: m.id });
+              }}
+              accessibilityRole="button"
+              style={styles.handOffChip}
+              hitSlop={6}
+            >
+              <Text maxFontSizeMultiplier={1.3} style={styles.handOffText}>
+                {memberName(m, props.members.length)}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
     </View>
   );
 }
@@ -691,6 +726,9 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   dutyAction: { color: colors.primary, fontFamily: fonts.bold, fontSize: 14 },
+  handOff: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginTop: 8 },
+  handOffChip: { backgroundColor: colors.buttonBg, borderRadius: 999, paddingHorizontal: 16, paddingVertical: 10 },
+  handOffText: { color: colors.text, fontFamily: fonts.bold, fontSize: 15 },
   nudge: { color: colors.accentText, fontFamily: fonts.bold },
   note: { paddingHorizontal: 12, lineHeight: 21 },
   asleepLatest: { color: colors.textDim, fontFamily: fonts.semibold, fontSize: type.body, textAlign: 'center' },

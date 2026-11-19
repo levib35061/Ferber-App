@@ -26,7 +26,8 @@ const pretty = (code: string) => (code.length === 8 ? `${code.slice(0, 4)} ${cod
 export function PartnerSection({ setup = false, onJoined }: { setup?: boolean; onJoined?: () => void } = {}) {
   const styles = stylesHook();
   const { colors, scheme } = useTheme();
-  const { sync, syncStatus: st, reload } = useNightStore();
+  const { sync, syncStatus: st, reload, settings, updateSetting } = useNightStore();
+  const [myName, setMyName] = useState(settings.myName);
   const [busy, setBusy] = useState(false);
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -155,20 +156,48 @@ export function PartnerSection({ setup = false, onJoined }: { setup?: boolean; o
   }
 
   const partners = Math.max(0, st.memberCount - 1);
+  const saveName = async () => {
+    const n = myName.trim().slice(0, 30);
+    if (n === settings.myName) return;
+    await updateSetting('myName', n);
+    sync.soon(0); // the next sync sends it to the family
+  };
+  const others = st.members.filter((m) => m.id !== st.userId);
   return (
     <View>
-      <Text style={styles.label}>Invite code</Text>
+      <Text style={styles.label}>Your name</Text>
+      <TextInput
+        value={myName}
+        onChangeText={setMyName}
+        onEndEditing={saveName}
+        onSubmitEditing={saveName}
+        placeholder="e.g. Levi, Mom, Grandma"
+        placeholderTextColor={colors.textFaint}
+        maxLength={30}
+        autoCapitalize="words"
+        returnKeyType="done"
+        style={styles.input}
+        accessibilityLabel="Your name, shown to your family"
+      />
+      <Text style={styles.hint}>Shown to everyone you share with, so they can see who&apos;s on duty.</Text>
+      {others.length > 0 && (
+        <Text style={[styles.hint, { marginTop: 10 }]}>
+          Sharing with {others.map((m) => m.name?.trim() || 'someone without a name yet').join(', ')}.
+        </Text>
+      )}
+
+      <Text style={[styles.label, { marginTop: 18 }]}>Invite code</Text>
       <Text style={styles.code} selectable accessibilityLabel={`Invite code ${st.inviteCode?.split('').join(' ')}`}>
         {st.inviteCode ? pretty(st.inviteCode) : '…'}
       </Text>
       <Text style={styles.hint}>
         {partners > 0
-          ? `Shared with ${partners} other phone${partners === 1 ? '' : 's'}.`
+          ? 'Anyone else can join with this code too: a grandparent or a sitter. On their phone: Settings → Partner sharing → enter the code.'
           : 'Waiting for your partner to join. On their phone: Settings → Partner sharing → enter this code.'}
       </Text>
       {st.inviteCode && (
         <Btn
-          label="Send the code to my partner"
+          label={partners > 0 ? 'Send the code' : 'Send the code to my partner'}
           primary
           onPress={() =>
             Share.share({

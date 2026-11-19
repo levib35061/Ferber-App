@@ -1,7 +1,9 @@
 /**
- * "Who's on duty tonight": with partner sharing, only the on-duty parent's
- * phone schedules check-in alerts and buzzes. The other phone stays quiet
- * but still shows everything.
+ * "Who's on duty tonight": with family sharing, only the on-duty person's
+ * phone schedules check-in alerts and buzzes. The other phones stay quiet
+ * but still show everything. A family can be two parents, or more people
+ * (a grandparent, a sitter); each phone can set a name so the others can
+ * see who's on duty and hand off to them.
  */
 export type Duty = 'solo' | 'unset' | 'me' | 'partner';
 
@@ -25,4 +27,37 @@ export function alertsOnThisPhone(duty: Duty): boolean {
 /** The other member of a two-parent family. */
 export function partnerId(memberIds: string[], myId: string | null): string | null {
   return memberIds.find((id) => id !== myId) ?? null;
+}
+
+/** A family member as this phone sees them. */
+export interface Member {
+  id: string;
+  /** What they chose to be called ("Levi", "Grandma"), or null */
+  name: string | null;
+}
+
+/** How to refer to another member: their name, or a stand-in that fits the family size. */
+export function memberName(member: Member | undefined, familySize: number): string {
+  const n = member?.name?.trim();
+  if (n) return n;
+  return familySize > 2 ? 'Someone else' : 'Your partner';
+}
+
+/** The duty bar's line. */
+export function dutyLine(duty: Duty, onDuty: string | null | undefined, members: Member[]): string {
+  if (duty === 'me') return "You're on duty tonight";
+  if (duty === 'partner') {
+    return `${memberName(
+      members.find((m) => m.id === onDuty),
+      members.length,
+    )} is on duty · alerts off here`;
+  }
+  return "Who's on duty tonight?";
+}
+
+/** Who this phone can hand the night to: everyone else, named ones first. */
+export function handOffTargets(members: Member[], myId: string | null): Member[] {
+  return members
+    .filter((m) => m.id !== myId)
+    .sort((a, b) => Number(!a.name?.trim()) - Number(!b.name?.trim()) || (a.name ?? '').localeCompare(b.name ?? ''));
 }

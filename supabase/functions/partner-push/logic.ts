@@ -1,5 +1,5 @@
 /**
- * Partner push: which messages to send to the OTHER parent's phones after a
+ * Partner push: which messages to send to the OTHER family members' phones after a
  * tap or a duty hand-off. Pure (no Deno or network), unit-tested with Jest.
  *
  * Every change sends a silent push (`_contentAvailable`) so a closed app wakes
@@ -29,6 +29,8 @@ export interface ExpoMessage {
 
 export interface PushInput {
   actorId: string;
+  /** The tapper's name in the family ("Grandma"), if they set one */
+  actorName?: string | null;
   babyName: string | null;
   recipients: Recipient[];
   /** Taps just uploaded by the actor */
@@ -38,22 +40,32 @@ export interface PushInput {
 }
 
 /** The visible line for the most recent tap worth announcing, if any. */
-export function visibleFor(events: PushEvent[], babyName: string | null): { title: string; body: string } | null {
+export function visibleFor(
+  events: PushEvent[],
+  babyName: string | null,
+  actorName: string | null = null,
+): { title: string; body: string } | null {
   const who = babyName?.trim() || 'Baby';
+  const by = `Logged by ${actorName?.trim() || 'your partner'}.`;
   const latest = [...events].sort((a, b) => b.at - a.at).find((e) => e.type === 'asleep' || e.type === 'up');
   if (!latest) return null;
-  if (latest.type === 'asleep') return { title: `${who} is asleep`, body: 'Logged by your partner.' };
-  return { title: `${who} is up for the day`, body: "Logged by your partner. Tonight's tracking is done." };
+  if (latest.type === 'asleep') return { title: `${who} is asleep`, body: by };
+  return { title: `${who} is up for the day`, body: `${by} Tonight's tracking is done.` };
 }
 
 export function messagesFor(input: PushInput): ExpoMessage[] {
   const out: ExpoMessage[] = [];
-  const tapLine = visibleFor(input.events ?? [], input.babyName);
+  const tapLine = visibleFor(input.events ?? [], input.babyName, input.actorName ?? null);
   for (const r of input.recipients) {
     if (r.userId === input.actorId) continue; // never notify yourself
     let line = tapLine;
     if (input.onDutyUserId !== undefined && input.onDutyUserId === r.userId) {
-      line = { title: "You're on duty tonight", body: 'Check-in alerts are on for this phone.' };
+      line = {
+        title: "You're on duty tonight",
+        body: input.actorName?.trim()
+          ? `${input.actorName.trim()} handed off to you. Check-in alerts are on for this phone.`
+          : 'Check-in alerts are on for this phone.',
+      };
     }
     for (const to of r.tokens) {
       const m: ExpoMessage = { to, data: { kind: 'sync' }, _contentAvailable: true, priority: 'high' };

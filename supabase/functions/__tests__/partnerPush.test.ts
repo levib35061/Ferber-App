@@ -43,8 +43,17 @@ describe('partner push', () => {
     expect(handBack.every((x) => x.title === undefined)).toBe(true); // partner just syncs silently
   });
 
+  it("names who logged it or handed off, when they've set a name", () => {
+    expect(visibleFor([{ type: 'asleep', at: 2 }], 'Tommy', 'Grandma')?.body).toBe('Logged by Grandma.');
+    expect(visibleFor([{ type: 'asleep', at: 2 }], 'Tommy')?.body).toBe('Logged by your partner.');
+    const m = messagesFor({ actorId: 'me', actorName: 'Levi', babyName: 'Tommy', recipients, onDutyUserId: 'partner' });
+    expect(m[0].body).toBe('Levi handed off to you. Check-in alerts are on for this phone.');
+  });
+
   it('finds dead tokens to remove', () => {
     const m = messagesFor({ actorId: 'me', babyName: null, recipients, events: [] });
-    expect(deadTokens(m, [{ status: 'ok' }, { status: 'error', details: { error: 'DeviceNotRegistered' } }])).toEqual(['tok-p2']);
+    expect(deadTokens(m, [{ status: 'ok' }, { status: 'error', details: { error: 'DeviceNotRegistered' } }])).toEqual([
+      'tok-p2',
+    ]);
   });
 });

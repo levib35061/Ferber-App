@@ -1,4 +1,4 @@
-import { alertsOnThisPhone, dutyFor, partnerId } from '../duty';
+import { alertsOnThisPhone, dutyFor, dutyLine, handOffTargets, memberName, partnerId } from '../duty';
 
 describe('dutyFor', () => {
   it('is solo without a partner, whatever is stored', () => {
@@ -26,5 +26,34 @@ describe('alerts', () => {
   it('finds the partner id', () => {
     expect(partnerId(['a', 'b'], 'a')).toBe('b');
     expect(partnerId(['a'], 'a')).toBeNull();
+  });
+});
+
+describe('named family members', () => {
+  const two = [
+    { id: 'me', name: 'Levi' },
+    { id: 'p', name: null },
+  ];
+  const four = [
+    { id: 'me', name: 'Levi' },
+    { id: 'mom', name: 'Sara' },
+    { id: 'gma', name: 'Grandma' },
+    { id: 'x', name: null },
+  ];
+  it('says who is on duty, by name when there is one', () => {
+    expect(dutyLine('partner', 'gma', four)).toBe('Grandma is on duty · alerts off here');
+    expect(dutyLine('partner', 'p', two)).toBe('Your partner is on duty · alerts off here');
+    expect(dutyLine('partner', 'x', four)).toBe('Someone else is on duty · alerts off here');
+    expect(dutyLine('me', 'me', four)).toBe("You're on duty tonight");
+    expect(dutyLine('unset', null, four)).toBe("Who's on duty tonight?");
+  });
+  it('lists who to hand off to, named first, never yourself', () => {
+    expect(handOffTargets(four, 'me').map((m) => m.id)).toEqual(['gma', 'mom', 'x']);
+    expect(handOffTargets(two, 'me')).toEqual([{ id: 'p', name: null }]);
+  });
+  it('names a member, or a stand-in that fits the family size', () => {
+    expect(memberName({ id: 'a', name: '  Sara ' }, 2)).toBe('Sara');
+    expect(memberName(undefined, 2)).toBe('Your partner');
+    expect(memberName({ id: 'a', name: '' }, 3)).toBe('Someone else');
   });
 });

@@ -25,6 +25,8 @@ create table public.family_members (
   family_id uuid not null references public.families (id) on delete cascade,
   user_id uuid not null references auth.users (id) on delete cascade,
   joined_at timestamptz not null default now(),
+  -- What the family sees for this person ("Levi", "Grandma"); set with set_my_name()
+  display_name text check (display_name is null or char_length(display_name) <= 30),
   primary key (family_id, user_id)
 );
 
@@ -174,6 +176,21 @@ revoke execute on function public.create_family() from public, anon;
 revoke execute on function public.join_family(text) from public, anon;
 grant execute on function public.create_family() to authenticated;
 grant execute on function public.join_family(text) to authenticated;
+
+create function public.set_my_name(n text) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then
+    raise exception 'not signed in';
+  end if;
+  update public.family_members
+     set display_name = nullif(left(trim(n), 30), '')
+   where user_id = auth.uid();
+end;
+$$;
+
+revoke execute on function public.set_my_name(text) from public, anon;
+grant execute on function public.set_my_name(text) to authenticated;
 
 -- ---------- deleting an account (Apple requires it in-app) ----------
 

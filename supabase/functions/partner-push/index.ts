@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
   if (!familyId) return Response.json({ ok: true, sent: 0 });
 
   // The caller must belong to that family.
-  const { data: members } = await admin.from('family_members').select('user_id').eq('family_id', familyId);
+  const { data: members } = await admin.from('family_members').select('user_id, display_name').eq('family_id', familyId);
   const memberIds = (members ?? []).map((m) => m.user_id as string);
   if (!memberIds.includes(actorId)) return new Response('Forbidden', { status: 403 });
 
@@ -54,9 +54,25 @@ Deno.serve(async (req) => {
     userId,
     tokens: (tokens ?? []).filter((t) => t.user_id === userId).map((t) => t.token as string),
   }));
-  const { data: baby } = await admin.from('babies').select('name').eq('family_id', familyId).limit(1).maybeSingle();
+  // A family can hold an extra unnamed baby row (e.g. made while joining): prefer the named one.
+  const { data: baby } = await admin
+    .from('babies')
+    .select('name')
+    .eq('family_id', familyId)
+    .neq('name', '')
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const actorName = (members ?? []).find((m) => m.user_id === actorId)?.display_name ?? null;
 
-  const messages: ExpoMessage[] = messagesFor({ actorId, babyName: baby?.name ?? null, recipients, events, onDutyUserId });
+  const messages: ExpoMessage[] = messagesFor({
+    actorId,
+    actorName,
+    babyName: baby?.name ?? null,
+    recipients,
+    events,
+    onDutyUserId,
+  });
   if (!messages.length) return Response.json({ ok: true, sent: 0 });
 
   const res = await fetch('https://exp.host/--/api/v2/push/send', {

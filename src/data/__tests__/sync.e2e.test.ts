@@ -148,6 +148,21 @@ d('partner sync (real Supabase)', () => {
     );
   });
 
+  it("names: A's name shows on B, B's on A", async () => {
+    await A.dbm.setSetting(A.db, 'myName', 'Levi');
+    await B.dbm.setSetting(B.db, 'myName', 'Grandma');
+    await A.engine.syncNow();
+    await B.engine.syncNow();
+    await A.engine.syncNow();
+    const names = (e: typeof A) =>
+      e.engine
+        .getStatus()
+        .members.map((m) => m.name)
+        .sort();
+    expect(names(A)).toEqual(['Grandma', 'Levi']);
+    expect(names(B)).toEqual(['Grandma', 'Levi']);
+  });
+
   it("A sees B's tap within seconds via realtime (no manual sync on A)", async () => {
     await B.dbm.insertEvent(B.db, nightId, 'check_in_start', at(19, 36));
     await B.engine.syncNow();

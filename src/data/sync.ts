@@ -21,6 +21,7 @@ import {
   clearLocalData,
   removeStrayBabies,
   getOrCreateBaby,
+  getSettings,
   getSyncValue,
   listDirty,
   markAllDirty,
@@ -31,6 +32,7 @@ import {
   setBabyFamily,
   setSyncValue,
 } from './db';
+import type { Member } from '../lib/duty';
 import { registerPushToken } from './push';
 import { ensureUserId, supabase } from './supabase';
 
@@ -42,6 +44,8 @@ export interface SyncStatus {
   userId: string | null;
   /** All family members' user ids */
   memberIds: string[];
+  /** All family members with the names they chose (same order as memberIds) */
+  members: Member[];
   lastSyncedAt: number | null;
   syncing: boolean;
   error: string | null;
@@ -63,6 +67,7 @@ export class SyncEngine {
     memberCount: 0,
     userId: null,
     memberIds: [],
+    members: [],
     lastSyncedAt: null,
     syncing: false,
     error: null,
@@ -195,6 +200,7 @@ export class SyncEngine {
       inviteCode: null,
       memberCount: 0,
       memberIds: [],
+      members: [],
       userId: null,
       lastSyncedAt: null,
       error: null,
@@ -215,7 +221,15 @@ export class SyncEngine {
     await setBabyFamily(this.db, baby.id, null);
     await setSyncValue(this.db, 'inviteCode', null);
     for (const t of TABLES) await setSyncValue(this.db, `cursor.${t}`, null);
-    this.setStatus({ familyId: null, inviteCode: null, memberCount: 0, memberIds: [], lastSyncedAt: null, error: null });
+    this.setStatus({
+      familyId: null,
+      inviteCode: null,
+      memberCount: 0,
+      memberIds: [],
+      members: [],
+      lastSyncedAt: null,
+      error: null,
+    });
   }
 
   /** Debounced sync request. */
@@ -287,14 +301,29 @@ export class SyncEngine {
       if (this.status.userId !== this.userId) this.setStatus({ userId: this.userId });
       await this.push(familyId);
       const changed = await this.pullAll(familyId);
-      const { data: members } = await supabase.from('family_members').select('user_id').eq('family_id', familyId);
-      const memberIds = (members ?? []).map((m: { user_id: string }) => m.user_id);
+      let { data: members } = await supabase
+        .from('family_members')
+        .select('user_id, display_name')
+        .eq('family_id', familyId)
+        .order('joined_at');
+      // This phone's name lives in settings; keep the server's copy in step (also after creating or joining).
+      const myName = (await getSettings(this.db)).myName.trim();
+      const mine = members?.find((m: { user_id: string }) => m.user_id === this.userId);
+      if (mine && (mine.display_name ?? '') !== myName) {
+        await supabase.rpc('set_my_name', { n: myName });
+        members = members!.map((m) => (m.user_id === this.userId ? { ...m, display_name: myName || null } : m));
+      }
+      const list: Member[] = (members ?? []).map((m: { user_id: string; display_name: string | null }) => ({
+        id: m.user_id,
+        name: m.display_name,
+      }));
       this.setStatus({
         syncing: false,
         error: null,
         lastSyncedAt: Date.now(),
-        memberCount: members ? memberIds.length : this.status.memberCount,
-        memberIds: members ? memberIds : this.status.memberIds,
+        memberCount: members ? list.length : this.status.memberCount,
+        memberIds: members ? list.map((m) => m.id) : this.status.memberIds,
+        members: members ? list : this.status.members,
       });
       if (changed) this.onRemoteChange();
       await this.checkUnlock().catch(() => {});

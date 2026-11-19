@@ -91,7 +91,8 @@ interface NightStoreValue {
   syncStatus: SyncStatus;
   /** Who's on duty tonight (with partner sharing) */
   duty: Duty;
-  setDuty: (who: 'me' | 'partner') => Promise<void>;
+  /** 'me', 'partner' (the other member of a two-person family), or a member's user id */
+  setDuty: (who: 'me' | 'partner' | { userId: string }) => Promise<void>;
 }
 
 const Ctx = createContext<NightStoreValue | null>(null);
@@ -305,9 +306,16 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
   const duty = dutyFor(night?.onDuty, syncStatus.userId, shared);
 
   const setDuty = useCallback(
-    async (who: 'me' | 'partner') => {
+    async (who: 'me' | 'partner' | { userId: string }) => {
       if (!baby || !syncStatus.userId) return;
-      const id = who === 'me' ? syncStatus.userId : partnerId(syncStatus.memberIds, syncStatus.userId);
+      const id =
+        who === 'me'
+          ? syncStatus.userId
+          : who === 'partner'
+            ? partnerId(syncStatus.memberIds, syncStatus.userId)
+            : syncStatus.memberIds.includes(who.userId)
+              ? who.userId
+              : null;
       if (!id) return;
       haptic();
       const n = night ?? (await createNight(db, baby.id, Date.now(), repeatLastNight, baby.trainingStartDate));
