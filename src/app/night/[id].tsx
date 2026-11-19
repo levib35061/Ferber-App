@@ -64,7 +64,11 @@ export default function NightDetailScreen() {
   const summary = summarizeNight(events);
   const eps = episodes(events);
   const inEpisode = new Set(eps.flatMap((ep) => ep.events.map((e) => e.id)));
-  const strays = events.filter((e) => !inEpisode.has(e.id));
+  // "Up for the day" comes after the last Asleep, so it's outside every bedtime/waking: it's
+  // the night's ending, shown as its own Morning section. Anything else outside is a stray tap.
+  const outside = events.filter((e) => !inEpisode.has(e.id) && !e.deletedAt);
+  const morning = outside.filter((e) => e.type === 'up');
+  const strays = outside.filter((e) => e.type !== 'up');
   const date = new Date(`${night.nightKey}T12:00:00`).toLocaleDateString([], {
     weekday: 'long',
     month: 'long',
@@ -121,6 +125,14 @@ export default function NightDetailScreen() {
                 ))}
               </View>
             ))}
+            {morning.length > 0 && (
+              <View style={styles.episode}>
+                <Text style={styles.epTitle}>Morning</Text>
+                {morning.map((e) => (
+                  <EventRow key={e.id} e={e} onPress={() => setSheet({ mode: 'edit', event: e })} />
+                ))}
+              </View>
+            )}
             {strays.length > 0 && (
               <View style={styles.episode}>
                 <Text style={styles.epTitle}>Not counted</Text>
