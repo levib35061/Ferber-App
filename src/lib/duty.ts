@@ -28,6 +28,43 @@ export function alertsOnThisPhone(duty: Duty, startedTheWait = false): boolean {
   return duty !== 'partner' || startedTheWait;
 }
 
+/** What this phone knows about its family (SyncStatus has these fields). */
+export interface FamilyView {
+  userId: string | null;
+  familyId: string | null;
+  memberCount: number;
+  memberIds: string[];
+}
+
+/** Sharing with at least one other person. */
+export function isShared(f: FamilyView): boolean {
+  return f.familyId != null && f.memberCount > 1;
+}
+
+/**
+ * Tonight's duty as seen by this phone. Someone who left the family can't stay on
+ * duty: their id is treated as "nobody on duty", so the remaining phones ring.
+ */
+export function dutyHere(onDuty: string | null | undefined, f: FamilyView): Duty {
+  const gone = !!onDuty && f.memberIds.length > 0 && !f.memberIds.includes(onDuty);
+  return dutyFor(gone ? null : onDuty, f.userId, isShared(f));
+}
+
+/**
+ * Does this phone schedule tonight's check-in alerts (and show the Live Activity)?
+ * The one place that decides; used by the screen, the background push task and the
+ * lock-screen card. Map: docs/STATE_MACHINES.md.
+ */
+export function alertsHere(
+  onDuty: string | null | undefined,
+  f: FamilyView,
+  events: Parameters<typeof waitStartedBy>[0],
+  state: Parameters<typeof waitStartedBy>[1],
+): boolean {
+  const startedTheWait = f.userId != null && waitStartedBy(events, state) === f.userId;
+  return alertsOnThisPhone(dutyHere(onDuty, f), startedTheWait);
+}
+
 /** Who tapped the step that started the wait that's running now (null if none or unknown). */
 export function waitStartedBy(
   events: { at: number; createdBy?: string | null; deletedAt?: number | null }[],

@@ -1,4 +1,15 @@
-import { alertsOnThisPhone, dutyFor, dutyLine, handOffTargets, memberName, partnerId, waitStartedBy } from '../duty';
+import {
+  alertsHere,
+  alertsOnThisPhone,
+  dutyFor,
+  dutyHere,
+  dutyLine,
+  handOffTargets,
+  isShared,
+  memberName,
+  partnerId,
+  waitStartedBy,
+} from '../duty';
 
 describe('dutyFor', () => {
   it('is solo without a partner, whatever is stored', () => {
@@ -76,5 +87,27 @@ describe('alerts for whoever started the wait', () => {
     expect(alertsOnThisPhone('partner')).toBe(false);
     expect(alertsOnThisPhone('partner', true)).toBe(true);
     expect(alertsOnThisPhone('me', false)).toBe(true);
+  });
+});
+
+describe('which phone rings (alertsHere)', () => {
+  const fam = { userId: 'me', familyId: 'f', memberCount: 3, memberIds: ['me', 'p', 'g'] };
+  const waiting = { kind: 'waiting', waitStartedAt: 2000 };
+  const byPartner = [{ at: 2000, createdBy: 'p', deletedAt: null }];
+  const byMe = [{ at: 2000, createdBy: 'me', deletedAt: null }];
+  it('rings on the on-duty phone and on the phone that started the wait', () => {
+    expect(alertsHere('me', fam, byPartner, waiting)).toBe(true);
+    expect(alertsHere('p', fam, byPartner, waiting)).toBe(false);
+    expect(alertsHere('p', fam, byMe, waiting)).toBe(true);
+  });
+  it("someone who left the family can't keep the others silent", () => {
+    const left = { ...fam, memberCount: 2, memberIds: ['me', 'g'] };
+    expect(dutyHere('p', left)).toBe('unset');
+    expect(alertsHere('p', left, byPartner, waiting)).toBe(true);
+  });
+  it('alone (or members not known yet): always rings', () => {
+    expect(isShared({ ...fam, memberCount: 1 })).toBe(false);
+    expect(alertsHere('p', { ...fam, memberCount: 1 }, byPartner, waiting)).toBe(true);
+    expect(dutyHere('p', { ...fam, memberIds: [] })).toBe('partner');
   });
 });

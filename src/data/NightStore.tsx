@@ -20,7 +20,7 @@ import {
   liveEvents,
 } from '../lib/session';
 import { activityFor } from '../lib/liveActivity';
-import { Duty, alertsOnThisPhone, dutyFor, partnerId, waitStartedBy } from '../lib/duty';
+import { Duty, alertsHere, dutyHere, isShared, partnerId } from '../lib/duty';
 import { nightKey } from '../lib/time';
 import { freeNightsLeft, needsUnlock } from '../lib/trial';
 import {
@@ -179,11 +179,9 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
     const nn = n ?? null;
     const st = sync.getStatus();
     const full: NightState = nn ? deriveNightState(evs, c, nn.chartNight, Date.now()) : { kind: 'idle' };
-    const mine = st.userId != null && waitStartedBy(evs, full) === st.userId;
     // Off duty: no scheduled alert on this phone (the on-duty phone has it), unless this
-    // phone tapped the step that started the running wait.
-    const here = alertsOnThisPhone(dutyFor(nn?.onDuty, st.userId, st.familyId != null && st.memberCount > 1), mine);
-    const state = here ? full : ({ kind: 'idle' } as NightState);
+    // phone tapped the step that started the running wait (lib/duty alertsHere).
+    const state = alertsHere(nn?.onDuty, st, evs, full) ? full : ({ kind: 'idle' } as NightState);
     // One alert re-sync at a time, in order; a superseded one is skipped.
     const next = alertChain.current.then(() =>
       gen === reloadGen.current
@@ -271,7 +269,7 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
         const at = latest >= now && latest - now < 2 * 60_000 ? latest + 1 : now;
         const e = await insertEvent(db, n.id, action, at, sync.userId);
         // With a partner: whoever puts the baby down is on duty, unless someone already is.
-        if (action === 'down' && !n.onDuty && sync.userId && syncStatus.memberCount > 1) {
+        if (action === 'down' && !n.onDuty && sync.userId && isShared(syncStatus)) {
           await setNightDuty(db, n.id, sync.userId);
         }
         setLastTap({ eventId: e.id, type: action, tappedAt: now });
@@ -280,7 +278,7 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
         busy.current = false;
       }
     },
-    [baby, chart, db, haptic, nightsUsed, reload, repeatLastNight, sync, syncStatus.memberCount, unlocked],
+    [baby, chart, db, haptic, nightsUsed, reload, repeatLastNight, sync, syncStatus, unlocked],
   );
 
   const undo = useCallback(async () => {
@@ -338,10 +336,7 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
   // Lock-screen Live Activity: follows the night state (see lib/liveActivity).
   // Only on the phone that gets the alerts (off duty: none), and only once loaded,
   // so a cold start never ends the card that's already running.
-  const activityHere = alertsOnThisPhone(
-    dutyFor(night?.onDuty, syncStatus.userId, syncStatus.familyId != null && syncStatus.memberCount > 1),
-    syncStatus.userId != null && waitStartedBy(events, stateNow) === syncStatus.userId,
-  );
+  const activityHere = alertsHere(night?.onDuty, syncStatus, events, stateNow);
   const activity = ready && activityHere ? activityFor(stateNow) : null;
   const activityKey = JSON.stringify(activity);
   useEffect(() => {
@@ -373,8 +368,7 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
     await reload();
   }, [db, reload, sync]);
 
-  const shared = syncStatus.familyId != null && syncStatus.memberCount > 1;
-  const duty = dutyFor(night?.onDuty, syncStatus.userId, shared);
+  const duty = dutyHere(night?.onDuty, syncStatus);
 
   const setDuty = useCallback(
     async (who: 'me' | 'partner' | { userId: string }) => {
