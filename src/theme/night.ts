@@ -10,7 +10,7 @@ export const colors = {
   border: '#302848',
   text: '#D2C6DE', // main text, countdown digits
   textDim: '#9486AE', // labels
-  textFaint: '#8377A0', // small print (still 4.5:1 on bg)
+  textFaint: '#8C80AA', // small print (4.5:1 even on cards and buttons)
   primary: '#A38DC2', // mauve: progress ring, main button
   onPrimary: '#0A0918',
   buttonBg: '#1F1A36', // secondary button + ring track

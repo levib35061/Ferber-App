@@ -8,6 +8,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { appleSignInAvailable, signInWithApple } from '../data/appleAuth';
+import { notificationPermission, requestNotificationPermission } from '../data/notifications';
 import { useNightStore } from '../data/NightStore';
 import { syncPurchaseAccount } from '../data/purchases';
 import { accountKind } from '../data/supabase';
@@ -33,6 +34,7 @@ export function PartnerSection({ setup = false, onJoined }: { setup?: boolean; o
   const [error, setError] = useState<string | null>(null);
   const [account, setAccount] = useState<'apple' | 'anonymous' | null | undefined>(undefined);
   const [appleOk, setAppleOk] = useState(false);
+  const [alertsOff, setAlertsOff] = useState(false);
 
   const refreshAccount = useCallback(() => {
     accountKind().then(setAccount);
@@ -41,6 +43,24 @@ export function PartnerSection({ setup = false, onJoined }: { setup?: boolean; o
     refreshAccount();
     appleSignInAvailable().then(setAppleOk);
   }, [refreshAccount]);
+  useEffect(() => {
+    if (!st.familyId) return;
+    notificationPermission()
+      .then((p) => setAlertsOff(p !== 'granted'))
+      .catch(() => {});
+  }, [st.familyId]);
+
+  /**
+   * After starting or joining sharing (outside first-launch setup, which asks
+   * at its end): a phone that never answered the alerts question is asked now,
+   * so it hears when the baby falls asleep or when it's handed the night.
+   */
+  const askAlertsIfNew = async () => {
+    if (setup) return;
+    if ((await notificationPermission().catch(() => 'denied')) !== 'undetermined') return;
+    const ok = await requestNotificationPermission().catch(() => false);
+    setAlertsOff(!ok);
+  };
 
   const appleSignIn = () =>
     run(async () => {
@@ -105,7 +125,12 @@ export function PartnerSection({ setup = false, onJoined }: { setup?: boolean; o
     return (
       <View>
         <Text style={styles.body}>Share nights with your partner. Both phones see every tap within seconds.</Text>
-        <Btn label="Invite my partner" primary onPress={() => run(() => sync.createFamily())} disabled={busy} />
+        <Btn label="Invite my partner" primary onPress={() =>
+            run(async () => {
+              await sync.createFamily();
+              await askAlertsIfNew();
+            })
+          } disabled={busy} />
 
         <Text style={[styles.label, { marginTop: 22 }]}>Have a code from your partner?</Text>
         <View style={styles.joinRow}>
@@ -132,6 +157,7 @@ export function PartnerSection({ setup = false, onJoined }: { setup?: boolean; o
               const join = () =>
                 run(async () => {
                   await sync.joinFamily(code);
+                  await askAlertsIfNew();
                   onJoined?.();
                 });
               // Nothing is logged yet during setup, so there's nothing to warn about.
@@ -213,6 +239,12 @@ export function PartnerSection({ setup = false, onJoined }: { setup?: boolean; o
             {st.error ? ' · offline, will retry' : ''}
           </Text>
           <Btn label="Sync now" onPress={() => run(() => sync.syncNow())} disabled={busy} />
+          {alertsOff && (
+            <Text style={[styles.hint, { marginTop: 14 }]}>
+              Alerts are off on this phone, so it won&apos;t tell you when the baby falls asleep or when the night is
+              handed to you. Taps still sync when the app is open. Turn them on in Settings → Alerts.
+            </Text>
+          )}
           <Pressable
             onPress={() =>
               Alert.alert(

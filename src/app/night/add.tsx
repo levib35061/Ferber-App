@@ -260,7 +260,7 @@ function Stepper(props: { label: string; value: number; step: number; max: numbe
           onPress={() => set(props.value - props.step)}
           hitSlop={8}
           style={styles.stepBtn}
-          accessibilityLabel="Less"
+          accessibilityLabel={`${props.label}: less`}
         >
           <Text style={styles.stepText}>−</Text>
         </Pressable>
@@ -269,7 +269,7 @@ function Stepper(props: { label: string; value: number; step: number; max: numbe
           onPress={() => set(props.value + props.step)}
           hitSlop={8}
           style={styles.stepBtn}
-          accessibilityLabel="More"
+          accessibilityLabel={`${props.label}: more`}
         >
           <Text style={styles.stepText}>+</Text>
         </Pressable>

@@ -275,6 +275,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   shareText: { color: day.onPlum, fontFamily: dayFonts.display, fontSize: 18 },
-  error: { color: day.coral, fontFamily: dayFonts.bold, fontSize: 14, textAlign: 'center', marginTop: 10 },
+  error: { color: day.text, fontFamily: dayFonts.bold, fontSize: 14, textAlign: 'center', marginTop: 10 },
   small: { color: day.dim, fontFamily: dayFonts.regular, fontSize: 13, textAlign: 'center', marginTop: 12 },
 });

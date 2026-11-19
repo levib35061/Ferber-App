@@ -596,6 +596,7 @@ function DutyBar(props: {
                 props.onSet({ userId: m.id });
               }}
               accessibilityRole="button"
+              accessibilityLabel={`Hand off to ${memberName(m, props.members.length)}`}
               style={styles.handOffChip}
               hitSlop={6}
             >
