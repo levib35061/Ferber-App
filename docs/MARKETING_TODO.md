@@ -27,17 +27,18 @@ The running list. The reasons and evidence are in `reports/Check In app launch s
 All the wording is ready in `docs/LAUNCH_COPY.md`.
 
 
-- [ ] Enroll in the Small Business Program (15% instead of 30%) before the first sale
+- [x] Enroll in the Small Business Program (applied; 15% starts about 15 days after the end of the fiscal month it's approved in, not backdated)
 - [ ] Featuring nomination in App Store Connect, at least 2 weeks before launch
-- [ ] Spanish (Mexico) and English (UK/Australia) keyword fields (`docs/APP_STORE.md`)
-- [ ] Screenshots: the first three carry the message
+- [x] Spanish (Mexico) and English (UK/Australia) keyword fields (`docs/APP_STORE.md`)
+- [x] Screenshots: timer, lock screen, whole family, recap, progress
 - [ ] Video 3 (app walkthrough): post at App Store launch, then embed it in the site's app section
 - [ ] Add the App Store link to: the three YouTube descriptions and pinned comments, the YouTube channel links, ferbertimer.com (I run `python3 tools/site/app_links.py live`: App Store button on every page, Safari's app banner, and the link in the home page's structured data)
-- [ ] App Store header image is ready: `docs/app-store-screenshots/header-3840x1646.png`
+- [x] App Store header image uploaded
 - [ ] Apple Ads: spend the free $100 credit on exact-match keywords, as keyword research; stop when it's used up
 - [ ] Campaign links (App Store Connect) on the website's download buttons, so you can see which page sends downloads
 - [ ] Launch listings: Product Hunt and AlternativeTo
-- [ ] Email about 20 Ferber-friendly sleep consultants with a free unlock code for their clients
+- [ ] Sleep consultants: from Tuesday Dec 1 (after Thanksgiving), one code each capped at 20 unlocks, drafts from askcheckin@; playbook `docs/OUTREACH.md`
+- [ ] Message beta-tester friends who used it on real nights: ask for an honest rating (never 5 stars, nothing in return; not you or Anna Kate; spread over a few days)
 - [ ] Ask Facebook group admins for permission before posting anything (accept a no)
 
 ## First 90 days
