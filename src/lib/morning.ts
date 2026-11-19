@@ -291,3 +291,16 @@ export function addedLaterLines(events: NightEvent[]): StretchLine[] {
   }
   return out;
 }
+
+/**
+ * A short, quiet celebration on the morning recap (confetti in the day colours) after a
+ * night that was clearly better than the one before: crying down by at least 5 minutes
+ * and a quarter, or no crying at all after a night with some. Never after a harder or
+ * similar night (nothing is shown then, not a sad version). Once per night.
+ */
+export function shouldCelebrate(cur: { cryingMinutes: number }, prev: { cryingMinutes: number } | null): boolean {
+  if (!prev || prev.cryingMinutes <= 0) return false;
+  if (cur.cryingMinutes === 0) return true;
+  const drop = prev.cryingMinutes - cur.cryingMinutes;
+  return drop >= 5 && drop >= prev.cryingMinutes * 0.25;
+}

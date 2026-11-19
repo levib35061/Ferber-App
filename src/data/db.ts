@@ -401,6 +401,8 @@ export interface Settings {
   reviewAskedAt: number;
   /** This person's name, shown to the rest of the family ("Levi", "Grandma"). '' = not set */
   myName: string;
+  /** The night whose better morning was already celebrated (confetti shows once per night) */
+  celebratedNight: string;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -412,6 +414,7 @@ export const DEFAULT_SETTINGS: Settings = {
   reviewAsks: 0,
   reviewAskedAt: 0,
   myName: '',
+  celebratedNight: '',
 };
 
 export async function getSettings(db: SQLiteDatabase): Promise<Settings> {

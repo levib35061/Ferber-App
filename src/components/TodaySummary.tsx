@@ -5,6 +5,7 @@
  * tonight's first wait. Peach & plum theme.
  */
 import { router, useFocusEffect } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import * as StoreReview from 'expo-store-review';
 import { useSQLiteContext } from 'expo-sqlite';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -22,6 +23,7 @@ import {
   morningHeadline,
   morningNote,
   morningTiles,
+  shouldCelebrate,
   stretchLines,
   addedLaterLines,
   timeline,
@@ -36,6 +38,7 @@ import { summarizeNight } from '../lib/summary';
 import { formatClock, formatMinutes, formatMinutesShort, spokenMinutes } from '../lib/time';
 import { day, dayFonts } from '../theme/day';
 import { ShareProgressButton } from './ShareProgress';
+import { Confetti } from './Confetti';
 
 export interface LastNights {
   last: { night: Night; events: NightEvent[] } | null;
@@ -125,10 +128,21 @@ export function TodaySummary({
   }, [cryingKey, settings.reviewAsks, settings.reviewAskedAt]); // eslint-disable-line react-hooks/exhaustive-deps
   const name = baby?.name ?? '';
   const summary = summarizeNight(last.events);
+  const prevSummary = data.previous ? summarizeNight(data.previous.events) : null;
   const tiles = morningTiles(
     summary,
-    data.previous ? { nightNumber: data.previous.night.nightNumber, summary: summarizeNight(data.previous.events) } : null,
+    data.previous && prevSummary ? { nightNumber: data.previous.night.nightNumber, summary: prevSummary } : null,
   );
+  // A clearly better night: a short confetti burst, once per night (lib/morning shouldCelebrate).
+  // Decided when the recap opens, so remembering it doesn't cut the animation short.
+  const [confettiFor] = useState(() =>
+    shouldCelebrate(summary, prevSummary) && settings.celebratedNight !== last.night.id ? last.night.id : null,
+  );
+  useEffect(() => {
+    if (!confettiFor) return;
+    if (settings.haptics) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    updateSetting('celebratedNight', confettiFor);
+  }, [confettiFor]); // eslint-disable-line react-hooks/exhaustive-deps
   const note = morningNote(data.crying);
   const tonightNumber = last.night.nightNumber + 1;
   const tonightFirstWait = nextWaitMinutes(chart, last.night.chartNight + 1, 0);
@@ -298,6 +312,7 @@ export function TodaySummary({
           <Text style={styles.startText}>Starting bedtime early? Open the night screen</Text>
         </Pressable>
       </ScrollView>
+      {confettiFor === last.night.id && <Confetti />}
     </SafeAreaView>
   );
 }
