@@ -274,3 +274,26 @@ describe('wait a little longer', () => {
     });
   });
 });
+
+describe('the night as a state machine', () => {
+  const C = FERBER_DEFAULT_CHART;
+  it('two phones both tapping "Going in" count one check-in, and the next wait is unchanged', () => {
+    const one = [ev('down', 0), ev('cry', 0), ev('check_in_start', 3), ev('check_in_end', 4)];
+    const twice = [ev('down', 0), ev('cry', 0), ev('check_in_start', 3), ev('check_in_start', 3.2), ev('check_in_end', 4)];
+    const a = deriveNightState(one, C, 1, T0 + 5 * MIN);
+    const b = deriveNightState(twice, C, 1, T0 + 5 * MIN);
+    expect(b).toEqual(a);
+    expect(episodes(twice)[0].checkIns).toBe(1);
+  });
+  it('a check-in tapped during a feed is ignored', () => {
+    const evs = [ev('down', 0), ev('cry', 0), ev('feed_start', 2), ev('check_in_start', 3)];
+    expect(deriveNightState(evs, C, 1, T0 + 4 * MIN).kind).toBe('feeding');
+    expect(episodes(evs)[0].checkIns).toBe(0);
+  });
+  it('every state offers only actions that move the night on (no dead ends before Up)', () => {
+    for (const kind of ['idle', 'quiet', 'waiting', 'due', 'in_room', 'feeding', 'asleep'] as const) {
+      expect(allowedActions({ kind } as never).length).toBeGreaterThan(0);
+    }
+    expect(allowedActions({ kind: 'up', since: 0 })).toEqual([]);
+  });
+});

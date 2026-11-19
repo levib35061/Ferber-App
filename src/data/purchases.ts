@@ -31,6 +31,8 @@ type Listener = (owned: boolean) => void;
 const listeners = new Set<Listener>();
 let owned = false;
 let started = false;
+/** Settles once RevenueCat has answered at launch (or failed). */
+let firstAnswer: Promise<void> = Promise.resolve();
 
 function setOwned(v: boolean) {
   if (v === owned) return;
@@ -51,6 +53,21 @@ export function onUnlockChange(fn: Listener): () => void {
 export async function startPurchases(): Promise<void> {
   if (!purchasesOpen || started) return;
   started = true;
+  firstAnswer = startUp();
+  return firstAnswer;
+}
+
+/**
+ * This phone's unlock, once it's known. Right after launch RevenueCat may not have
+ * answered yet: "not known yet" must never count as "locked" (a buyer would see the
+ * paywall at bedtime), so wait for the first answer, at most `maxMs`.
+ */
+export async function waitForUnlockStatus(maxMs = 3000): Promise<boolean> {
+  await Promise.race([firstAnswer, new Promise((r) => setTimeout(r, maxMs))]);
+  return owned;
+}
+
+async function startUp(): Promise<void> {
   try {
     const { data } = await supabase.auth.getSession();
     Purchases.configure({ apiKey: REVENUECAT_API_KEY, appUserID: data.session?.user.id ?? null });

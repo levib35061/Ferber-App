@@ -99,17 +99,26 @@ export function liveEvents(events: NightEvent[]): NightEvent[] {
 export function episodes(events: NightEvent[]): Episode[] {
   const out: Episode[] = [];
   let cur: Episode | null = null;
+  // A check-in only counts when one can start: not while already in the room or feeding
+  // (two phones both tapping "Going in" before they sync must count once).
+  let busyWith: 'room' | 'feed' | null = null;
   for (const e of liveEvents(events)) {
     const startsEpisode = e.type === 'down' || e.type === 'woke' || (e.type === 'feed_start' && (!cur || cur.end));
     if (startsEpisode) {
       // A new start while one is open (missed "asleep"): start fresh.
       cur = { start: e, end: null, checkIns: 0, events: [e] };
       out.push(cur);
+      busyWith = e.type === 'feed_start' ? 'feed' : null;
       continue;
     }
     if (!cur || cur.end) continue;
     cur.events.push(e);
-    if (e.type === 'check_in_start') cur.checkIns += 1;
+    if (e.type === 'check_in_start' && busyWith === null) {
+      cur.checkIns += 1;
+      busyWith = 'room';
+    } else if (e.type === 'check_in_end' && busyWith === 'room') busyWith = null;
+    else if (e.type === 'feed_start') busyWith = 'feed';
+    else if (e.type === 'feed_end' && busyWith === 'feed') busyWith = null;
     if (e.type === 'asleep' || e.type === 'up') cur.end = e;
   }
   return out;
@@ -165,6 +174,8 @@ function walk(ep: Episode, now: number): Walk {
         }
         break;
       case 'check_in_start':
+        // Already in the room, feeding or asleep: a duplicate or stale tap, not a new check-in.
+        if (phase === 'in_room' || phase === 'feeding' || phase === 'asleep') break;
         if (phase === 'quiet') phase = 'crying'; // crying since the quiet stretch began
         close(e.at);
         checkIns += 1;
@@ -254,7 +265,18 @@ export function deriveNightState(events: NightEvent[], chart: Chart, chartNight:
   };
 }
 
-/** Which taps make sense in each state. The UI only shows these. */
+/** A night is under way (not idle, not asleep, not over): the dark theme stays, the Live Activity shows. */
+export const IN_PROGRESS: readonly NightState['kind'][] = ['quiet', 'waiting', 'due', 'in_room', 'feeding'];
+
+export function inProgress(state: Pick<NightState, 'kind'>): boolean {
+  return IN_PROGRESS.includes(state.kind);
+}
+
+/**
+ * The night's transition table: which taps make sense in each state. NightStore.tap
+ * enforces it (against storage, at tap time), so a stale screen can't log a step that
+ * doesn't fit; the screens only show these. Map: docs/STATE_MACHINES.md.
+ */
 export function allowedActions(state: NightState): Action[] {
   switch (state.kind) {
     case 'idle':

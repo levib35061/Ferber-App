@@ -9,7 +9,16 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { AppState } from 'react-native';
 
 import { Chart, chartForPreset } from '../lib/ferber';
-import { Action, NightEvent, NightState, UNDO_WINDOW_MS, deriveNightState, liveEvents } from '../lib/session';
+import {
+  Action,
+  NightEvent,
+  NightState,
+  UNDO_WINDOW_MS,
+  allowedActions,
+  deriveNightState,
+  inProgress,
+  liveEvents,
+} from '../lib/session';
 import { activityFor } from '../lib/liveActivity';
 import { Duty, alertsOnThisPhone, dutyFor, partnerId, waitStartedBy } from '../lib/duty';
 import { nightKey } from '../lib/time';
@@ -41,7 +50,7 @@ import {
   reconcileCheckInAlert,
   requestNotificationPermission,
 } from './notifications';
-import { onUnlockChange, ownsUnlock, startPurchases } from './purchases';
+import { onUnlockChange, ownsUnlock, startPurchases, waitForUnlockStatus } from './purchases';
 import { DEMO_TOOLS } from '../config';
 import { SyncEngine, SyncStatus } from './sync';
 import { reconcileLiveActivity } from './liveActivity';
@@ -234,17 +243,31 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
         if ((action === 'down' || action === 'woke') && (await notificationPermission()) === 'undetermined') {
           await requestNotificationPermission().catch(() => false);
         }
+        // The night machine decides, from storage as it is now (not what the screen last
+        // showed): tonight's row for the current night key, and the taps already in it.
+        // A stale screen, a partner's sync or the 11am rollover can't log a step that
+        // doesn't fit (lib/session allowedActions).
+        let n = await getNightForKey(db, baby.id, nightKey(now));
+        const fresh = n ? liveEvents(await listEvents(db, n.id)) : [];
+        const current: NightState = n ? deriveNightState(fresh, chart, n.chartNight, now) : { kind: 'idle' };
+        if (!allowedActions(current).includes(action)) {
+          if (__DEV__) console.warn(`[night] "${action}" isn't allowed in state "${current.kind}"; ignored`);
+          await reload();
+          return;
+        }
         // Free trial: starting a third night opens the unlock screen instead.
-        const startsNewNight = !night || liveEvents(events).length === 0;
-        if (needsUnlock({ unlocked, nightsUsed, startsNewNight })) {
+        const startsNewNight = fresh.length === 0;
+        if (
+          needsUnlock({ unlocked, nightsUsed, startsNewNight }) &&
+          needsUnlock({ unlocked: await waitForUnlockStatus(), nightsUsed, startsNewNight })
+        ) {
           router.push('/unlock');
           return;
         }
-        let n = night;
         if (!n) n = await createNight(db, baby.id, now, repeatLastNight, baby.trainingStartDate);
         // A partner's phone clock can run slightly ahead: never stamp a tap before the latest
         // one already logged (within 2 minutes), or the night would read them out of order.
-        const latest = liveEvents(events).reduce((m, x) => Math.max(m, x.at), 0);
+        const latest = fresh.reduce((m, x) => Math.max(m, x.at), 0);
         const at = latest >= now && latest - now < 2 * 60_000 ? latest + 1 : now;
         const e = await insertEvent(db, n.id, action, at, sync.userId);
         // With a partner: whoever puts the baby down is on duty, unless someone already is.
@@ -257,21 +280,29 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
         busy.current = false;
       }
     },
-    [baby, db, events, haptic, night, nightsUsed, reload, repeatLastNight, sync, syncStatus.memberCount, unlocked],
+    [baby, chart, db, haptic, nightsUsed, reload, repeatLastNight, sync, syncStatus.memberCount, unlocked],
   );
 
   const undo = useCallback(async () => {
-    if (!lastTap || Date.now() - lastTap.tappedAt > UNDO_WINDOW_MS) return;
+    // Never while a tap is still being saved (it would undo the one before it).
+    if (busy.current || !lastTap || Date.now() - lastTap.tappedAt > UNDO_WINDOW_MS) return;
+    // Only the night's latest tap can be undone: if a partner has logged one since, keep both.
+    const fresh = night ? liveEvents(await listEvents(db, night.id)) : [];
+    if (fresh[fresh.length - 1]?.id !== lastTap.eventId) {
+      setLastTap(null);
+      await reload();
+      return;
+    }
     haptic();
     await softDeleteEvent(db, lastTap.eventId, Date.now());
     setLastTap(null);
     await reload();
-  }, [db, haptic, lastTap, reload]);
+  }, [db, haptic, lastTap, night, reload]);
 
   const upEvent = night && nightKey(tick) === night.nightKey ? [...liveEvents(events)].reverse().find((e) => e.type === 'up') : undefined;
   const upEventId = upEvent?.id ?? null;
   const notUpYetFn = useCallback(async () => {
-    if (!upEventId) return;
+    if (busy.current || !upEventId) return;
     haptic();
     await softDeleteEvent(db, upEventId, Date.now());
     setLastTap(null);
@@ -301,7 +332,6 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
   // Early bedtime lasts 6 hours unless cancelled ("Back to Today").
   const bedtimeEarly = bedtimeEarlyAt != null && tick - bedtimeEarlyAt < 6 * 3600_000;
   const setBedtimeEarly = useCallback((on: boolean) => setBedtimeEarlyAt(on ? Date.now() : null), []);
-  const activeKinds = ['quiet', 'waiting', 'due', 'in_room', 'feeding'];
   const stateNow: NightState = night ? deriveNightState(events, chart, night.chartNight, tick) : { kind: 'idle' };
   const kindNow = stateNow.kind;
 
@@ -328,7 +358,7 @@ export function NightStoreProvider({ children }: { children: React.ReactNode }) 
     reload();
   }, [keyNow, reload]);
 
-  const nightActive = activeKinds.includes(kindNow);
+  const nightActive = inProgress(stateNow);
   // After "Up for the day" the night is over, even if it's before 7am.
   // Baby asleep: still night, keep it dark (in the morning too, until "Up for the day").
   const asleepNow = kindNow === 'asleep';
