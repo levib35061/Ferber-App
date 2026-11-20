@@ -67,17 +67,27 @@ const NightActivity = (props: NightActivityProps, environment: LiveActivityEnvir
     title = 'Night feed';
     first = { label: 'Feed done', target: 'feed_end' };
   } else {
-    title = 'Not crying';
+    title = 'Settling';
     first = { label: 'Crying', target: 'cry' };
   }
+  // Settling: nothing is being timed ("No timer until they cry"), so no running clock
+  // anywhere, only words; a clock here read like a check-in countdown.
+  const settling = props.mode === 'quiet';
 
-  const timer = (size: number) => (
-    <Text
-      timerInterval={{ lower: new Date(lower), upper: new Date(upper) }}
-      countsDown={countsDown}
-      modifiers={[font({ size, weight: 'light', design: 'rounded' }), monospacedDigit(), foregroundStyle(TEXT)]}
-    />
-  );
+  const timer = (size: number) =>
+    settling ? (
+      <Text
+        modifiers={[font({ size: Math.round(size * 0.55), weight: 'regular', design: 'rounded' }), foregroundStyle(DIM)]}
+      >
+        No timer until they cry
+      </Text>
+    ) : (
+      <Text
+        timerInterval={{ lower: new Date(lower), upper: new Date(upper) }}
+        countsDown={countsDown}
+        modifiers={[font({ size, weight: 'light', design: 'rounded' }), monospacedDigit(), foregroundStyle(TEXT)]}
+      />
+    );
   // Each button opens the app at checkin://la?action=<event>, which logs it
   // (src/app/la.tsx). iOS asks for Face ID first when the phone is locked.
   const button = (b: { label: string; target: string }, filled: boolean) => (
@@ -116,7 +126,9 @@ const NightActivity = (props: NightActivityProps, environment: LiveActivityEnvir
       </VStack>
     ),
     compactLeading: <Image systemName="moon.fill" color={accent} />,
-    compactTrailing: (
+    compactTrailing: settling ? (
+      <Text modifiers={[font({ size: 13, weight: 'medium' }), foregroundStyle(accent)]}>Settling</Text>
+    ) : (
       <Text
         timerInterval={{ lower: new Date(lower), upper: new Date(upper) }}
         countsDown={countsDown}
@@ -129,7 +141,7 @@ const NightActivity = (props: NightActivityProps, environment: LiveActivityEnvir
         <Text modifiers={[font({ size: 15, weight: 'semibold' }), foregroundStyle(accent)]}>{title}</Text>
       </VStack>
     ),
-    expandedTrailing: <VStack modifiers={[padding({ trailing: 8 })]}>{timer(28)}</VStack>,
+    expandedTrailing: settling ? undefined : <VStack modifiers={[padding({ trailing: 8 })]}>{timer(28)}</VStack>,
     expandedBottom: (
       <HStack spacing={10} modifiers={[padding({ top: 6 })]}>
         {button(first, due)}
