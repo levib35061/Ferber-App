@@ -104,7 +104,7 @@ async function unlockPackage(): Promise<PurchasesPackage | null> {
   return packages.find((p) => p.product.identifier === PRODUCT_ID) ?? null;
 }
 
-/** The store's own price text (e.g. "$4.99", or the local currency), or null if it can't be loaded. */
+/** The store's own price text (e.g. "$2.99", or the local currency), or null if it can't be loaded. */
 export async function unlockPrice(): Promise<string | null> {
   if (!purchasesOpen) return null;
   try {

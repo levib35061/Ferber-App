@@ -73,7 +73,7 @@ the development build.
 
 ## RevenueCat (after Apple approval)
 
-- Non-consumable product, e.g. `checkin_unlock`, $4.99, Family Sharing on (App Store Connect).
+- Non-consumable product, e.g. `checkin_unlock`, $2.99, Family Sharing on (App Store Connect).
 - RevenueCat entitlement id: **`unlock`** (the webhook only acts on this one).
 - The app logs in to RevenueCat with the Supabase user id (so webhook ids match `auth.users`).
 

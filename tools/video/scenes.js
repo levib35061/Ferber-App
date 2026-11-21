@@ -141,7 +141,7 @@ const V3 = [
   `<div class="center col narrow"><div class="chips"><div class="chip" data-at="w:stop">Stopped crying → timer pauses</div><div class="chip" data-at="w:wake">Woke up at 2am → first wait again</div></div></div>`,
   `<div class="split">${phone(screens.duty(true), 'small', 'data-at="w:both"')}${phone(screens.duty(false), 'small', 'data-at="w:duty"')}<div class="col left"><div class="h2" data-at="w:both">Both phones</div><div class="h3 dim" data-at="w:duty">Only the parent on duty gets alerts</div></div></div>`,
   `<div class="split">${phone(screens.today(), 'small', 'data-at="s:0.1"')}${phone(screens.progress(), 'small', 'data-at="w:chart"')}<div class="col left"><div class="h2" data-at="w:morning">See it working</div><div class="h3 dim" data-at="w:chart">Morning summary and progress</div></div></div>`,
-  `<div class="center col"><div class="h3 dim" data-at="w:free">Free for your first 2 nights</div><div class="h1" data-at="f:0.25">$4.99 once</div><div class="h3" data-at="w:covers">One purchase covers both parents</div><div class="chips"><div class="chip" data-at="w:subscription">No subscription</div><div class="chip" data-at="w:ads">No ads</div><div class="chip" data-at="w:tracking">No tracking</div></div></div>`,
+  `<div class="center col"><div class="h3 dim" data-at="w:free">Free for your first 2 nights</div><div class="h1" data-at="f:0.25">$2.99 once</div><div class="h3" data-at="w:covers">One purchase covers both parents</div><div class="chips"><div class="chip" data-at="w:subscription">No subscription</div><div class="chip" data-at="w:ads">No ads</div><div class="chip" data-at="w:tracking">No tracking</div></div></div>`,
   endCard('On the App Store'),
 ];
 

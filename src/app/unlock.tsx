@@ -1,5 +1,5 @@
 /**
- * The one-time unlock ($4.99). Shown when starting a night after the free
+ * The one-time unlock ($2.99). Shown when starting a night after the free
  * nights, or from Settings → Unlock. Buying and restoring go through
  * RevenueCat (src/data/purchases.ts). Until an API key is set in config.ts,
  * the buttons explain that purchases aren't open yet (and, in development,
@@ -28,7 +28,7 @@ export default function UnlockScreen() {
   const { colors } = useTheme();
   const { unlocked, freeNightsLeft, updateSetting, sync } = useNightStore();
   const [busy, setBusy] = useState(false);
-  // The store's own price text (right currency for the country); falls back to $4.99.
+  // The store's own price text (right currency for the country); falls back to $2.99.
   const [price, setPrice] = useState(UNLOCK_PRICE);
   useEffect(() => {
     unlockPrice().then((p) => p && setPrice(p));

@@ -1,6 +1,6 @@
 # Apple Ads: launch-week test on the free $100 credit
 
-Goal: **keyword research, not profit.** A sale nets about $4.24 and US installs cost a few dollars,
+Goal: **keyword research, not profit.** A sale nets about $2.54 and US installs cost a few dollars,
 so ads can't pay for themselves (reasoning: `reports/Check In app launch strategy.md`). The credit
 tells us which words parents actually type and which ones turn into downloads, and those words go
 into the free App Store keyword fields. Stop when the credit is used up.
@@ -64,7 +64,7 @@ into the free App Store keyword fields. Stop when the credit is used up.
 ## When the credit runs out
 
 Pause both campaigns. Only keep a keyword running with your own money if its **cost per install is
-below (share of installers who buy) × $4.24**. You'll know that share from App Store Connect after a
+below (share of installers who buy) × $2.54**. You'll know that share from App Store Connect after a
 few weeks; until then, assume ads lose money and stop.
 
 ## What to do with the results (free, permanent)

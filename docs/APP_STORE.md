@@ -72,7 +72,7 @@ Tonight, know exactly when to go in. Check In times every wait, alerts you on th
 ```
 Check In is an iPhone timer for the Ferber method of baby sleep training (also called graduated check-ins or progressive waiting). It counts down to each check-in using the Ferber interval chart, alerts you with the phone locked, and logs every night so you can see crying time drop.
 
-It's free for your first 2 nights, then $4.99 once. One purchase covers the whole family. No subscription, no ads, no tracking.
+It's free for your first 2 nights, then $2.99 once. One purchase covers the whole family. No subscription, no ads, no tracking.
 
 Sleep training is hard enough at 2am. Put your baby down, tap once, and Check In tells you when it's time for a short check-in. The waits get a little longer each time and each night, just like the chart in the book.
 
@@ -109,7 +109,7 @@ PRIVATE BY DESIGN
 • No account needed. Sign in with Apple is optional.
 
 TRY IT FREE
-Your first two nights are free. After that, a one-time $4.99 unlock keeps every feature, for every night, for your whole family. No subscription.
+Your first two nights are free. After that, a one-time $2.99 unlock keeps every feature, for every night, for your whole family. No subscription.
 
 Sleep training is meant for babies about 6 months and older. Check In isn't medical advice. Please talk to your pediatrician before you start.
 ```
@@ -127,7 +127,7 @@ First release. Sweet dreams.
 | Type | Non-consumable |
 | Product ID | checkin_unlock |
 | Reference name | Full unlock |
-| Price | $4.99 (Tier 5) |
+| Price | $2.99 |
 | Display name | Unlock Check In |
 | Description | Every night, for your whole family. |
 | Family Sharing | On (matches "one purchase for the family"; Apple doesn't let you turn it off again later) |
@@ -209,7 +209,7 @@ Done after Apple approval (Nov 18):
 - [x] RevenueCat App Store key in `src/config.ts`; App Store app, In-App Purchase key and `checkin_unlock` product in RevenueCat; test purchase reached `unlocks` through the webhook
 - [x] EAS project, push key, development build, Live Activity (widget extension + app group)
 - [x] Sign in with Apple key secrets set; `apple_tokens` gets a row after sign-in
-- [x] App created in App Store Connect; `checkin_unlock` created ($4.99, Family Sharing on, review screenshot uploaded)
+- [x] App created in App Store Connect; `checkin_unlock` created ($2.99, Family Sharing on, review screenshot uploaded)
 - [x] Paid Apps agreement, Small Business Program, App Privacy, App Information, pricing (free)
 - [x] Screenshots uploaded (`docs/app-store-screenshots/1206x2622/`)
 - [x] TestFlight: build 3 in beta review for the "Friends & Family" group

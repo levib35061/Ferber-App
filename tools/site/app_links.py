@@ -35,7 +35,7 @@ def cta(mode, url=None):
                 'TestFlight app, and unlocking is free while it lasts.</p>')
     else:
         body = (f'<p><a href="{APP_STORE_URL}" style="{BUTTON}">Get Check In on the App Store</a></p>\n'
-                '    <p class="small">For iPhone. Free for 2 nights, then $4.99 once.</p>')
+                '    <p class="small">For iPhone. Free for 2 nights, then $2.99 once.</p>')
     return f'<!-- app-cta -->\n    {body}\n    <!-- /app-cta -->'
 
 

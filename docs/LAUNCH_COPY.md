@@ -22,7 +22,7 @@ A calm Ferber timer for 2am, made by a parent
 **Description** (260 characters max):
 
 ```
-Check In times Ferber-method check-ins so tired parents don't have to. It counts only while your baby cries, restarts waits at night wakings, alerts you on the lock screen and syncs the whole family. 2 free nights, then $4.99 once. No ads or tracking.
+Check In times Ferber-method check-ins so tired parents don't have to. It counts only while your baby cries, restarts waits at night wakings, alerts you on the lock screen and syncs the whole family. 2 free nights, then $2.99 once. No ads or tracking.
 ```
 
 **Topics:** Parenting, iOS, Health & Fitness, Productivity
@@ -48,7 +48,7 @@ So Check In does the counting:
 • A warm morning summary, a chart of crying time and a card you can share, so a hard night doesn't feel like the whole story
 • Forgot to log a night? Add it from History in a few taps
 
-It's free for two nights, then $4.99 once. One purchase covers the whole family. No subscription, no ads, no tracking.
+It's free for two nights, then $2.99 once. One purchase covers the whole family. No subscription, no ads, no tracking.
 
 I'd love to hear what you think, especially if you've been through sleep training yourself.
 ```
@@ -64,7 +64,7 @@ Add it at alternativeto.net → **Add application**. It's a slow, steady source:
 
 **Website:** `https://ferbertimer.com` · **App Store:** `[App Store link]`
 
-**Platform:** iPhone · **License / pricing:** Freemium (free for 2 nights, then a one-time $4.99 purchase)
+**Platform:** iPhone · **License / pricing:** Freemium (free for 2 nights, then a one-time $2.99 purchase)
 
 **Short description:**
 
@@ -85,7 +85,7 @@ Check In is a timer for the Ferber method (graduated check-ins) of baby sleep tr
 - Morning summary, crying-time chart, a shareable progress card, and an editable history of every night (missed nights can be added later)
 - No account needed, no ads, no tracking
 
-Free for your first two nights, then $4.99 once. One purchase covers the whole family.
+Free for your first two nights, then $2.99 once. One purchase covers the whole family.
 ```
 
 **Alternative to** (add Check In as an alternative to each that's listed): Huckleberry,
@@ -173,7 +173,7 @@ Hi [name], I'm a parent and a member of [group]. I built a small iPhone timer fo
 If they say yes, the post:
 
 ```
-After sleep training our baby with the Ferber method, I built the timer I wished we'd had at 2am. It counts down to each check-in (only while baby is crying), restarts the waits for night wakings, alerts you on the lock screen, and syncs every phone in the family. It's free for two nights, then $4.99 once for the whole family. No ads or tracking. [App Store link]
+After sleep training our baby with the Ferber method, I built the timer I wished we'd had at 2am. It counts down to each check-in (only while baby is crying), restarts the waits for night wakings, alerts you on the lock screen, and syncs every phone in the family. It's free for two nights, then $2.99 once for the whole family. No ads or tracking. [App Store link]
 
 There's also a free printable chart at ferbertimer.com/chart.html if an app isn't your thing. Happy to answer questions!
 ```
@@ -194,7 +194,7 @@ Hi [first name],
 
 I read your piece "[article title]" and wanted to suggest an app for the next update. I'm a parent, and I built Check In after sleep training our own baby with the Ferber method.
 
-It's built around the Ferber method and two parents sharing the nights: it times each check-in only while the baby is crying, restarts the waits at night wakings, alerts on the lock screen, and syncs the family's phones (parents, a grandparent or a sitter) with one person "on duty" each night. It's $4.99 once (free for two nights), with no subscription, ads or tracking.
+It's built around the Ferber method and two parents sharing the nights: it times each check-in only while the baby is crying, restarts the waits at night wakings, alerts on the lock screen, and syncs the family's phones (parents, a grandparent or a sitter) with one person "on duty" each night. It's $2.99 once (free for two nights), with no subscription, ads or tracking.
 
 App Store: [App Store link]
 Website: https://ferbertimer.com
@@ -212,7 +212,7 @@ Levi Brown
 ### Beta testers (TestFlight): nothing to set up
 
 Purchases inside a TestFlight build are Apple test purchases: the tester taps
-**Unlock for $4.99**, confirms, and is **never charged**. So friends in the beta can unlock
+**Unlock for $2.99**, confirms, and is **never charged**. So friends in the beta can unlock
 everything for free with no codes.
 
 - Invite them as **external testers** (App Store Connect → TestFlight). You can send each

@@ -29,7 +29,7 @@ All the wording is ready in `docs/LAUNCH_COPY.md`.
 
 - [x] Enroll in the Small Business Program (applied; 15% starts about 15 days after the end of the fiscal month it's approved in, not backdated)
 - [x] Featuring nomination for the launch: App Store Connect wouldn't take it for 1.0 (skipped). Nominate the first real update instead (type App Enhancements, at least 2 weeks before it ships); reuse this:
-  - Description: calm Ferber timer built by a parent; counts only while crying, restarts after wakings, lock-screen alerts and Live Activity; whole family in sync with one person on duty; morning summary and crying chart; no ads, tracking or account; 2 free nights then $4.99 once
+  - Description: calm Ferber timer built by a parent; counts only while crying, restarts after wakings, lock-screen alerts and Live Activity; whole family in sync with one person on duty; morning summary and crying chart; no ads, tracking or account; 2 free nights then $2.99 once
 - [x] Spanish (Mexico) and English (UK/Australia) keyword fields (`docs/APP_STORE.md`)
 - [x] Screenshots: timer, lock screen, whole family, recap, progress
 - [ ] Video 3 (app walkthrough): post at App Store launch, then embed it in the site's app section

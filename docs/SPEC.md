@@ -173,7 +173,7 @@ The model is a free download with a one-time unlock. No subscription, because mo
 **Monetization**
 
 - Free: the full timer and logging for the first 2 nights (counted per family, since partners share nights)
-- Unlock (one-time, **$4.99**, decided): unlimited nights, partner sync, Progress chart, custom intervals
+- Unlock (one-time, **$2.99**, decided): unlimited nights, partner sync, Progress chart, custom intervals
 - **Only one partner pays.** The unlock belongs to the app's shared family, not to one Apple ID: if any member has bought it, every phone in the family is unlocked. Apple Family Sharing is also on, as a bonus for couples who use it, but isn't required.
 
 **Shared unlock design** (decided Nov 2026; build with the RevenueCat milestone)
@@ -203,7 +203,7 @@ The model is a free download with a one-time unlock. No subscription, because mo
 **Open questions**
 
 - ~~App name?~~ Decided: **Check In: Baby Sleep Timer** (home screen "Check In"), bundle ID `com.levibrown.checkin`
-- ~~Exact price~~ Decided: $4.99, one partner pays for the family. Is a 2-night free trial right?
+- ~~Exact price~~ Decided: $2.99, one partner pays for the family. Is a 2-night free trial right?
 - Support more than one baby (twins, siblings) in v1, or later?
 - Show check-in duration in stats, or keep it hidden?
 - Later: Live Activity and an Apple Watch app once a newer Mac is bought

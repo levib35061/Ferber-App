@@ -80,8 +80,8 @@ export default function SettingsHome() {
           unlocked
             ? 'Unlocked for your family'
             : freeNightsLeft > 0
-              ? `${freeNightsLeft} free night${freeNightsLeft === 1 ? '' : 's'} left · then $4.99 once`
-              : 'Free nights used · $4.99 once to keep going'
+              ? `${freeNightsLeft} free night${freeNightsLeft === 1 ? '' : 's'} left · then $2.99 once`
+              : 'Free nights used · $2.99 once to keep going'
         }
         onPress={() => router.push('/unlock')}
       />

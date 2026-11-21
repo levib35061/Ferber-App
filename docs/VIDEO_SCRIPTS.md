@@ -252,7 +252,7 @@ Check In is an iPhone timer for the Ferber method of sleep training. It counts d
 Download on the App Store: [App Store link]
 Free printable chart: https://ferbertimer.com/chart.html
 
-Free for your first 2 nights, then $4.99 once. One purchase covers both parents. No subscription, no ads, no tracking.
+Free for your first 2 nights, then $2.99 once. One purchase covers both parents. No subscription, no ads, no tracking.
 
 Made by a parent who built it while sleep training our own baby.
 ```
