@@ -53,3 +53,24 @@ After the last listed wait, keep repeating it. Verify against the current editio
 - App help and FAQ (alerts, Focus modes, partner sharing, purchases, data): https://ferbertimer.com/help.html
 - Press kit (facts, descriptions, icon, screenshots): https://ferbertimer.com/press.html
 - Not affiliated with or endorsed by Dr. Richard Ferber.
+
+## Plain-text (Markdown) versions
+
+Every page also has a plain Markdown copy with the same words (linked from each page's footer):
+
+- https://ferbertimer.com/chart.md
+- https://ferbertimer.com/ferber-check-ins-and-partners.md
+- https://ferbertimer.com/ferber-method-after-illness-travel.md
+- https://ferbertimer.com/ferber-method-age.md
+- https://ferbertimer.com/ferber-method-grandparents-sitters-daycare.md
+- https://ferbertimer.com/ferber-method-naps.md
+- https://ferbertimer.com/ferber-method-night-by-night.md
+- https://ferbertimer.com/ferber-method-night-wakings-and-feeds.md
+- https://ferbertimer.com/ferber-method-not-working.md
+- https://ferbertimer.com/ferber-method-shared-room-siblings-twins.md
+- https://ferbertimer.com/ferber-timer-apps-compared.md
+- https://ferbertimer.com/ferber-vs-cry-it-out.md
+- https://ferbertimer.com/help.md
+- https://ferbertimer.com/index.md
+- https://ferbertimer.com/press.md
+- https://ferbertimer.com/privacy.md
