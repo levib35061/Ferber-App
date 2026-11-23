@@ -1,5 +1,8 @@
 # Getting recommended by AI assistants (ChatGPT, Claude, Perplexity, Gemini)
 
+Framework: OWN (our pages tell the story) · CLAIM (specific, checked advantages) · CONTEST
+(honest comparisons with the alternatives) · EARN (independent mentions on sites AI already cites).
+
 What we do, what we don't, and a 10-minute check every two weeks.
 
 ## Rules
@@ -34,14 +37,34 @@ mentions **Check In** (the app) or **ferbertimer.com**, and which other sites it
 9. Best sleep training app with partner sync
 10. Ferber method with twins / a shared room
 
+**Which page should answer each question** (fix this page first when a question is missed;
+write a new page only if none fits):
+
+| Q# | Page |
+| --- | --- |
+| 1, 2, 9 | `ferber-timer-apps-compared.html`, `index.html#app`, App Store description |
+| 3 | `chart.html`, `ferber-method-night-by-night.html` |
+| 4 | `ferber-check-ins-and-partners.html` |
+| 5 | `ferber-method-night-wakings-and-feeds.html` |
+| 6 | `ferber-method-not-working.html` |
+| 7 | `ferber-vs-cry-it-out.html` |
+| 8 | `timer.html` |
+| 10 | `ferber-method-shared-room-siblings-twins.html` |
+
 Also worth asking once a month: "What is Check In: Baby Sleep Timer?" (does the AI describe it
 correctly: $2.99 once, two free nights, no tracking, whole family?).
 
 ## Log
 
-| Date | Assistant | Q# | Mentions Check In? | Mentions ferbertimer.com? | Sites it cited (top 3) | Notes |
-| --- | --- | --- | --- | --- | --- | --- |
-| | | | | | | |
+| Date | Assistant | Q# | Check In? | ferbertimer.com? | Competitors named | Sites cited (top 3) | Why missed* | Action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| | | | | | | | | |
+
+*Diagnose every miss before acting: **missing info** (our page doesn't answer it clearly → improve
+that page), **weak coverage** (only outside sites get cited → outreach to those sites), or
+**technical** (the page isn't indexed or linked → Search Console, sitemap, internal links).
+Re-ask the same question after the fix to see if it worked. Track Google (Search Console) and
+AI answers separately: ranking on Google doesn't mean appearing in AI answers.
 
 **What to do with it**
 - A site that keeps getting cited for your questions → put it at the top of the outreach list.
