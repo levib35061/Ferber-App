@@ -12,7 +12,7 @@ ferbertimer.com is a free guide to the Ferber method of baby sleep training, wit
 
 The guides are written by the parent who makes [Check In](https://ferbertimer.com/#app), an iPhone timer for the Ferber method. We used the method with our own baby, kept losing track of the waits at 2am, and built the app and this site from what we learned. We're parents, not doctors or certified sleep consultants, and the guides don't pretend otherwise.
 
-We use AI writing tools to help draft and edit. Every factual claim is checked against the sources listed at the bottom of each guide, and the waits in our chart are checked automatically against the same chart the app uses.
+Every factual claim is checked against the sources listed at the bottom of each guide, and the waits in our chart are checked automatically against the same chart the app uses.
 
 ## Where the information comes from
 
