@@ -64,4 +64,5 @@ All the wording is ready in `docs/LAUNCH_COPY.md`.
 - [ ] Search Console and Bing: pages indexed, searches with "timer", "chart", "app"
 - [ ] App Store Connect: downloads by source (search, browse, web), conversion rate
 - [ ] RevenueCat: share of downloads that buy
-- [ ] Ask ChatGPT, Claude and Perplexity "is there an app for the Ferber method?" and note whether Check In shows up
+- [ ] AI answers: the two-weekly check in `docs/AI_VISIBILITY.md` (or at least: ask ChatGPT, Claude and Perplexity "is there an app for the Ferber method?" and note whether Check In shows up)
+- [ ] Google core update announced? (Search Status Dashboard) Wait until it has finished plus one full week, then compare that week with the week before it started in Search Console. Small drops (e.g. 2 → 4): change nothing. Large drops (e.g. 4 → 29): go through Google's helpful-content self-assessment for those pages and compare with what now outranks them. No quick fixes, don't delete pages to chase rankings; effects can take months. Guide: https://developers.google.com/search/docs/appearance/core-updates
