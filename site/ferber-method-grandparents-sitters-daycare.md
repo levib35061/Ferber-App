@@ -4,7 +4,7 @@ Source: https://ferbertimer.com/ferber-method-grandparents-sitters-daycare.html
 
 # The Ferber method with grandparents, sitters and daycare
 
-By the parent who makes Check In · Updated November 19, 2026
+By [the parent who makes Check In](https://ferbertimer.com/about.html) · Updated November 19, 2026
 
 Sleep training is hard enough with two parents agreeing. Add a grandparent who can't bear crying, a sitter for date night, or a daycare with its own nap routine, and it can feel like you're starting over every week. You don't have to control everything.
 

@@ -4,7 +4,7 @@ Source: https://ferbertimer.com/ferber-method-night-wakings-and-feeds.html
 
 # Night wakings and night feeds during the Ferber method
 
-By the parent who makes Check In · Updated November 17, 2026
+By [the parent who makes Check In](https://ferbertimer.com/about.html) · Updated November 17, 2026
 
 Bedtime gets most of the attention, but for many families the real test comes at 2am. Here's how to handle night wakings and night feeds so the progress you make at bedtime carries through the night.
 

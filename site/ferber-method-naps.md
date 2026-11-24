@@ -4,7 +4,7 @@ Source: https://ferbertimer.com/ferber-method-naps.html
 
 # The Ferber method for naps
 
-By the parent who makes Check In · Updated November 17, 2026
+By [the parent who makes Check In](https://ferbertimer.com/about.html) · Updated November 17, 2026
 
 Naps are often harder than bedtime: there's less sleep pressure, more daylight, and less time to settle. Here's how to use the same approach in the day without losing your mind.
 

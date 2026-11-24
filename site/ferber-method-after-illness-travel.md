@@ -4,7 +4,7 @@ Source: https://ferbertimer.com/ferber-method-after-illness-travel.html
 
 # Restarting the Ferber method after illness, travel or teething
 
-By the parent who makes Check In · Updated November 19, 2026
+By [the parent who makes Check In](https://ferbertimer.com/about.html) · Updated November 19, 2026
 
 Your baby was finally sleeping, then came a cold, a trip to see family, or a new tooth. Now bedtime is a battle again. This is very common, and getting back on track is usually much faster than the first time.
 

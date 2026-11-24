@@ -4,7 +4,7 @@ Source: https://ferbertimer.com/ferber-timer-apps-compared.html
 
 # Ferber method timer apps compared
 
-By the parent who makes Check In · Updated November 19, 2026
+By [the parent who makes Check In](https://ferbertimer.com/about.html) · Updated November 19, 2026
 
 You don't need an app to do the Ferber method. A clock and a chart work. But at 2am, tired and anxious, a good timer makes it much easier to stay consistent. Here's what to look for and what's available.
 

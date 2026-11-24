@@ -4,7 +4,7 @@ Source: https://ferbertimer.com/ferber-method-shared-room-siblings-twins.html
 
 # The Ferber method in a shared room, with siblings or twins
 
-By the parent who makes Check In · Updated November 19, 2026
+By [the parent who makes Check In](https://ferbertimer.com/about.html) · Updated November 19, 2026
 
 Most Ferber advice assumes a baby alone in a nursery. Plenty of families don't have that: the crib is next to your bed, a big sister sleeps three feet away, or there are two babies. It still works. You just plan a little more.
 

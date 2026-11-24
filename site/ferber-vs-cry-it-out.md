@@ -4,7 +4,7 @@ Source: https://ferbertimer.com/ferber-vs-cry-it-out.html
 
 # Ferber vs cry it out vs the chair method
 
-By the parent who makes Check In · Updated November 17, 2026
+By [the parent who makes Check In](https://ferbertimer.com/about.html) · Updated November 17, 2026
 
 People often use "cry it out" for any sleep training, but the methods are quite different. Here's how they compare, and what the research does and doesn't say.
 

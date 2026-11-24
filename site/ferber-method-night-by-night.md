@@ -4,7 +4,7 @@ Source: https://ferbertimer.com/ferber-method-night-by-night.html
 
 # Ferber method night by night: what nights 1 to 7 usually look like
 
-By the parent who makes Check In · Updated November 17, 2026
+By [the parent who makes Check In](https://ferbertimer.com/about.html) · Updated November 17, 2026
 
 Knowing what's normal on each night makes the hard ones easier to get through. Here's what to expect, night by night, and what to do when a night doesn't go the way you hoped.
 

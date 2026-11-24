@@ -4,7 +4,7 @@ Source: https://ferbertimer.com/ferber-method-age.html
 
 # What age to start the Ferber method
 
-By the parent who makes Check In · Updated November 17, 2026
+By [the parent who makes Check In](https://ferbertimer.com/about.html) · Updated November 17, 2026
 
 There's no single right age, but there are some clear signs your baby is ready, and a few things to check with your pediatrician first.
 

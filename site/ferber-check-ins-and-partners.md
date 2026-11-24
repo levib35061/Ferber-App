@@ -4,7 +4,7 @@ Source: https://ferbertimer.com/ferber-check-ins-and-partners.html
 
 # Ferber check-ins: what to say, how long, and who goes in
 
-By the parent who makes Check In · Updated November 17, 2026
+By [the parent who makes Check In](https://ferbertimer.com/about.html) · Updated November 17, 2026
 
 The check-in is the part of the Ferber method that worries parents most. Here's what a good one looks like, and how two parents can share the nights without arguing at 2am.
 

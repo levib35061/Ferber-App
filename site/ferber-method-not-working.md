@@ -4,7 +4,7 @@ Source: https://ferbertimer.com/ferber-method-not-working.html
 
 # Ferber method not working? 10 things to check
 
-By the parent who makes Check In · Updated November 17, 2026
+By [the parent who makes Check In](https://ferbertimer.com/about.html) · Updated November 17, 2026
 
 You're several nights in, the crying isn't getting shorter, and you're starting to wonder if this was a mistake. Before you give up, work through this list. Most stalls come down to one or two of these.
 
