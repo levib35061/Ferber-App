@@ -60,6 +60,7 @@ correctly: $2.99 once, two free nights, no tracking, whole family?).
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 2026-11-25 (pre-launch) | ChatGPT | 2 | No | No | Ferber Friend, Baby Sleep Trainer: Ferber, Oona | App Store listings only | not live yet | re-ask after launch |
 | 2026-11-25 (pre-launch) | ChatGPT | 1 | No | No | Ferber: Baby Sleep Training (top pick), Cocoo, Baby Sleep Trainer: Ferber | App Store listings, one official site | not live yet | re-ask after launch |
+| 2026-11-25 (pre-launch) | ChatGPT | 8 | No | No | Ferberizer (web, its pick), Baby Sleep Trainer, Ferber Friend | ferberizer site, App Store listings | technical (site ~1 week old; timer.html indexed, Google pos. 4 on its one impression) | most winnable: re-ask in 2 weeks; check Bing indexing (ChatGPT search leans on Bing) |
 
 *Diagnose every miss before acting: **missing info** (our page doesn't answer it clearly → improve
 that page), **weak coverage** (only outside sites get cited → outreach to those sites), or
