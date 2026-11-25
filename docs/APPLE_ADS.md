@@ -14,6 +14,11 @@ into the free App Store keyword fields. Stop when the credit is used up.
    under Billing if you got it).
 3. Billing: add a card (required even with the credit). Set the account to **US only**.
 
+Status (Nov 25): the account opened as **Basic** (linked to App Store Connect; nothing added or
+running). The "Basic ⌄" menu showed Advanced but it wasn't clickable before launch. On launch day:
+try Basic ⌄ → Advanced again, or `app-ads.apple.com/cm/app`; if still stuck, ask Apple Ads support
+to switch the account to Advanced. Don't click "Add an App" in Basic.
+
 ## Campaigns (create both on launch day, once the app is live)
 
 ### Campaign 1: "Exact - Ferber" (about 70% of the budget)
