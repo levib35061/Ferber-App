@@ -134,12 +134,39 @@ First release. Sweet dreams.
 
 ## Notes for App Review
 
+Answers Apple's Guideline 2.1 "Information Needed" request (Nov 2026). Paste into App Review
+Information → Notes (limit 4000 characters); attach the screen recording under Attachment.
+
 ```
-No account is needed. To try the app: finish the short setup, then on the Night tab tap "Down for the night", then "Crying" to start the first wait. Check-in alerts are local notifications scheduled for the end of each wait.
+1. SCREEN RECORDING
+Attached (recorded on iPhone, latest iOS, build 12). It starts at launch and shows: setup; adding two past nights (uses the 2 free nights); the unlock screen and the $2.99 purchase (sandbox); a night with the timer (Down for the night, Crying, countdown, lock-screen alert and Live Activity, Going in / Back out, Asleep, Up for the day); the morning summary and History; partner sharing (which creates the optional account) and Sign in with Apple; and account deletion.
 
-Partner sharing (Settings → Partner sharing) is optional. "Invite my partner" shows an 8-character code; a second device enters it under "Have a code from your partner?". Sign in with Apple is optional and only keeps sharing across reinstalls.
+2. PURPOSE AND AUDIENCE
+Check In is a timer for parents sleep training a baby (about 6 months and older) with the Ferber method ("graduated check-ins"). The method asks parents to wait set, growing intervals before going in to reassure a crying baby. At 2am that is hard to time and easy to get wrong. Check In counts down each wait from the Ferber chart, alerts the parent (also with the phone locked), restarts the waits after a waking or a feed, and logs each night so parents can see crying time fall. Parents can share a night across phones and choose who is on duty.
 
-The first two nights are free. Starting a third night opens the unlock screen (non-consumable in-app purchase "checkin_unlock"). Account deletion: Settings → Help & about → Delete my account and data.
+3. HOW TO USE IT (no login needed)
+- Finish the short setup (baby's name and age, chart, allow notifications).
+- Night tab: tap "Down for the night", then "Crying". The countdown to the first check-in starts. When it ends, an alert sounds and the screen shows "Time to check in". Tap "Going in", then "Back out"; the next, longer wait starts. Tap "Asleep" when the baby sleeps and "Up for the day" in the morning.
+- To see an alert quickly: Settings → Sleep plan → Custom → tap the first number and set it to 1 minute.
+- History → "+ Missed night" adds a past night.
+- The first 2 nights are free. Starting a 3rd night opens the unlock screen (non-consumable in-app purchase "checkin_unlock", $2.99). To reach it quickly, add two missed nights in History, then tap "Down for the night".
+- Partner sharing (optional): Settings → Partner sharing → "Invite my partner" shows an 8-character code; a second device enters it under "Have a code from your partner?". This creates a private account without any sign-up. Sign in with Apple there is optional.
+- Account deletion: Settings → Help & about → "Delete my account and data".
+There is no user-generated content shared publicly (only between the family members a parent invites), and no demo account is needed.
+
+4. EXTERNAL SERVICES
+- Apple In-App Purchase, through RevenueCat (purchase validation, restore).
+- Supabase (database, anonymous accounts and server functions), used only for optional partner sharing and to record a family's unlock.
+- Sign in with Apple (optional).
+- Apple Push Notification service, via Expo's push service, to tell a partner's phone about a new step.
+- Expo Updates (app updates).
+Check-in alerts are local notifications. No analytics, advertising, tracking or AI services.
+
+5. REGIONS
+The app works the same in every region. Only the price is shown in local currency by the App Store.
+
+6. REGULATED INDUSTRY / THIRD-PARTY MATERIAL
+Not applicable. Check In is not a medical device and gives no medical advice (it says so in setup and asks parents to talk to their pediatrician). The Ferber interval chart is a widely published schedule of minutes; no text or artwork from the book is used, and the app is not affiliated with Dr. Ferber.
 ```
 
 ## App Privacy questionnaire
