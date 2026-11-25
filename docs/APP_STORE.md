@@ -139,14 +139,14 @@ Information → Notes (limit 4000 characters); attach the screen recording under
 
 ```
 1. SCREEN RECORDING
-Attached (recorded on iPhone, latest iOS, build 12). It starts at launch and shows: setup; adding two past nights (uses the 2 free nights); the unlock screen and the $2.99 purchase (sandbox); a night with the timer (Down for the night, Crying, countdown, lock-screen alert and Live Activity, Going in / Back out, Asleep, Up for the day); the morning summary and History; partner sharing (which creates the optional account) and Sign in with Apple; and account deletion.
+Attached (recorded on iPhone, latest iOS, build 12). It starts at launch and shows: setup; adding two past nights (uses the 2 free nights); the unlock screen and the $2.99 purchase (sandbox); a night with the timer (Down for the night, Crying, countdown, the check-in alert and the Live Activity in the Dynamic Island, Going in / Back out, Asleep); History and Progress. (iOS stops screen recording when the phone locks, so the alert is shown as a banner over the Home Screen; it also shows on the lock screen.) partner sharing (which creates the optional account) and Sign in with Apple; and account deletion.
 
 2. PURPOSE AND AUDIENCE
 Check In is a timer for parents sleep training a baby (about 6 months and older) with the Ferber method ("graduated check-ins"). The method asks parents to wait set, growing intervals before going in to reassure a crying baby. At 2am that is hard to time and easy to get wrong. Check In counts down each wait from the Ferber chart, alerts the parent (also with the phone locked), restarts the waits after a waking or a feed, and logs each night so parents can see crying time fall. Parents can share a night across phones and choose who is on duty.
 
 3. HOW TO USE IT (no login needed)
 - Finish the short setup (a few intro screens, the baby's name and age, allow notifications).
-- Night tab: tap "Down for the night", then "Crying". The countdown to the first check-in starts. When it ends, an alert sounds and the screen shows "Time to check in". Tap "Going in", then "Back out"; the next, longer wait starts. Tap "Asleep" when the baby sleeps and "Up for the day" in the morning.
+- Night tab: tap "Down for the night", then "Crying". The countdown to the first check-in starts. When it ends, an alert sounds and the screen shows "Time to check in". Tap "Going in", then "Back out"; the next, longer wait starts. Tap "Asleep" when the baby sleeps. "Up for the day" appears from 5am to 11am to end the night (the night also ends by itself at 11am); it opens the morning summary.
 - To see an alert quickly: Settings → Sleep plan → Custom → tap the first number and set it to 1 minute.
 - History → "+ Missed night" adds a past night.
 - The first 2 nights are free. Starting a 3rd night opens the unlock screen (non-consumable in-app purchase "checkin_unlock", $2.99). To reach it quickly, add two missed nights in History, then tap "Down for the night".
