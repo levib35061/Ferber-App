@@ -213,7 +213,7 @@ Made by a parent who built Check In after sleep training our own baby. Check wit
 | 08 | If they stop crying, the timer pauses. If they wake at two a.m., it starts again from the first wait, just like the method says. | *[“Stopped crying” and "Woke up" buttons]* |
 | 09 | It works on both of your phones. Pick who's on duty tonight, and only that phone gets the alerts. | *[Recording 5]* |
 | 10 | In the morning, you get a short summary of the night, and a chart of crying time, so you can see it working. | *[Recordings 6 and 7]* |
-| 11 | It's free for your first two nights, then four ninety-nine once. One purchase covers both parents. No subscription, no ads, no tracking. | *[Price card]* |
+| 11 | It's free for your first two nights, then two ninety-nine once. One purchase covers both parents. No subscription, no ads, no tracking. | *[Price card]* |
 | 12 | It's called Check In: Baby Sleep Timer, on the App Store. I hope it makes your nights a little easier. | *[End card: App Store badge, ferbertimer.com]* |
 
 **Paste into ElevenLabs:**
@@ -239,7 +239,7 @@ It works on both of your phones. Pick who's on duty tonight, and only that phone
 <break time="1.2s" />
 In the morning, you get a short summary of the night, and a chart of crying time, so you can see it working.
 <break time="1.2s" />
-It's free for your first two nights, then four ninety-nine once. One purchase covers both parents. No subscription, no ads, no tracking.
+It's free for your first two nights, then two ninety-nine once. One purchase covers both parents. No subscription, no ads, no tracking.
 <break time="1.2s" />
 It's called Check In: Baby Sleep Timer, on the App Store. I hope it makes your nights a little easier.
 ```
