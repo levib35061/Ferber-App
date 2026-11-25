@@ -145,7 +145,7 @@ Attached (recorded on iPhone, latest iOS, build 12). It starts at launch and sho
 Check In is a timer for parents sleep training a baby (about 6 months and older) with the Ferber method ("graduated check-ins"). The method asks parents to wait set, growing intervals before going in to reassure a crying baby. At 2am that is hard to time and easy to get wrong. Check In counts down each wait from the Ferber chart, alerts the parent (also with the phone locked), restarts the waits after a waking or a feed, and logs each night so parents can see crying time fall. Parents can share a night across phones and choose who is on duty.
 
 3. HOW TO USE IT (no login needed)
-- Finish the short setup (baby's name and age, chart, allow notifications).
+- Finish the short setup (a few intro screens, the baby's name and age, allow notifications).
 - Night tab: tap "Down for the night", then "Crying". The countdown to the first check-in starts. When it ends, an alert sounds and the screen shows "Time to check in". Tap "Going in", then "Back out"; the next, longer wait starts. Tap "Asleep" when the baby sleeps and "Up for the day" in the morning.
 - To see an alert quickly: Settings → Sleep plan → Custom → tap the first number and set it to 1 minute.
 - History → "+ Missed night" adds a past night.
